@@ -1,0 +1,288 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>perlstyle</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="perlsub.html">Next:<br>perlsub</a></td><td align="left" width="1%"><a  href="perlsec.html">Previous:<br>perlsec</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">perlstyle</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+perlstyle - Perl style guide
+</p>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+Each programmer will, of course, have his or her own preferences in
+regards to formatting, but there are some general guidelines that will
+make your programs easier to read, understand, and maintain.
+</p>
+<p class="POD_TEXT">
+The most important thing is to run your programs under the <b>-w</b>
+flag at all times.  You may turn it off explicitly for particular
+portions of code via the <code>use warnings</code> pragma or the <code><a class="POD_LINK" href="perlvar.html#_W">$^W</a></code> variable 
+if you must.  You should
+also always run under <code>use strict</code> or know the reason why not.
+The <code>use sigtrap</code> and even <code>use diagnostics</code> pragmas may also prove
+useful.
+</p>
+<p class="POD_TEXT">
+Regarding aesthetics of code lay out, about the only thing Larry
+cares strongly about is that the closing curly bracket of
+a multi-line BLOCK should line up with the keyword that started the construct.
+Beyond that, he has other preferences that aren't so strong:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_"></a>
+
+4-column indent.
+<li class="POD_ITEM"><a name="_1"></a>
+
+Opening curly on same line as keyword, if possible, otherwise line up.
+<li class="POD_ITEM"><a name="_2"></a>
+
+Space before the opening curly of a multi-line BLOCK.
+<li class="POD_ITEM"><a name="_3"></a>
+
+One-line BLOCK may be put on one line, including curlies.
+<li class="POD_ITEM"><a name="_4"></a>
+
+No space before the semicolon.
+<li class="POD_ITEM"><a name="_5"></a>
+
+Semicolon omitted in &quot;short&quot; one-line BLOCK.
+<li class="POD_ITEM"><a name="_6"></a>
+
+Space around most operators.
+<li class="POD_ITEM"><a name="_7"></a>
+
+Space around a &quot;complex&quot; subscript (inside brackets).
+<li class="POD_ITEM"><a name="_8"></a>
+
+Blank lines between chunks that do different things.
+<li class="POD_ITEM"><a name="_9"></a>
+
+Uncuddled elses.
+<li class="POD_ITEM"><a name="_10"></a>
+
+No space between function name and its opening parenthesis.
+<li class="POD_ITEM"><a name="_11"></a>
+
+Space after each comma.
+<li class="POD_ITEM"><a name="_12"></a>
+
+Long lines broken after an operator (except &quot;and&quot; and &quot;or&quot;).
+<li class="POD_ITEM"><a name="_13"></a>
+
+Space after last parenthesis matching on current line.
+<li class="POD_ITEM"><a name="_14"></a>
+
+Line up corresponding items vertically.
+<li class="POD_ITEM"><a name="_15"></a>
+
+Omit redundant punctuation as long as clarity doesn't suffer.
+</ul>
+<p class="POD_TEXT">
+Larry has his reasons for each of these things, but he doesn't claim that
+everyone else's mind works the same as his does.
+</p>
+<p class="POD_TEXT">
+Here are some other more substantive style issues to think about:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_16"></a>
+
+Just because you <i>CAN</i> do something a particular way doesn't mean that
+you <i>SHOULD</i> do it that way.  Perl is designed to give you several
+ways to do anything, so consider picking the most readable one.  For
+instance
+<pre class="POD_VERBATIM">
+    open(FOO,$foo) || die &quot;Can't open $foo: $!&quot;;
+</pre>
+<pre class="POD_TEXT">
+is better than
+
+    die &quot;Can't open $foo: $!&quot; unless open(FOO,$foo);
+</pre>
+<pre class="POD_TEXT">
+because the second way hides the main point of the statement in a
+modifier.  On the other hand
+
+    print &quot;Starting analysis\n&quot; if $verbose;
+</pre>
+<pre class="POD_TEXT">
+is better than
+
+    $verbose &amp;&amp; print &quot;Starting analysis\n&quot;;
+</pre>
+<p class="POD_TEXT">
+because the main point isn't whether the user typed <b>-v</b> or not.
+</p>
+<p class="POD_TEXT">
+Similarly, just because an operator lets you assume default arguments
+doesn't mean that you have to make use of the defaults.  The defaults
+are there for lazy systems programmers writing one-shot programs.  If
+you want your program to be readable, consider supplying the argument.
+</p>
+<pre class="POD_TEXT">
+Along the same lines, just because you <i>CAN</i> omit parentheses in many
+places doesn't mean that you ought to:
+
+    return print reverse sort num values %array;
+    return print(reverse(sort num (values(%array))));
+</pre>
+<p class="POD_TEXT">
+When in doubt, parenthesize.  At the very least it will let some poor
+schmuck bounce on the % key in <b>vi</b>.
+</p>
+<p class="POD_TEXT">
+Even if you aren't in doubt, consider the mental welfare of the person
+who has to maintain the code after you, and who will probably put
+parentheses in the wrong place.
+</p>
+<li class="POD_ITEM"><a name="_17"></a>
+
+Don't go through silly contortions to exit a loop at the top or the
+bottom, when Perl provides the <code><a class="POD_LINK" href="perlfunc.html#last">last</a></code> operator so you can exit in
+the middle.  Just &quot;outdent&quot; it a little to make it more visible:
+<pre class="POD_VERBATIM">
+    LINE:
+	for (;;) {
+	    statements;
+	  last LINE if $foo;
+	    next LINE if /^#/;
+	    statements;
+	}
+</pre>
+<li class="POD_ITEM"><a name="_18"></a>
+
+Don't be afraid to use loop labels--they're there to enhance
+readability as well as to allow multilevel loop breaks.  See the
+previous example.
+<li class="POD_ITEM"><a name="_19"></a>
+
+Avoid using grep() (or map()) or `backticks` in a void context, that is,
+when you just throw away their return values.  Those functions all
+have return values, so use them.  Otherwise use a foreach() loop or
+the system() function instead.
+<li class="POD_ITEM"><a name="_20"></a>
+
+For portability, when using features that may not be implemented on
+every machine, test the construct in an eval to see if it fails.  If
+you know what version or patchlevel a particular feature was
+implemented, you can test <code><a class="POD_LINK" href="perlvar.html#_37">$]</a></code> (<code><a class="POD_LINK" href="perlvar.html#_PERL_VERSION">$PERL_VERSION</a></code> in <code>English</code>) to see if it
+will be there.  The <code>Config</code> module will also let you interrogate values
+determined by the <b>Configure</b> program when Perl was installed.
+<li class="POD_ITEM"><a name="_21"></a>
+
+Choose mnemonic identifiers.  If you can't remember what mnemonic means,
+you've got a problem.
+<li class="POD_ITEM"><a name="_22"></a>
+
+While short identifiers like $gotit are probably ok, use underscores to
+separate words.  It is generally easier to read $var_names_like_this than
+$VarNamesLikeThis, especially for non-native speakers of English. It's
+also a simple rule that works consistently with VAR_NAMES_LIKE_THIS.
+<p class="POD_TEXT">
+Package names are sometimes an exception to this rule.  Perl informally
+reserves lowercase module names for &quot;pragma&quot; modules like <code>integer</code> and
+<code>strict</code>.  Other modules should begin with a capital letter and use mixed
+case, but probably without underscores due to limitations in primitive
+file systems' representations of module names as files that must fit into a
+few sparse bytes.
+</p>
+<li class="POD_ITEM"><a name="_23"></a>
+
+You may find it helpful to use letter case to indicate the scope
+or nature of a variable. For example:
+<pre class="POD_VERBATIM">
+    $ALL_CAPS_HERE   constants only (beware clashes with perl vars!)
+    $Some_Caps_Here  package-wide global/static
+    $no_caps_here    function scope my() or local() variables
+</pre>
+<p class="POD_TEXT">
+Function and method names seem to work best as all lowercase.
+E.g., $obj-&gt;as_string().
+</p>
+<p class="POD_TEXT">
+You can use a leading underscore to indicate that a variable or
+function should not be used outside the package that defined it.
+</p>
+<li class="POD_ITEM"><a name="_24"></a>
+
+If you have a really hairy regular expression, use the <code>/x</code> modifier and
+put in some whitespace to make it look a little less like line noise.
+Don't use slash as a delimiter when your regexp has slashes or backslashes.
+<li class="POD_ITEM"><a name="_25"></a>
+
+Use the new &quot;and&quot; and &quot;or&quot; operators to avoid having to parenthesize
+list operators so much, and to reduce the incidence of punctuation
+operators like <code>&amp;&amp;</code> and <code>||</code>.  Call your subroutines as if they were
+functions or list operators to avoid excessive ampersands and parentheses.
+<li class="POD_ITEM"><a name="_26"></a>
+
+Use here documents instead of repeated print() statements.
+<li class="POD_ITEM"><a name="_27"></a>
+
+Line up corresponding things vertically, especially if it'd be too long
+to fit on one line anyway.
+<pre class="POD_VERBATIM">
+    $IDX = $ST_MTIME;
+    $IDX = $ST_ATIME 	   if $opt_u;
+    $IDX = $ST_CTIME 	   if $opt_c;
+    $IDX = $ST_SIZE  	   if $opt_s;
+
+    mkdir $tmpdir, 0700	or die &quot;can't mkdir $tmpdir: $!&quot;;
+    chdir($tmpdir)      or die &quot;can't chdir $tmpdir: $!&quot;;
+    mkdir 'tmp',   0777	or die &quot;can't mkdir $tmpdir/tmp: $!&quot;;
+</pre>
+<li class="POD_ITEM"><a name="_28"></a>
+
+Always check the return codes of system calls.  Good error messages should
+go to STDERR, include which program caused the problem, what the failed
+system call and arguments were, and (VERY IMPORTANT) should contain the
+standard system error message for what went wrong.  Here's a simple but
+sufficient example:
+<pre class="POD_VERBATIM">
+    opendir(D, $dir)	 or die &quot;can't opendir $dir: $!&quot;;
+</pre>
+<li class="POD_ITEM"><a name="_29"></a>
+
+Line up your transliterations when it makes sense:
+<pre class="POD_VERBATIM">
+    tr [abc]
+       [xyz];
+</pre>
+<li class="POD_ITEM"><a name="_30"></a>
+
+Think about reusability.  Why waste brainpower on a one-shot when you
+might want to do something like it again?  Consider generalizing your
+code.  Consider writing a module or object class.  Consider making your
+code run cleanly with <code>use strict</code> and <code>use warnings</code> (or <b>-w</b>) in effect
+Consider giving away
+your code.  Consider changing your whole world view.  Consider... oh,
+never mind.
+<li class="POD_ITEM"><a name="_31"></a>
+
+Be consistent.
+<li class="POD_ITEM"><a name="_32"></a>
+
+Be nice.
+</ul>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:36:09 2001
+</body>
+</html>
+

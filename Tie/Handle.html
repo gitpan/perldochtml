@@ -1,0 +1,126 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>Tie::Handle</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="../Tie/Hash.html">Next:<br>Tie::Hash</a></td><td align="left" width="1%"><a  href="../Tie/Array.html">Previous:<br>Tie::Array</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="../podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="../podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">Tie::Handle</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#MORE_INFORMATION">MORE INFORMATION</a>
+<li><a href="#COMPATIBILITY">COMPATIBILITY</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+Tie::Handle, Tie::StdHandle  - base class definitions for tied handles
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+    package NewHandle;
+    require Tie::Handle;
+
+    @ISA = (Tie::Handle);
+
+    sub READ { ... }		# Provide a needed method
+    sub TIEHANDLE { ... }	# Overrides inherited method
+</pre>
+<pre>
+    package main;
+
+    tie *FH, 'NewHandle';
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+This module provides some skeletal methods for handle-tying classes. See
+the <a class="POD_LINK" href="../perltie.html">perltie</a> manpage for a list of the functions required in tying a handle to a package.
+The basic <b>Tie::Handle</b> package provides a <code>new</code> method, as well as methods
+<code>TIEHANDLE</code>, <code>PRINT</code>, <code>PRINTF</code> and <code>GETC</code>.
+</p>
+<p class="POD_TEXT">
+For developers wishing to write their own tied-handle classes, the methods
+are summarized below. The the <a class="POD_LINK" href="../perltie.html">perltie</a> manpage section not only documents these, but
+has sample code as well:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="TIEHANDLE_classname_">TIEHANDLE classname, LIST</a>
+<dd>
+The method invoked by the command <code>tie *glob, classname</code>. Associates a new
+glob instance with the specified class. <code>LIST</code> would represent additional
+arguments (along the lines of the <a class="POD_LINK" href="../AnyDBM_File.html">AnyDBM_File</a> manpage and compatriots) needed to
+complete the association.
+<dt class="POD_ITEM"><a name="WRITE_this_scalar_le">WRITE this, scalar, length, offset</a>
+<dd>
+Write <i>length</i> bytes of data from <i>scalar</i> starting at <i>offset</i>.
+<dt class="POD_ITEM"><a name="PRINT_this_LIST">PRINT this, LIST</a>
+<dd>
+Print the values in <i>LIST</i>
+<dt class="POD_ITEM"><a name="PRINTF_this_format_L">PRINTF this, format, LIST</a>
+<dd>
+Print the values in <i>LIST</i> using <i>format</i>
+<dt class="POD_ITEM"><a name="READ_this_scalar_len">READ this, scalar, length, offset</a>
+<dd>
+Read <i>length</i> bytes of data into <i>scalar</i> starting at <i>offset</i>.
+<dt class="POD_ITEM"><a name="READLINE_this">READLINE this</a>
+<dd>
+Read a single line
+<dt class="POD_ITEM"><a name="GETC_this">GETC this</a>
+<dd>
+Get a single character
+<dt class="POD_ITEM"><a name="CLOSE_this">CLOSE this</a>
+<dd>
+Close the handle
+<dt class="POD_ITEM"><a name="OPEN_this_filename">OPEN this, filename</a>
+<dd>
+(Re-)open the handle
+<dt class="POD_ITEM"><a name="BINMODE_this">BINMODE this</a>
+<dd>
+Specify content is binary
+<dt class="POD_ITEM"><a name="EOF_this">EOF this</a>
+<dd>
+Test for end of file.
+<dt class="POD_ITEM"><a name="TELL_this">TELL this</a>
+<dd>
+Return position in the file.
+<dt class="POD_ITEM"><a name="SEEK_this_offset_whe">SEEK this, offset, whence</a>
+<dd>
+Position the file.
+<p class="POD_TEXT">
+Test for end of file.
+</p>
+<dt class="POD_ITEM"><a name="DESTROY_this">DESTROY this</a>
+<dd>
+Free the storage associated with the tied handle referenced by <i>this</i>.
+This is rarely needed, as Perl manages its memory quite well. But the
+option exists, should a class wish to perform specific actions upon the
+destruction of an instance.
+</dl>
+<h2 class="POD_HEAD1"><a name="MORE_INFORMATION">MORE INFORMATION</a></h2>
+<p class="POD_TEXT">
+The the <a class="POD_LINK" href="../perltie.html">perltie</a> manpage section contains an example of tying handles.
+</p>
+<h2 class="POD_HEAD1"><a name="COMPATIBILITY">COMPATIBILITY</a></h2>
+<p class="POD_TEXT">
+This version of Tie::Handle is neither related to nor compatible with
+the Tie::Handle (3.0) module available on CPAN. It was due to an
+accident that two modules with the same name appeared. The namespace
+clash has been cleared in favor of this module that comes with the
+perl core in September 2000 and accordingly the version number has
+been bumped up to 4.0.
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:37:01 2001
+</body>
+</html>
+

@@ -1,0 +1,114 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>ExtUtils::Installed</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="../ExtUtils/Liblist.html">Next:<br>ExtUtils::Liblist</a></td><td align="left" width="1%"><a  href="../ExtUtils/Install.html">Previous:<br>ExtUtils::Install</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="../podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="../podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">ExtUtils::Installed</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#USAGE">USAGE</a>
+<li><a href="#FUNCTIONS">FUNCTIONS</a>
+<li><a href="#EXAMPLE">EXAMPLE</a>
+<li><a href="#AUTHOR">AUTHOR</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+ExtUtils::Installed - Inventory management of installed modules
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+   use ExtUtils::Installed;
+   my ($inst) = ExtUtils::Installed-&gt;new();
+   my (@modules) = $inst-&gt;modules();
+   my (@missing) = $inst-&gt;validate(&quot;DBI&quot;);
+   my $all_files = $inst-&gt;files(&quot;DBI&quot;);
+   my $files_below_usr_local = $inst-&gt;files(&quot;DBI&quot;, &quot;all&quot;, &quot;/usr/local&quot;);
+   my $all_dirs = $inst-&gt;directories(&quot;DBI&quot;);
+   my $dirs_below_usr_local = $inst-&gt;directory_tree(&quot;DBI&quot;, &quot;prog&quot;);
+   my $packlist = $inst-&gt;packlist(&quot;DBI&quot;);
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+ExtUtils::Installed  provides a standard way to find out what core and module
+files have been installed.  It uses the information stored in .packlist files
+created during installation to provide this information.  In addition it
+provides facilities to classify the installed files and to extract directory
+information from the .packlist files.
+</p>
+<h2 class="POD_HEAD1"><a name="USAGE">USAGE</a></h2>
+<p class="POD_TEXT">
+The new() function searches for all the installed .packlists on the system, and
+stores their contents. The .packlists can be queried with the functions
+described below.
+</p>
+<h2 class="POD_HEAD1"><a name="FUNCTIONS">FUNCTIONS</a></h2>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="new_">new()</a>
+<dd>
+This takes no parameters, and searches for all the installed .packlists on the
+system.  The packlists are read using the ExtUtils::packlist module.
+<dt class="POD_ITEM"><a name="modules_">modules()</a>
+<dd>
+This returns a list of the names of all the installed modules.  The perl 'core'
+is given the special name 'Perl'.
+<dt class="POD_ITEM"><a name="files_">files()</a>
+<dd>
+This takes one mandatory parameter, the name of a module.  It returns a list of
+all the filenames from the package.  To obtain a list of core perl files, use
+the module name 'Perl'.  Additional parameters are allowed.  The first is one
+of the strings &quot;prog&quot;, &quot;man&quot; or &quot;all&quot;, to select either just program files,
+just manual files or all files.  The remaining parameters are a list of
+directories. The filenames returned will be restricted to those under the
+specified directories.
+<dt class="POD_ITEM"><a name="directories_">directories()</a>
+<dd>
+This takes one mandatory parameter, the name of a module.  It returns a list of
+all the directories from the package.  Additional parameters are allowed.  The
+first is one of the strings &quot;prog&quot;, &quot;man&quot; or &quot;all&quot;, to select either just
+program directories, just manual directories or all directories.  The remaining
+parameters are a list of directories. The directories returned will be
+restricted to those under the specified directories.  This method returns only
+the leaf directories that contain files from the specified module.
+<dt class="POD_ITEM"><a name="directory_tree_">directory_tree()</a>
+<dd>
+This is identical in operation to directory(), except that it includes all the
+intermediate directories back up to the specified directories.
+<dt class="POD_ITEM"><a name="validate_">validate()</a>
+<dd>
+This takes one mandatory parameter, the name of a module.  It checks that all
+the files listed in the modules .packlist actually exist, and returns a list of
+any missing files.  If an optional second argument which evaluates to true is
+given any missing files will be removed from the .packlist
+<dt class="POD_ITEM"><a name="packlist_">packlist()</a>
+<dd>
+This returns the ExtUtils::Packlist object for the specified module.
+<dt class="POD_ITEM"><a name="version_">version()</a>
+<dd>
+This returns the version number for the specified module.
+</dl>
+<h2 class="POD_HEAD1"><a name="EXAMPLE">EXAMPLE</a></h2>
+<p class="POD_TEXT">
+See the example in the <a class="POD_LINK" href="../ExtUtils/Packlist.html">ExtUtils::Packlist</a> manpage.
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHOR">AUTHOR</a></h2>
+<p class="POD_TEXT">
+Alan Burlison &lt;Alan.Burlison@uk.sun.com&gt;
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:22 2001
+</body>
+</html>
+

@@ -1,0 +1,1060 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>perllocale</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="perllol.html">Next:<br>perllol</a></td><td align="left" width="1%"><a  href="perllexwarn.html">Previous:<br>perllexwarn</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">perllocale</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#PREPARING_TO_USE_LOC">PREPARING TO USE LOCALES</a>
+<li><a href="#USING_LOCALES">USING LOCALES</a>
+<ul>
+<li><a href="#The_use_locale_pragm">The use locale pragma</a>
+<li><a href="#The_setlocale_functi">The setlocale function</a>
+<li><a href="#Finding_locales">Finding locales</a>
+<li><a href="#LOCALE_PROBLEMS">LOCALE PROBLEMS</a>
+<li><a href="#Temporarily_fixing_l">Temporarily fixing locale problems</a>
+<li><a href="#Permanently_fixing_l">Permanently fixing locale problems</a>
+<li><a href="#Permanently_fixing_y">Permanently fixing your system's locale configuration</a>
+<li><a href="#Fixing_system_locale">Fixing system locale configuration</a>
+<li><a href="#The_localeconv_funct">The localeconv function</a>
+</ul>
+<li><a href="#LOCALE_CATEGORIES">LOCALE CATEGORIES</a>
+<ul>
+<li><a href="#Category_LC_COLLATE_">Category LC_COLLATE: Collation</a>
+<li><a href="#Category_LC_CTYPE_Ch">Category LC_CTYPE: Character Types</a>
+<li><a href="#Category_LC_NUMERIC_">Category LC_NUMERIC: Numeric Formatting</a>
+<li><a href="#Category_LC_MONETARY">Category LC_MONETARY: Formatting of monetary amounts</a>
+<li><a href="#LC_TIME">LC_TIME</a>
+<li><a href="#Other_categories">Other categories</a>
+</ul>
+<li><a href="#SECURITY">SECURITY</a>
+<li><a href="#ENVIRONMENT">ENVIRONMENT</a>
+<li><a href="#NOTES">NOTES</a>
+<ul>
+<li><a href="#Backward_compatibili">Backward compatibility</a>
+<li><a href="#I18N_Collate_obsolet">I18N:Collate obsolete</a>
+<li><a href="#Sort_speed_and_memor">Sort speed and memory use impacts</a>
+<li><a href="#write_and_LC_NUMERIC">write() and LC_NUMERIC</a>
+<li><a href="#Freely_available_loc">Freely available locale definitions</a>
+<li><a href="#I18n_and_l10n">I18n and l10n</a>
+<li><a href="#An_imperfect_standar">An imperfect standard</a>
+</ul>
+<li><a href="#BUGS">BUGS</a>
+<ul>
+<li><a href="#Broken_systems">Broken systems</a>
+</ul>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+<li><a href="#HISTORY">HISTORY</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+perllocale - Perl locale handling (internationalization and localization)
+</p>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+Perl supports language-specific notions of data such as &quot;is this
+a letter&quot;, &quot;what is the uppercase equivalent of this letter&quot;, and
+&quot;which of these letters comes first&quot;.  These are important issues,
+especially for languages other than English--but also for English: it
+would be na&iuml;ve to imagine that <code>A-Za-z</code> defines all the &quot;letters&quot;
+needed to write in English. Perl is also aware that some character other
+than '.' may be preferred as a decimal point, and that output date
+representations may be language-specific.  The process of making an
+application take account of its users' preferences in such matters is
+called <b>internationalization</b> (often abbreviated as <b>i18n</b>); telling
+such an application about a particular set of preferences is known as
+<b>localization</b> (<b>l10n</b>).
+</p>
+<p class="POD_TEXT">
+Perl can understand language-specific data via the standardized (ISO C,
+XPG4, POSIX 1.c) method called &quot;the locale system&quot;. The locale system is
+controlled per application using one pragma, one function call, and
+several environment variables.
+</p>
+<p class="POD_TEXT">
+<b>NOTE</b>: This feature is new in Perl 5.004, and does not apply unless an
+application specifically requests it--see the <a class="POD_LINK" href="#Backward_compatibili">Backward compatibility</a> entry elsewhere in this document.
+The one exception is that write() now <b>always</b> uses the current locale
+- see the section on <a class="POD_LINK" href="#NOTES">NOTES</a> elsewhere in this document.
+</p>
+<h2 class="POD_HEAD1"><a name="PREPARING_TO_USE_LOC">PREPARING TO USE LOCALES</a></h2>
+<p class="POD_TEXT">
+If Perl applications are to understand and present your data
+correctly according a locale of your choice, <b>all</b> of the following
+must be true:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_"></a>
+
+<b>Your operating system must support the locale system</b>.  If it does,
+you should find that the setlocale() function is a documented part of
+its C library.
+<li class="POD_ITEM"><a name="_1"></a>
+
+<b>Definitions for locales that you use must be installed</b>.  You, or
+your system administrator, must make sure that this is the case. The
+available locales, the location in which they are kept, and the manner
+in which they are installed all vary from system to system.  Some systems
+provide only a few, hard-wired locales and do not allow more to be
+added.  Others allow you to add &quot;canned&quot; locales provided by the system
+supplier.  Still others allow you or the system administrator to define
+and add arbitrary locales.  (You may have to ask your supplier to
+provide canned locales that are not delivered with your operating
+system.)  Read your system documentation for further illumination.
+<li class="POD_ITEM"><a name="_2"></a>
+
+<b>Perl must believe that the locale system is supported</b>.  If it does,
+<code>perl -V:d_setlocale</code> will say that the value for <code>d_setlocale</code> is
+<code>define</code>.
+</ul>
+<p class="POD_TEXT">
+If you want a Perl application to process and present your data
+according to a particular locale, the application code should include
+the <code>use&nbsp;locale</code> pragma (see the <a class="POD_LINK" href="#The_use_locale_pragm">The use locale pragma</a> entry elsewhere in this document) where
+appropriate, and <b>at least one</b> of the following must be true:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_3"></a>
+
+<b>The locale-determining environment variables (see the section on <a class="POD_LINK" href="#ENVIRONMENT">ENVIRONMENT</a> elsewhere in this document)
+must be correctly set up</b> at the time the application is started, either
+by yourself or by whoever set up your system account.
+<li class="POD_ITEM"><a name="_4"></a>
+
+<b>The application must set its own locale</b> using the method described in
+the <a class="POD_LINK" href="#The_setlocale_functi">The setlocale function</a> entry elsewhere in this document.
+</ul>
+<h2 class="POD_HEAD1"><a name="USING_LOCALES">USING LOCALES</a></h2>
+<h3 class="POD_HEAD2"><a name="The_use_locale_pragm">The use locale pragma</a></h3>
+<p class="POD_TEXT">
+By default, Perl ignores the current locale.  The <code>use&nbsp;locale</code>
+pragma tells Perl to use the current locale for some operations:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_5"></a>
+
+<b>The comparison operators</b> (<code>lt</code>, <code>le</code>, <code>cmp</code>, <code>ge</code>, and <code>gt</code>) and
+the POSIX string collation functions strcoll() and strxfrm() use
+<code>LC_COLLATE</code>.  sort() is also affected if used without an
+explicit comparison function, because it uses <code>cmp</code> by default.
+<p class="POD_TEXT">
+<b>Note:</b> <code>eq</code> and <code>ne</code> are unaffected by locale: they always
+perform a byte-by-byte comparison of their scalar operands.  What's
+more, if <code>cmp</code> finds that its operands are equal according to the
+collation sequence specified by the current locale, it goes on to
+perform a byte-by-byte comparison, and only returns <i></i> (equal) if the
+operands are bit-for-bit identical.  If you really want to know whether
+two strings--which <code>eq</code> and <code>cmp</code> may consider different--are equal
+as far as collation in the locale is concerned, see the discussion in
+the <a class="POD_LINK" href="#Category_LC_COLLATE_">Category LC_COLLATE: Collation</a> entry elsewhere in this document.
+</p>
+<li class="POD_ITEM"><a name="_6"></a>
+
+<b>Regular expressions and case-modification functions</b> (uc(), lc(),
+ucfirst(), and lcfirst()) use <code>LC_CTYPE</code>
+<li class="POD_ITEM"><a name="_7"></a>
+
+<b>The formatting functions</b> (printf(), sprintf() and write()) use
+<code>LC_NUMERIC</code>
+<li class="POD_ITEM"><a name="_8"></a>
+
+<b>The POSIX date formatting function</b> (strftime()) uses <code>LC_TIME</code>.
+</ul>
+<p class="POD_TEXT">
+<code>LC_COLLATE</code>, <code>LC_CTYPE</code>, and so on, are discussed further in 
+the <a class="POD_LINK" href="#LOCALE_CATEGORIES">LOCALE CATEGORIES</a> entry elsewhere in this document.
+</p>
+<p class="POD_TEXT">
+The default behavior is restored with the <code>no&nbsp;locale</code> pragma, or
+upon reaching the end of block enclosing <code>use locale</code>.
+</p>
+<p class="POD_TEXT">
+The string result of any operation that uses locale
+information is tainted, as it is possible for a locale to be
+untrustworthy.  See the section on <a class="POD_LINK" href="#SECURITY">SECURITY</a> elsewhere in this document.
+</p>
+<h3 class="POD_HEAD2"><a name="The_setlocale_functi">The setlocale function</a></h3>
+<pre class="POD_TEXT">
+You can switch locales as often as you wish at run time with the
+POSIX::setlocale() function:
+
+        # This functionality not usable prior to Perl 5.004
+        require 5.004;
+
+        # Import locale-handling tool set from POSIX module.
+        # This example uses: setlocale -- the function call
+        #                    LC_CTYPE -- explained below
+        use POSIX qw(locale_h);
+
+        # query and save the old locale
+        $old_locale = setlocale(LC_CTYPE);
+
+        setlocale(LC_CTYPE, &quot;fr_CA.ISO8859-1&quot;);
+        # LC_CTYPE now in locale &quot;French, Canada, codeset ISO 8859-1&quot;
+
+        setlocale(LC_CTYPE, &quot;&quot;);
+        # LC_CTYPE now reset to default defined by LC_ALL/LC_CTYPE/LANG
+        # environment variables.  See below for documentation.
+
+        # restore the old locale
+        setlocale(LC_CTYPE, $old_locale);
+</pre>
+<p class="POD_TEXT">
+The first argument of setlocale() gives the <b>category</b>, the second the
+<b>locale</b>.  The category tells in what aspect of data processing you
+want to apply locale-specific rules.  Category names are discussed in
+the <a class="POD_LINK" href="#LOCALE_CATEGORIES">LOCALE CATEGORIES</a> entry elsewhere in this document and the section on <a class="POD_LINK" href="#ENVIRONMENT">ENVIRONMENT</a> elsewhere in this document.  The locale is the name of a
+collection of customization information corresponding to a particular
+combination of language, country or territory, and codeset.  Read on for
+hints on the naming of locales: not all systems name locales as in the
+example.
+</p>
+<p class="POD_TEXT">
+If no second argument is provided and the category is something else
+than LC_ALL, the function returns a string naming the current locale
+for the category.  You can use this value as the second argument in a
+subsequent call to setlocale().
+</p>
+<p class="POD_TEXT">
+If no second argument is provided and the category is LC_ALL, the
+result is implementation-dependent.  It may be a string of
+concatenated locales names (separator also implementation-dependent)
+or a single locale name.  Please consult your the <u>setlocale</u>(3) manpage for
+details.
+</p>
+<p class="POD_TEXT">
+If a second argument is given and it corresponds to a valid locale,
+the locale for the category is set to that value, and the function
+returns the now-current locale value.  You can then use this in yet
+another call to setlocale().  (In some implementations, the return
+value may sometimes differ from the value you gave as the second
+argument--think of it as an alias for the value you gave.)
+</p>
+<p class="POD_TEXT">
+As the example shows, if the second argument is an empty string, the
+category's locale is returned to the default specified by the
+corresponding environment variables.  Generally, this results in a
+return to the default that was in force when Perl started up: changes
+to the environment made by the application after startup may or may not
+be noticed, depending on your system's C library.
+</p>
+<p class="POD_TEXT">
+If the second argument does not correspond to a valid locale, the locale
+for the category is not changed, and the function returns <i>undef</i>.
+</p>
+<p class="POD_TEXT">
+For further information about the categories, consult the <u>setlocale</u>(3) manpage.
+</p>
+<h3 class="POD_HEAD2"><a name="Finding_locales">Finding locales</a></h3>
+<pre class="POD_TEXT">
+For locales available in your system, consult also the <u>setlocale</u>(3) manpage to
+see whether it leads to the list of available locales (search for the
+<i>SEE ALSO</i> section).  If that fails, try the following command lines:
+
+        locale -a
+
+        nlsinfo
+
+        ls /usr/lib/nls/loc
+
+        ls /usr/lib/locale
+
+        ls /usr/lib/nls
+
+	ls /usr/share/locale
+</pre>
+<pre class="POD_TEXT">
+and see whether they list something resembling these
+
+        en_US.ISO8859-1     de_DE.ISO8859-1     ru_RU.ISO8859-5
+        en_US.iso88591      de_DE.iso88591      ru_RU.iso88595
+        en_US               de_DE               ru_RU
+        en                  de                  ru
+        english             german              russian
+        english.iso88591    german.iso88591     russian.iso88595
+        english.roman8                          russian.koi8r
+</pre>
+<p class="POD_TEXT">
+Sadly, even though the calling interface for setlocale() has been
+standardized, names of locales and the directories where the
+configuration resides have not been.  The basic form of the name is
+<i>language_territory</i><b>.</b><i>codeset</i>, but the latter parts after
+<i>language</i> are not always present.  The <i>language</i> and <i>country</i>
+are usually from the standards <b>ISO 3166</b> and <b>ISO 639</b>, the
+two-letter abbreviations for the countries and the languages of the
+world, respectively.  The <i>codeset</i> part often mentions some <b>ISO
+8859</b> character set, the Latin codesets.  For example, <code>ISO 8859-1</code>
+is the so-called &quot;Western European codeset&quot; that can be used to encode
+most Western European languages adequately.  Again, there are several
+ways to write even the name of that one standard.  Lamentably.
+</p>
+<p class="POD_TEXT">
+Two special locales are worth particular mention: &quot;C&quot; and &quot;POSIX&quot;.
+Currently these are effectively the same locale: the difference is
+mainly that the first one is defined by the C standard, the second by
+the POSIX standard.  They define the <b>default locale</b> in which
+every program starts in the absence of locale information in its
+environment.  (The <i>default</i> default locale, if you will.)  Its language
+is (American) English and its character codeset ASCII.
+</p>
+<p class="POD_TEXT">
+<b>NOTE</b>: Not all systems have the &quot;POSIX&quot; locale (not all systems are
+POSIX-conformant), so use &quot;C&quot; when you need explicitly to specify this
+default locale.
+</p>
+<h3 class="POD_HEAD2"><a name="LOCALE_PROBLEMS">LOCALE PROBLEMS</a></h3>
+<pre class="POD_TEXT">
+You may encounter the following warning message at Perl startup:
+
+	perl: warning: Setting locale failed.
+	perl: warning: Please check that your locale settings:
+	        LC_ALL = &quot;En_US&quot;,
+	        LANG = (unset)
+	    are supported and installed on your system.
+	perl: warning: Falling back to the standard locale (&quot;C&quot;).
+</pre>
+<p class="POD_TEXT">
+This means that your locale settings had LC_ALL set to &quot;En_US&quot; and
+LANG exists but has no value.  Perl tried to believe you but could not.
+Instead, Perl gave up and fell back to the &quot;C&quot; locale, the default locale
+that is supposed to work no matter what.  This usually means your locale
+settings were wrong, they mention locales your system has never heard
+of, or the locale installation in your system has problems (for example,
+some system files are broken or missing).  There are quick and temporary
+fixes to these problems, as well as more thorough and lasting fixes.
+</p>
+<h3 class="POD_HEAD2"><a name="Temporarily_fixing_l">Temporarily fixing locale problems</a></h3>
+<p class="POD_TEXT">
+The two quickest fixes are either to render Perl silent about any
+locale inconsistencies or to run Perl under the default locale &quot;C&quot;.
+</p>
+<p class="POD_TEXT">
+Perl's moaning about locale problems can be silenced by setting the
+environment variable PERL_BADLANG to a zero value, for example &quot;0&quot;.
+This method really just sweeps the problem under the carpet: you tell
+Perl to shut up even when Perl sees that something is wrong.  Do not
+be surprised if later something locale-dependent misbehaves.
+</p>
+<p class="POD_TEXT">
+Perl can be run under the &quot;C&quot; locale by setting the environment
+variable LC_ALL to &quot;C&quot;.  This method is perhaps a bit more civilized
+than the PERL_BADLANG approach, but setting LC_ALL (or
+other locale variables) may affect other programs as well, not just
+Perl.  In particular, external programs run from within Perl will see
+these changes.  If you make the new settings permanent (read on), all
+programs you run see the changes.  See the <u>ENVIRONMENT</u> manpage for
+the full list of relevant environment variables and the <a class="POD_LINK" href="#USING_LOCALES">USING LOCALES</a> entry elsewhere in this document
+for their effects in Perl.  Effects in other programs are 
+easily deducible.  For example, the variable LC_COLLATE may well affect
+your <b>sort</b> program (or whatever the program that arranges `records'
+alphabetically in your system is called).
+</p>
+<pre class="POD_TEXT">
+You can test out changing these variables temporarily, and if the
+new settings seem to help, put those settings into your shell startup
+files.  Consult your local documentation for the exact details.  For in
+Bourne-like shells (<b>sh</b>, <b>ksh</b>, <b>bash</b>, <b>zsh</b>):
+
+	LC_ALL=en_US.ISO8859-1
+	export LC_ALL
+</pre>
+<pre class="POD_TEXT">
+This assumes that we saw the locale &quot;en_US.ISO8859-1&quot; using the commands
+discussed above.  We decided to try that instead of the above faulty
+locale &quot;En_US&quot;--and in Cshish shells (<b>csh</b>, <b>tcsh</b>)
+
+	setenv LC_ALL en_US.ISO8859-1
+</pre>
+<p class="POD_TEXT">
+If you do not know what shell you have, consult your local
+helpdesk or the equivalent.
+</p>
+<h3 class="POD_HEAD2"><a name="Permanently_fixing_l">Permanently fixing locale problems</a></h3>
+<p class="POD_TEXT">
+The slower but superior fixes are when you may be able to yourself
+fix the misconfiguration of your own environment variables.  The
+mis(sing)configuration of the whole system's locales usually requires
+the help of your friendly system administrator.
+</p>
+<p class="POD_TEXT">
+First, see earlier in this document about the <a class="POD_LINK" href="#Finding_locales">Finding locales</a> entry elsewhere in this document.  That tells
+how to find which locales are really supported--and more importantly,
+installed--on your system.  In our example error message, environment
+variables affecting the locale are listed in the order of decreasing
+importance (and unset variables do not matter).  Therefore, having
+LC_ALL set to &quot;En_US&quot; must have been the bad choice, as shown by the
+error message.  First try fixing locale settings listed first.
+</p>
+<p class="POD_TEXT">
+Second, if using the listed commands you see something <b>exactly</b>
+(prefix matches do not count and case usually counts) like &quot;En_US&quot;
+without the quotes, then you should be okay because you are using a
+locale name that should be installed and available in your system.
+In this case, see the <a class="POD_LINK" href="#Permanently_fixing_y">Permanently fixing your system's locale configuration</a> entry elsewhere in this document.
+</p>
+<h3 class="POD_HEAD2"><a name="Permanently_fixing_y">Permanently fixing your system's locale configuration</a></h3>
+<pre class="POD_TEXT">
+This is when you see something like:
+
+	perl: warning: Please check that your locale settings:
+	        LC_ALL = &quot;En_US&quot;,
+	        LANG = (unset)
+	    are supported and installed on your system.
+</pre>
+<p class="POD_TEXT">
+but then cannot see that &quot;En_US&quot; listed by the above-mentioned
+commands.  You may see things like &quot;en_US.ISO8859-1&quot;, but that isn't
+the same.  In this case, try running under a locale
+that you can list and which somehow matches what you tried.  The
+rules for matching locale names are a bit vague because
+standardization is weak in this area.  See again the 
+the <a class="POD_LINK" href="#Finding_locales">Finding locales</a> entry elsewhere in this document about general rules.
+</p>
+<h3 class="POD_HEAD2"><a name="Fixing_system_locale">Fixing system locale configuration</a></h3>
+<p class="POD_TEXT">
+Contact a system administrator (preferably your own) and report the exact
+error message you get, and ask them to read this same documentation you
+are now reading.  They should be able to check whether there is something
+wrong with the locale configuration of the system.  The the <a class="POD_LINK" href="#Finding_locales">Finding locales</a> entry elsewhere in this document
+section is unfortunately a bit vague about the exact commands and places
+because these things are not that standardized.
+</p>
+<h3 class="POD_HEAD2"><a name="The_localeconv_funct">The localeconv function</a></h3>
+<pre class="POD_TEXT">
+The POSIX::localeconv() function allows you to get particulars of the
+locale-dependent numeric formatting information specified by the current
+<code>LC_NUMERIC</code> and <code>LC_MONETARY</code> locales.  (If you just want the name of
+the current locale for a particular category, use POSIX::setlocale()
+with a single parameter--see the <a class="POD_LINK" href="#The_setlocale_functi">The setlocale function</a> entry elsewhere in this document.)
+
+        use POSIX qw(locale_h);
+
+        # Get a reference to a hash of locale-dependent info
+        $locale_values = localeconv();
+
+        # Output sorted list of the values
+        for (sort keys %$locale_values) {
+            printf &quot;%-20s = %s\n&quot;, $_, $locale_values-&gt;{$_}
+        }
+</pre>
+<p class="POD_TEXT">
+localeconv() takes no arguments, and returns <b>a reference to</b> a hash.
+The keys of this hash are variable names for formatting, such as
+<code>decimal_point</code> and <code>thousands_sep</code>.  The values are the
+corresponding, er, values.  See the <u>localeconv</u> entry in the <u>POSIX</u> manpage for a longer
+example listing the categories an implementation might be expected to
+provide; some provide more and others fewer.  You don't need an
+explicit <code>use locale</code>, because localeconv() always observes the
+current locale.
+</p>
+<pre class="POD_TEXT">
+Here's a simple-minded example program that rewrites its command-line
+parameters as integers correctly formatted in the current locale:
+
+        # See comments in previous example
+        require 5.004;
+        use POSIX qw(locale_h);
+
+        # Get some of locale's numeric formatting parameters
+        my ($thousands_sep, $grouping) =
+             @{localeconv()}{'thousands_sep', 'grouping'};
+
+        # Apply defaults if values are missing
+        $thousands_sep = ',' unless $thousands_sep;
+
+	# grouping and mon_grouping are packed lists
+	# of small integers (characters) telling the
+	# grouping (thousand_seps and mon_thousand_seps
+	# being the group dividers) of numbers and
+	# monetary quantities.  The integers' meanings:
+	# 255 means no more grouping, 0 means repeat
+	# the previous grouping, 1-254 means use that
+	# as the current grouping.  Grouping goes from
+	# right to left (low to high digits).  In the
+	# below we cheat slightly by never using anything
+	# else than the first grouping (whatever that is).
+	if ($grouping) {
+	    @grouping = unpack(&quot;C*&quot;, $grouping);
+	} else {
+	    @grouping = (3);
+	}
+
+        # Format command line params for current locale
+        for (@ARGV) {
+            $_ = int;    # Chop non-integer part
+            1 while
+            s/(\d)(\d{$grouping[0]}($|$thousands_sep))/$1$thousands_sep$2/;
+            print &quot;$_&quot;;
+        }
+        print &quot;\n&quot;;
+</pre>
+<h2 class="POD_HEAD1"><a name="LOCALE_CATEGORIES">LOCALE CATEGORIES</a></h2>
+<p class="POD_TEXT">
+The following subsections describe basic locale categories.  Beyond these,
+some combination categories allow manipulation of more than one
+basic category at a time.  See the section on <a class="POD_LINK" href="#ENVIRONMENT">ENVIRONMENT</a> elsewhere in this document for a discussion of these.
+</p>
+<h3 class="POD_HEAD2"><a name="Category_LC_COLLATE_">Category LC_COLLATE: Collation</a></h3>
+<p class="POD_TEXT">
+In the scope of <code>use&nbsp;locale</code>, Perl looks to the <code>LC_COLLATE</code>
+environment variable to determine the application's notions on collation
+(ordering) of characters.  For example, 'b' follows 'a' in Latin
+alphabets, but where do '&aacute;' and '&aring;' belong?  And while
+'color' follows 'chocolate' in English, what about in Spanish?
+</p>
+<pre class="POD_TEXT">
+The following collations all make sense and you may meet any of them
+if you &quot;use locale&quot;.
+
+	A B C D E a b c d e
+	A a B b C c D d E e
+	a A b B c C d D e E
+	a b c d e A B C D E
+</pre>
+<pre class="POD_TEXT">
+Here is a code snippet to tell what &quot;word&quot;
+characters are in the current locale, in that locale's order:
+
+        use locale;
+        print +(sort grep /\w/, map { chr } 0..255), &quot;\n&quot;;
+</pre>
+<pre class="POD_TEXT">
+Compare this with the characters that you see and their order if you
+state explicitly that the locale should be ignored:
+
+        no locale;
+        print +(sort grep /\w/, map { chr } 0..255), &quot;\n&quot;;
+</pre>
+<p class="POD_TEXT">
+This machine-native collation (which is what you get unless <code>use&nbsp;locale</code> has appeared earlier in the same block) must be used for
+sorting raw binary data, whereas the locale-dependent collation of the
+first example is useful for natural text.
+</p>
+<pre class="POD_TEXT">
+As noted in the <a class="POD_LINK" href="#USING_LOCALES">USING LOCALES</a> entry elsewhere in this document, <code>cmp</code> compares according to the current
+collation locale when <code>use locale</code> is in effect, but falls back to a
+byte-by-byte comparison for strings that the locale says are equal. You
+can use POSIX::strcoll() if you don't want this fall-back:
+
+        use POSIX qw(strcoll);
+        $equal_in_locale =
+            !strcoll(&quot;space and case ignored&quot;, &quot;SpaceAndCaseIgnored&quot;);
+</pre>
+<p class="POD_TEXT">
+$equal_in_locale will be true if the collation locale specifies a
+dictionary-like ordering that ignores space characters completely and
+which folds case.
+</p>
+<pre class="POD_TEXT">
+If you have a single string that you want to check for &quot;equality in
+locale&quot; against several others, you might think you could gain a little
+efficiency by using POSIX::strxfrm() in conjunction with <code>eq</code>:
+
+        use POSIX qw(strxfrm);
+        $xfrm_string = strxfrm(&quot;Mixed-case string&quot;);
+        print &quot;locale collation ignores spaces\n&quot;
+            if $xfrm_string eq strxfrm(&quot;Mixed-casestring&quot;);
+        print &quot;locale collation ignores hyphens\n&quot;
+            if $xfrm_string eq strxfrm(&quot;Mixedcase string&quot;);
+        print &quot;locale collation ignores case\n&quot;
+            if $xfrm_string eq strxfrm(&quot;mixed-case string&quot;);
+</pre>
+<p class="POD_TEXT">
+strxfrm() takes a string and maps it into a transformed string for use
+in byte-by-byte comparisons against other transformed strings during
+collation.  &quot;Under the hood&quot;, locale-affected Perl comparison operators
+call strxfrm() for both operands, then do a byte-by-byte
+comparison of the transformed strings.  By calling strxfrm() explicitly
+and using a non locale-affected comparison, the example attempts to save
+a couple of transformations.  But in fact, it doesn't save anything: Perl
+magic (see the <a class="POD_LINK" href="perlguts.html#Magic_Variables">Magic Variables</a> entry in the <a class="POD_LINK" href="perlguts.html">perlguts</a> manpage) creates the transformed version of a
+string the first time it's needed in a comparison, then keeps this version around
+in case it's needed again.  An example rewritten the easy way with
+<code>cmp</code> runs just about as fast.  It also copes with null characters
+embedded in strings; if you call strxfrm() directly, it treats the first
+null it finds as a terminator.  don't expect the transformed strings
+it produces to be portable across systems--or even from one revision
+of your operating system to the next.  In short, don't call strxfrm()
+directly: let Perl do it for you.
+</p>
+<p class="POD_TEXT">
+Note: <code>use locale</code> isn't shown in some of these examples because it isn't
+needed: strcoll() and strxfrm() exist only to generate locale-dependent
+results, and so always obey the current <code>LC_COLLATE</code> locale.
+</p>
+<h3 class="POD_HEAD2"><a name="Category_LC_CTYPE_Ch">Category LC_CTYPE: Character Types</a></h3>
+<p class="POD_TEXT">
+In the scope of <code>use&nbsp;locale</code>, Perl obeys the <code>LC_CTYPE</code> locale
+setting.  This controls the application's notion of which characters are
+alphabetic.  This affects Perl's <code>\w</code> regular expression metanotation,
+which stands for alphanumeric characters--that is, alphabetic,
+numeric, and including other special characters such as the underscore or
+hyphen.  (Consult the <a class="POD_LINK" href="perlre.html">perlre</a> manpage for more information about
+regular expressions.)  Thanks to <code>LC_CTYPE</code>, depending on your locale
+setting, characters like '&aelig;', '&eth;', '&szlig;', and
+'&oslash;' may be understood as <code>\w</code> characters.
+</p>
+<p class="POD_TEXT">
+The <code>LC_CTYPE</code> locale also provides the map used in transliterating
+characters between lower and uppercase.  This affects the case-mapping
+functions--lc(), lcfirst, uc(), and ucfirst(); case-mapping
+interpolation with <code>\l</code>, <code>\L</code>, <code>\u</code>, or <code>\U</code> in double-quoted strings
+and <code><a class="POD_LINK" href="perlfunc.html#s_">s///</a></code> substitutions; and case-independent regular expression
+pattern matching using the <code>i</code> modifier.
+</p>
+<p class="POD_TEXT">
+Finally, <code>LC_CTYPE</code> affects the POSIX character-class test
+functions--isalpha(), islower(), and so on.  For example, if you move
+from the &quot;C&quot; locale to a 7-bit Scandinavian one, you may find--possibly
+to your surprise--that &quot;|&quot; moves from the ispunct() class to isalpha().
+</p>
+<p class="POD_TEXT">
+<b>Note:</b> A broken or malicious <code>LC_CTYPE</code> locale definition may result
+in clearly ineligible characters being considered to be alphanumeric by
+your application.  For strict matching of (mundane) letters and
+digits--for example, in command strings--locale-aware applications
+should use <code>\w</code> inside a <code>no locale</code> block.  See the section on <a class="POD_LINK" href="#SECURITY">SECURITY</a> elsewhere in this document.
+</p>
+<h3 class="POD_HEAD2"><a name="Category_LC_NUMERIC_">Category LC_NUMERIC: Numeric Formatting</a></h3>
+<p class="POD_TEXT">
+In the scope of <code>use&nbsp;locale</code>, Perl obeys the <code>LC_NUMERIC</code> locale
+information, which controls an application's idea of how numbers should
+be formatted for human readability by the printf(), sprintf(), and
+write() functions.  String-to-numeric conversion by the POSIX::strtod()
+function is also affected.  In most implementations the only effect is to
+change the character used for the decimal point--perhaps from '.'  to ','.
+These functions aren't aware of such niceties as thousands separation and
+so on.  (See the <a class="POD_LINK" href="#The_localeconv_funct">The localeconv function</a> entry elsewhere in this document if you care about these things.)
+</p>
+<pre class="POD_TEXT">
+Output produced by print() is also affected by the current locale: it
+depends on whether <code>use locale</code> or <code>no locale</code> is in effect, and
+corresponds to what you'd get from printf() in the &quot;C&quot; locale.  The
+same is true for Perl's internal conversions between numeric and
+string formats:
+
+        use POSIX qw(strtod);
+        use locale;
+
+        $n = 5/2;   # Assign numeric 2.5 to $n
+
+        $a = &quot; $n&quot;; # Locale-dependent conversion to string
+
+        print &quot;half five is $n\n&quot;;       # Locale-dependent output
+
+        printf &quot;half five is %g\n&quot;, $n;  # Locale-dependent output
+
+        print &quot;DECIMAL POINT IS COMMA\n&quot;
+            if $n == (strtod(&quot;2,5&quot;))[0]; # Locale-dependent conversion
+</pre>
+<h3 class="POD_HEAD2"><a name="Category_LC_MONETARY">Category LC_MONETARY: Formatting of monetary amounts</a></h3>
+<p class="POD_TEXT">
+The C standard defines the <code>LC_MONETARY</code> category, but no function
+that is affected by its contents.  (Those with experience of standards
+committees will recognize that the working group decided to punt on the
+issue.)  Consequently, Perl takes no notice of it.  If you really want
+to use <code>LC_MONETARY</code>, you can query its contents--see 
+the <a class="POD_LINK" href="#The_localeconv_funct">The localeconv function</a> entry elsewhere in this document--and use the information that it returns in your 
+application's own formatting of currency amounts.  However, you may well 
+find that the information, voluminous and complex though it may be, still 
+does not quite meet your requirements: currency formatting is a hard nut 
+to crack.
+</p>
+<h3 class="POD_HEAD2"><a name="LC_TIME">LC_TIME</a></h3>
+<pre class="POD_TEXT">
+Output produced by POSIX::strftime(), which builds a formatted
+human-readable date/time string, is affected by the current <code>LC_TIME</code>
+locale.  Thus, in a French locale, the output produced by the <code>%B</code>
+format element (full month name) for the first month of the year would
+be &quot;janvier&quot;.  Here's how to get a list of long month names in the
+current locale:
+
+        use POSIX qw(strftime);
+        for (0..11) {
+            $long_month_name[$_] =
+                strftime(&quot;%B&quot;, 0, 0, 0, 1, $_, 96);
+        }
+</pre>
+<p class="POD_TEXT">
+Note: <code>use locale</code> isn't needed in this example: as a function that
+exists only to generate locale-dependent results, strftime() always
+obeys the current <code>LC_TIME</code> locale.
+</p>
+<h3 class="POD_HEAD2"><a name="Other_categories">Other categories</a></h3>
+<p class="POD_TEXT">
+The remaining locale category, <code>LC_MESSAGES</code> (possibly supplemented
+by others in particular implementations) is not currently used by
+Perl--except possibly to affect the behavior of library functions
+called by extensions outside the standard Perl distribution and by the
+operating system and its utilities.  Note especially that the string
+value of <code><a class="POD_LINK" href="perlvar.html#_29">$!</a></code> and the error messages given by external utilities may
+be changed by <code>LC_MESSAGES</code>.  If you want to have portable error
+codes, use <code>%!</code>.  See the <u>Errno</u> manpage.
+</p>
+<h2 class="POD_HEAD1"><a name="SECURITY">SECURITY</a></h2>
+<p class="POD_TEXT">
+Although the main discussion of Perl security issues can be found in
+the <a class="POD_LINK" href="perlsec.html">perlsec</a> manpage, a discussion of Perl's locale handling would be incomplete
+if it did not draw your attention to locale-dependent security issues.
+Locales--particularly on systems that allow unprivileged users to
+build their own locales--are untrustworthy.  A malicious (or just plain
+broken) locale can make a locale-aware application give unexpected
+results.  Here are a few possibilities:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_9"></a>
+
+Regular expression checks for safe file names or mail addresses using
+<code>\w</code> may be spoofed by an <code>LC_CTYPE</code> locale that claims that
+characters such as &quot;&gt;&quot; and &quot;|&quot; are alphanumeric.
+<li class="POD_ITEM"><a name="_10"></a>
+
+String interpolation with case-mapping, as in, say, <code>$dest =
+&quot;C:\U$name.$ext&quot;</code>, may produce dangerous results if a bogus LC_CTYPE
+case-mapping table is in effect.
+<li class="POD_ITEM"><a name="_11"></a>
+
+A sneaky <code>LC_COLLATE</code> locale could result in the names of students with
+&quot;D&quot; grades appearing ahead of those with &quot;A&quot;s.
+<li class="POD_ITEM"><a name="_12"></a>
+
+An application that takes the trouble to use information in
+<code>LC_MONETARY</code> may format debits as if they were credits and vice versa
+if that locale has been subverted.  Or it might make payments in US
+dollars instead of Hong Kong dollars.
+<li class="POD_ITEM"><a name="_13"></a>
+
+The date and day names in dates formatted by strftime() could be
+manipulated to advantage by a malicious user able to subvert the
+<code>LC_DATE</code> locale.  (&quot;Look--it says I wasn't in the building on
+Sunday.&quot;)
+</ul>
+<p class="POD_TEXT">
+Such dangers are not peculiar to the locale system: any aspect of an
+application's environment which may be modified maliciously presents
+similar challenges.  Similarly, they are not specific to Perl: any
+programming language that allows you to write programs that take
+account of their environment exposes you to these issues.
+</p>
+<p class="POD_TEXT">
+Perl cannot protect you from all possibilities shown in the
+examples--there is no substitute for your own vigilance--but, when
+<code>use locale</code> is in effect, Perl uses the tainting mechanism (see
+the <a class="POD_LINK" href="perlsec.html">perlsec</a> manpage) to mark string results that become locale-dependent, and
+which may be untrustworthy in consequence.  Here is a summary of the
+tainting behavior of operators and functions that may be affected by
+the locale:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_14"></a>
+
+<b>Comparison operators</b> (<code>lt</code>, <code>le</code>, <code>ge</code>, <code>gt</code> and <code>cmp</code>):
+<p class="POD_TEXT">
+Scalar true/false (or less/equal/greater) result is never tainted.
+</p>
+<li class="POD_ITEM"><a name="_15"></a>
+
+<b>Case-mapping interpolation</b> (with <code>\l</code>, <code>\L</code>, <code>\u</code> or <code>\U</code>)
+<p class="POD_TEXT">
+Result string containing interpolated material is tainted if
+<code>use locale</code> is in effect.
+</p>
+<li class="POD_ITEM"><a name="_16"></a>
+
+<b>Matching operator</b> (<code><a class="POD_LINK" href="perlfunc.html#m_">m//</a></code>):
+<p class="POD_TEXT">
+Scalar true/false result never tainted.
+</p>
+<p class="POD_TEXT">
+Subpatterns, either delivered as a list-context result or as $1 etc.
+are tainted if <code>use locale</code> is in effect, and the subpattern regular
+expression contains <code>\w</code> (to match an alphanumeric character), <code>\W</code>
+(non-alphanumeric character), <code>\s</code> (white-space character), or <code>\S</code>
+(non white-space character).  The matched-pattern variable, $&amp;, $`
+(pre-match), $' (post-match), and $+ (last match) are also tainted if
+<code>use locale</code> is in effect and the regular expression contains <code>\w</code>,
+<code>\W</code>, <code>\s</code>, or <code>\S</code>.
+</p>
+<li class="POD_ITEM"><a name="_17"></a>
+
+<b>Substitution operator</b> (<code><a class="POD_LINK" href="perlfunc.html#s_">s///</a></code>):
+<p class="POD_TEXT">
+Has the same behavior as the match operator.  Also, the left
+operand of <code>=~</code> becomes tainted when <code>use locale</code> in effect
+if modified as a result of a substitution based on a regular
+expression match involving <code>\w</code>, <code>\W</code>, <code>\s</code>, or <code>\S</code>; or of
+case-mapping with <code>\l</code>, <code>\L</code>,<code>\u</code> or <code>\U</code>.
+</p>
+<li class="POD_ITEM"><a name="_18"></a>
+
+<b>Output formatting functions</b> (printf() and write()):
+<p class="POD_TEXT">
+Results are never tainted because otherwise even output from print,
+for example <code>print(1/7)</code>, should be tainted if <code>use locale</code> is in
+effect.
+</p>
+<li class="POD_ITEM"><a name="_19"></a>
+
+<b>Case-mapping functions</b> (lc(), lcfirst(), uc(), ucfirst()):
+<p class="POD_TEXT">
+Results are tainted if <code>use locale</code> is in effect.
+</p>
+<li class="POD_ITEM"><a name="_20"></a>
+
+<b>POSIX locale-dependent functions</b> (localeconv(), strcoll(),
+strftime(), strxfrm()):
+<p class="POD_TEXT">
+Results are never tainted.
+</p>
+<li class="POD_ITEM"><a name="_21"></a>
+
+<b>POSIX character class tests</b> (isalnum(), isalpha(), isdigit(),
+isgraph(), islower(), isprint(), ispunct(), isspace(), isupper(),
+isxdigit()):
+<p class="POD_TEXT">
+True/false results are never tainted.
+</p>
+</ul>
+<pre class="POD_TEXT">
+Three examples illustrate locale-dependent tainting.
+The first program, which ignores its locale, won't run: a value taken
+directly from the command line may not be used to name an output file
+when taint checks are enabled.
+
+        #/usr/local/bin/perl -T
+        # Run with taint checking
+
+        # Command line sanity check omitted...
+        $tainted_output_file = shift;
+
+        open(F, &quot;&gt;$tainted_output_file&quot;)
+            or warn &quot;Open of $untainted_output_file failed: $!\n&quot;;
+</pre>
+<pre class="POD_TEXT">
+The program can be made to run by &quot;laundering&quot; the tainted value through
+a regular expression: the second example--which still ignores locale
+information--runs, creating the file named on its command line
+if it can.
+
+        #/usr/local/bin/perl -T
+
+        $tainted_output_file = shift;
+        $tainted_output_file =~ m%[\w/]+%;
+        $untainted_output_file = $&amp;;
+
+        open(F, &quot;&gt;$untainted_output_file&quot;)
+            or warn &quot;Open of $untainted_output_file failed: $!\n&quot;;
+</pre>
+<pre class="POD_TEXT">
+Compare this with a similar but locale-aware program:
+
+        #/usr/local/bin/perl -T
+
+        $tainted_output_file = shift;
+        use locale;
+        $tainted_output_file =~ m%[\w/]+%;
+        $localized_output_file = $&amp;;
+
+        open(F, &quot;&gt;$localized_output_file&quot;)
+            or warn &quot;Open of $localized_output_file failed: $!\n&quot;;
+</pre>
+<p class="POD_TEXT">
+This third program fails to run because $&amp; is tainted: it is the result
+of a match involving <code>\w</code> while <code>use locale</code> is in effect.
+</p>
+<h2 class="POD_HEAD1"><a name="ENVIRONMENT">ENVIRONMENT</a></h2>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="PERL_BADLANG">PERL_BADLANG</a>
+<dd>
+A string that can suppress Perl's warning about failed locale settings
+at startup.  Failure can occur if the locale support in the operating
+system is lacking (broken) in some way--or if you mistyped the name of
+a locale when you set up your environment.  If this environment
+variable is absent, or has a value that does not evaluate to integer
+zero--that is, &quot;0&quot; or &quot;&quot;-- Perl will complain about locale setting
+failures.
+<p class="POD_TEXT">
+<b>NOTE</b>: PERL_BADLANG only gives you a way to hide the warning message.
+The message tells about some problem in your system's locale support,
+and you should investigate what the problem is.
+</p>
+</dl>
+<p class="POD_TEXT">
+The following environment variables are not specific to Perl: They are
+part of the standardized (ISO C, XPG4, POSIX 1.c) setlocale() method
+for controlling an application's opinion on data.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="LC_ALL">LC_ALL</a>
+<dd>
+<code>LC_ALL</code> is the &quot;override-all&quot; locale environment variable. If
+set, it overrides all the rest of the locale environment variables.
+<dt class="POD_ITEM"><a name="LANGUAGE">LANGUAGE</a>
+<dd>
+<b>NOTE</b>: <code>LANGUAGE</code> is a GNU extension, it affects you only if you
+are using the GNU libc.  This is the case if you are using e.g. Linux.
+If you are using &quot;commercial&quot; UNIXes you are most probably <i>not</i>
+using GNU libc and you can ignore <code>LANGUAGE</code>.
+<p class="POD_TEXT">
+However, in the case you are using <code>LANGUAGE</code>: it affects the
+language of informational, warning, and error messages output by
+commands (in other words, it's like <code>LC_MESSAGES</code>) but it has higher
+priority than the <u>LC_ALL</u> manpage.  Moreover, it's not a single value but
+instead a &quot;path&quot; (&quot;:&quot;-separated list) of <i>languages</i> (not locales).
+See the GNU <code>gettext</code> library documentation for more information.
+</p>
+<dt class="POD_ITEM"><a name="LC_CTYPE">LC_CTYPE</a>
+<dd>
+In the absence of <code>LC_ALL</code>, <code>LC_CTYPE</code> chooses the character type
+locale.  In the absence of both <code>LC_ALL</code> and <code>LC_CTYPE</code>, <code>LANG</code>
+chooses the character type locale.
+<dt class="POD_ITEM"><a name="LC_COLLATE">LC_COLLATE</a>
+<dd>
+In the absence of <code>LC_ALL</code>, <code>LC_COLLATE</code> chooses the collation
+(sorting) locale.  In the absence of both <code>LC_ALL</code> and <code>LC_COLLATE</code>,
+<code>LANG</code> chooses the collation locale.
+<dt class="POD_ITEM"><a name="LC_MONETARY">LC_MONETARY</a>
+<dd>
+In the absence of <code>LC_ALL</code>, <code>LC_MONETARY</code> chooses the monetary
+formatting locale.  In the absence of both <code>LC_ALL</code> and <code>LC_MONETARY</code>,
+<code>LANG</code> chooses the monetary formatting locale.
+<dt class="POD_ITEM"><a name="LC_NUMERIC">LC_NUMERIC</a>
+<dd>
+In the absence of <code>LC_ALL</code>, <code>LC_NUMERIC</code> chooses the numeric format
+locale.  In the absence of both <code>LC_ALL</code> and <code>LC_NUMERIC</code>, <code>LANG</code>
+chooses the numeric format.
+<dt class="POD_ITEM"><a name="LC_TIME1">LC_TIME</a>
+<dd>
+In the absence of <code>LC_ALL</code>, <code>LC_TIME</code> chooses the date and time
+formatting locale.  In the absence of both <code>LC_ALL</code> and <code>LC_TIME</code>,
+<code>LANG</code> chooses the date and time formatting locale.
+<dt class="POD_ITEM"><a name="LANG">LANG</a>
+<dd>
+<code>LANG</code> is the &quot;catch-all&quot; locale environment variable. If it is set, it
+is used as the last resort after the overall <code>LC_ALL</code> and the
+category-specific <code>LC_...</code>.
+</dl>
+<h2 class="POD_HEAD1"><a name="NOTES">NOTES</a></h2>
+<h3 class="POD_HEAD2"><a name="Backward_compatibili">Backward compatibility</a></h3>
+<p class="POD_TEXT">
+Versions of Perl prior to 5.004 <b>mostly</b> ignored locale information,
+generally behaving as if something similar to the <code>&quot;C&quot;</code> locale were
+always in force, even if the program environment suggested otherwise
+(see the <a class="POD_LINK" href="#The_setlocale_functi">The setlocale function</a> entry elsewhere in this document).  By default, Perl still behaves this
+way for backward compatibility.  If you want a Perl application to pay
+attention to locale information, you <b>must</b> use the <code>use&nbsp;locale</code>
+pragma (see the <a class="POD_LINK" href="#The_use_locale_pragm">The use locale pragma</a> entry elsewhere in this document) to instruct it to do so.
+</p>
+<p class="POD_TEXT">
+Versions of Perl from 5.002 to 5.003 did use the <code>LC_CTYPE</code>
+information if available; that is, <code>\w</code> did understand what
+were the letters according to the locale environment variables.
+The problem was that the user had no control over the feature:
+if the C library supported locales, Perl used them.
+</p>
+<h3 class="POD_HEAD2"><a name="I18N_Collate_obsolet">I18N:Collate obsolete</a></h3>
+<p class="POD_TEXT">
+In versions of Perl prior to 5.004, per-locale collation was possible
+using the <code>I18N::Collate</code> library module.  This module is now mildly
+obsolete and should be avoided in new applications.  The <code>LC_COLLATE</code>
+functionality is now integrated into the Perl core language: One can
+use locale-specific scalar data completely normally with <code>use locale</code>,
+so there is no longer any need to juggle with the scalar references of
+<code>I18N::Collate</code>.
+</p>
+<h3 class="POD_HEAD2"><a name="Sort_speed_and_memor">Sort speed and memory use impacts</a></h3>
+<p class="POD_TEXT">
+Comparing and sorting by locale is usually slower than the default
+sorting; slow-downs of two to four times have been observed.  It will
+also consume more memory: once a Perl scalar variable has participated
+in any string comparison or sorting operation obeying the locale
+collation rules, it will take 3-15 times more memory than before.  (The
+exact multiplier depends on the string's contents, the operating system
+and the locale.) These downsides are dictated more by the operating
+system's implementation of the locale system than by Perl.
+</p>
+<h3 class="POD_HEAD2"><a name="write_and_LC_NUMERIC">write() and LC_NUMERIC</a></h3>
+<p class="POD_TEXT">
+Formats are the only part of Perl that unconditionally use information
+from a program's locale; if a program's environment specifies an
+LC_NUMERIC locale, it is always used to specify the decimal point
+character in formatted output.  Formatted output cannot be controlled by
+<code>use locale</code> because the pragma is tied to the block structure of the
+program, and, for historical reasons, formats exist outside that block
+structure.
+</p>
+<h3 class="POD_HEAD2"><a name="Freely_available_loc">Freely available locale definitions</a></h3>
+<p class="POD_TEXT">
+There is a large collection of locale definitions at
+<code>ftp://dkuug.dk/i18n/WG15-collection</code>.  You should be aware that it is
+unsupported, and is not claimed to be fit for any purpose.  If your
+system allows installation of arbitrary locales, you may find the
+definitions useful as they are, or as a basis for the development of
+your own locales.
+</p>
+<h3 class="POD_HEAD2"><a name="I18n_and_l10n">I18n and l10n</a></h3>
+<p class="POD_TEXT">
+&quot;Internationalization&quot; is often abbreviated as <b>i18n</b> because its first
+and last letters are separated by eighteen others.  (You may guess why
+the internalin ... internaliti ... i18n tends to get abbreviated.)  In
+the same way, &quot;localization&quot; is often abbreviated to <b>l10n</b>.
+</p>
+<h3 class="POD_HEAD2"><a name="An_imperfect_standar">An imperfect standard</a></h3>
+<p class="POD_TEXT">
+Internationalization, as defined in the C and POSIX standards, can be
+criticized as incomplete, ungainly, and having too large a granularity.
+(Locales apply to a whole process, when it would arguably be more useful
+to have them apply to a single thread, window group, or whatever.)  They
+also have a tendency, like standards groups, to divide the world into
+nations, when we all know that the world can equally well be divided
+into bankers, bikers, gamers, and so on.  But, for now, it's the only
+standard we've got.  This may be construed as a bug.
+</p>
+<h2 class="POD_HEAD1"><a name="BUGS">BUGS</a></h2>
+<h3 class="POD_HEAD2"><a name="Broken_systems">Broken systems</a></h3>
+<p class="POD_TEXT">
+In certain systems, the operating system's locale support
+is broken and cannot be fixed or used by Perl.  Such deficiencies can
+and will result in mysterious hangs and/or Perl core dumps when the
+<code>use locale</code> is in effect.  When confronted with such a system,
+please report in excruciating detail to &lt;<code>perlbug@perl.org</code>&gt;, and
+complain to your vendor: bug fixes may exist for these problems
+in your operating system.  Sometimes such bug fixes are called an
+operating system upgrade.
+</p>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+the <u>isalnum</u> entry in the <u>POSIX</u> manpage, the <u>isalpha</u> entry in the <u>POSIX</u> manpage, the <u>isdigit</u> entry in the <u>POSIX</u> manpage, 
+the <u>isgraph</u> entry in the <u>POSIX</u> manpage, the <u>islower</u> entry in the <u>POSIX</u> manpage, the <u>isprint</u> entry in the <u>POSIX</u> manpage, 
+the <u>ispunct</u> entry in the <u>POSIX</u> manpage, the <u>isspace</u> entry in the <u>POSIX</u> manpage, the <u>isupper</u> entry in the <u>POSIX</u> manpage, 
+the <u>isxdigit</u> entry in the <u>POSIX</u> manpage, the <u>localeconv</u> entry in the <u>POSIX</u> manpage, the <u>setlocale</u> entry in the <u>POSIX</u> manpage, 
+the <u>strcoll</u> entry in the <u>POSIX</u> manpage, the <u>strftime</u> entry in the <u>POSIX</u> manpage, the <u>strtod</u> entry in the <u>POSIX</u> manpage, 
+the <u>strxfrm</u> entry in the <u>POSIX</u> manpage.
+</p>
+<h2 class="POD_HEAD1"><a name="HISTORY">HISTORY</a></h2>
+<p class="POD_TEXT">
+Jarkko Hietaniemi's original <code>perli18n.pod</code> heavily hacked by Dominic
+Dunlop, assisted by the perl5-porters.  Prose worked over a bit by
+Tom Christiansen.
+</p>
+<p class="POD_TEXT">
+Last update: Thu Jun 11 08:44:13 MDT 1998
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:35:46 2001
+</body>
+</html>
+

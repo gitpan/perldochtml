@@ -1,0 +1,238 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>perlclib</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="perlcompile.html">Next:<br>perlcompile</a></td><td align="left" width="1%"><a href="perlcc.html">Previous:<br>perlcc</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">perlclib</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#Conventions">Conventions</a>
+<li><a href="#File_Operations">File Operations</a>
+<li><a href="#File_Input_and_Outpu">File Input and Output</a>
+<li><a href="#File_Positioning">File Positioning</a>
+<li><a href="#Memory_Management_an">Memory Management and String Handling</a>
+<li><a href="#Character_Class_Test">Character Class Tests</a>
+<li><a href="#stdlib_h_functions"><code>stdlib.h</code> functions</a>
+<li><a href="#Miscellaneous_functi">Miscellaneous functions</a>
+</ul>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+perlclib - Internal replacements for standard C library functions
+</p>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+One thing Perl porters should note is that <code>perl</code> doesn't tend to use that
+much of the C standard library internally; you'll see very little use of, 
+for example, the <code>ctype.h</code> functions in there. This is because Perl
+tends to reimplement or abstract standard library functions, so that we
+know exactly how they're going to operate.
+</p>
+<p class="POD_TEXT">
+This is a reference card for people who are familiar with the C library
+and who want to do things the Perl way; to tell them which functions
+they ought to use instead of the more normal C functions.
+</p>
+<h3 class="POD_HEAD2"><a name="Conventions">Conventions</a></h3>
+<p class="POD_TEXT">
+In the following tables:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="t"><code>t</code></a>
+<dd>
+is a type.
+<dt class="POD_ITEM"><a name="p"><code>p</code></a>
+<dd>
+is a pointer.
+<dt class="POD_ITEM"><a name="n"><code>n</code></a>
+<dd>
+is a number.
+<dt class="POD_ITEM"><a name="s"><code>s</code></a>
+<dd>
+is a string.
+</dl>
+<p class="POD_TEXT">
+<code>sv</code>, <code>av</code>, <code>hv</code>, etc. represent variables of their respective types.
+</p>
+<h3 class="POD_HEAD2"><a name="File_Operations">File Operations</a></h3>
+<pre class="POD_TEXT">
+Instead of the <code>stdio.h</code> functions, you should use the Perl abstraction
+layer. Instead of <code>FILE*</code> types, you need to be handling <code>PerlIO*</code>
+types.  Don't forget that with the new PerlIO layered I/O abstraction 
+<code>FILE*</code> types may not even be available. See also the <code>perlapio</code>
+documentation for more information about the following functions:
+
+    Instead Of:                 Use:
+
+    stdin                       PerlIO_stdin()
+    stdout                      PerlIO_stdout()
+    stderr                      PerlIO_stderr()
+
+    fopen(fn, mode)             PerlIO_open(fn, mode)
+    freopen(fn, mode, stream)   PerlIO_reopen(fn, mode, perlio) (Deprecated)
+    fflush(stream)              PerlIO_flush(perlio)
+    fclose(stream)              PerlIO_close(perlio)
+</pre>
+<h3 class="POD_HEAD2"><a name="File_Input_and_Outpu">File Input and Output</a></h3>
+<pre class="POD_VERBATIM">
+    Instead Of:                 Use:
+
+    fprintf(stream, fmt, ...)   PerlIO_printf(perlio, fmt, ...)
+
+    [f]getc(stream)             PerlIO_getc(perlio)
+    [f]putc(stream, n)          PerlIO_putc(perlio, n)
+    ungetc(n, stream)           PerlIO_ungetc(perlio, n)
+</pre>
+<pre class="POD_TEXT">
+Note that the PerlIO equivalents of <code>fread</code> and <code>fwrite</code> are slightly
+different from their C library counterparts:
+
+    fread(p, size, n, stream)   PerlIO_read(perlio, buf, numbytes)
+    fwrite(p, size, n, stream)  PerlIO_write(perlio, buf, numbytes)
+
+    fputs(s, stream)            PerlIO_puts(perlio, s)
+</pre>
+<pre class="POD_TEXT">
+There is no equivalent to <code>fgets</code>; one should use <code>sv_gets</code> instead:
+
+    fgets(s, n, stream)         sv_gets(sv, perlio, append)
+</pre>
+<h3 class="POD_HEAD2"><a name="File_Positioning">File Positioning</a></h3>
+<pre class="POD_VERBATIM">
+    Instead Of:                 Use:
+
+    feof(stream)                PerlIO_eof(perlio)
+    fseek(stream, n, whence)    PerlIO_seek(perlio, n, whence)
+    rewind(stream)              PerlIO_rewind(perlio)
+
+    fgetpos(stream, p)          PerlIO_getpos(perlio, sv)
+    fsetpos(stream, p)          PerlIO_setpos(perlio, sv)
+
+    ferror(stream)              PerlIO_error(perlio)
+    clearerr(stream)            PerlIO_clearerr(perlio)
+</pre>
+<h3 class="POD_HEAD2"><a name="Memory_Management_an">Memory Management and String Handling</a></h3>
+<pre class="POD_VERBATIM">
+    Instead Of:                 Use:
+
+    t* p = malloc(n)            New(id, p, n, t)
+    t* p = calloc(n, s)         Newz(id, p, n, t)
+    p = realloc(p, n)           Renew(p, n, t)
+    memcpy(dst, src, n)         Copy(src, dst, n, t)
+    memmove(dst, src, n)        Move(src, dst, n, t)
+    memcpy/*(struct foo *)      StructCopy(src, dst, t)
+    free(p)                     Safefree(p)
+
+    strdup(p)                   savepv(p)
+    strndup(p, n)               savepvn(p, n) (Hey, strndup doesn't exist!)
+
+    strstr(big, little)         instr(big, little)
+    strcmp(s1, s2)              strLE(s1, s2) / strEQ(s1, s2) / strGT(s1,s2)
+    strncmp(s1, s2, n)          strnNE(s1, s2, n) / strnEQ(s1, s2, n)
+</pre>
+<p class="POD_TEXT">
+Notice the different order of arguments to <code>Copy</code> and <code>Move</code> than used
+in <code>memcpy</code> and <code>memmove</code>.
+</p>
+<pre class="POD_TEXT">
+Most of the time, though, you'll want to be dealing with SVs internally
+instead of raw <code>char *</code> strings:
+
+    strlen(s)                   sv_len(sv)
+    strcpy(dt, src)             sv_setpv(sv, s)
+    strncpy(dt, src, n)         sv_setpvn(sv, s, n)
+    strcat(dt, src)             sv_catpv(sv, s)
+    strncat(dt, src)            sv_catpvn(sv, s)
+    sprintf(s, fmt, ...)        sv_setpvf(sv, fmt, ...)
+</pre>
+<p class="POD_TEXT">
+Note also the existence of <code>sv_catpvf</code> and <code>sv_catpvfn</code>, combining
+concatenation with formatting.
+</p>
+<h3 class="POD_HEAD2"><a name="Character_Class_Test">Character Class Tests</a></h3>
+<pre class="POD_TEXT">
+There are two types of character class tests that Perl implements: one
+type deals in <code>char</code>s and are thus <b>not</b> Unicode aware (and hence
+deprecated unless you <b>know</b> you should use them) and the other type
+deal in <code>UV</code>s and know about Unicode properties. In the following
+table, <code>c</code> is a <code>char</code>, and <code>u</code> is a Unicode codepoint.
+
+    Instead Of:                 Use:            But better use:
+
+    isalnum(c)                  isALNUM(c)      isALNUM_uni(u)
+    isalpha(c)                  isALPHA(c)      isALPHA_uni(u)
+    iscntrl(c)                  isCNTRL(c)      isCNTRL_uni(u)
+    isdigit(c)                  isDIGIT(c)      isDIGIT_uni(u)
+    isgraph(c)                  isGRAPH(c)      isGRAPH_uni(u)
+    islower(c)                  isLOWER(c)      isLOWER_uni(u)
+    isprint(c)                  isPRINT(c)      isPRINT_uni(u)
+    ispunct(c)                  isPUNCT(c)      isPUNCT_uni(u)
+    isspace(c)                  isSPACE(c)      isSPACE_uni(u)
+    isupper(c)                  isUPPER(c)      isUPPER_uni(u)
+    isxdigit(c)                 isXDIGIT(c)     isXDIGIT_uni(u)
+
+    tolower(c)                  toLOWER(c)      toLOWER_uni(u)
+    toupper(c)                  toUPPER(c)      toUPPER_uni(u)
+</pre>
+<h3 class="POD_HEAD2"><a name="stdlib_h_functions"><code>stdlib.h</code> functions</a></h3>
+<pre class="POD_VERBATIM">
+    Instead Of:                 Use:
+
+    atof(s)                     Atof(s)
+    atol(s)                     Atol(s)
+    strtod(s, *p)               Nothing.  Just don't use it.
+    strtol(s, *p, n)            Strtol(s, *p, n)
+    strtoul(s, *p, n)           Strtoul(s, *p, n)
+</pre>
+<p class="POD_TEXT">
+Notice also the <code>scan_bin</code>, <code>scan_hex</code>, and <code>scan_oct</code> functions in
+<code>util.c</code> for converting strings representing numbers in the respective
+bases into <code>NV</code>s.
+</p>
+<pre class="POD_TEXT">
+In theory <code>Strtol</code> and <code>Strtoul</code> may not be defined if the machine perl is
+built on doesn't actually have strtol and strtoul. But as those 2
+functions are part of the 1989 ANSI C spec we suspect you'll find them
+everywhere by now.
+
+    int rand()                  double Drand01()
+    srand(n)                    { seedDrand01((Rand_seed_t)n); 
+                                  PL_srand_called = TRUE; }
+
+    exit(n)                     my_exit(n)
+    system(s)                   Don't. Look at pp_system or use my_popen
+
+    getenv(s)                   PerlEnv_getenv(s)
+    setenv(s, val)              my_putenv(s, val)
+</pre>
+<h3 class="POD_HEAD2"><a name="Miscellaneous_functi">Miscellaneous functions</a></h3>
+<p class="POD_TEXT">
+You should not even <b>want</b> to use <code>setjmp.h</code> functions, but if you
+think you do, use the <code>JMPENV</code> stack in <code>scope.h</code> instead.
+</p>
+<p class="POD_TEXT">
+For <code>signal</code>/<code>sigaction</code>, use <code>rsignal(signo, handler)</code>.
+</p>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+<code>perlapi</code>, <code>perlapio</code>, <code>perlguts</code>
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:55 2001
+</body>
+</html>
+

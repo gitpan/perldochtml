@@ -1,0 +1,165 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>Dumpvalue</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="English.html">Next:<br>English</a></td><td align="left" width="1%"><a href="dprofpp.html">Previous:<br>dprofpp</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">Dumpvalue</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#Creation">Creation</a>
+<li><a href="#Methods">Methods</a>
+</ul>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+Dumpvalue - provides screen dump of Perl data.
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+  use Dumpvalue;
+  my $dumper = new Dumpvalue;
+  $dumper-&gt;set(globPrint =&gt; 1);
+  $dumper-&gt;dumpValue(\*::);
+  $dumper-&gt;dumpvars('main');
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<h3 class="POD_HEAD2"><a name="Creation">Creation</a></h3>
+<pre class="POD_TEXT">
+A new dumper is created by a call
+
+  $d = new Dumpvalue(option1 =&gt; value1, option2 =&gt; value2)
+</pre>
+<p class="POD_TEXT">
+Recognized options:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="arrayDepth_hashDepth"><code>arrayDepth</code>, <code>hashDepth</code></a>
+<dd>
+Print only first N elements of arrays and hashes.  If false, prints all the
+elements.
+<dt class="POD_ITEM"><a name="compactDump_veryComp"><code>compactDump</code>, <code>veryCompact</code></a>
+<dd>
+Change style of array and hash dump.  If true, short array
+may be printed on one line.
+<dt class="POD_ITEM"><a name="globPrint"><code>globPrint</code></a>
+<dd>
+Whether to print contents of globs.
+<dt class="POD_ITEM"><a name="DumpDBFiles"><code>DumpDBFiles</code></a>
+<dd>
+Dump arrays holding contents of debugged files.
+<dt class="POD_ITEM"><a name="DumpPackages"><code>DumpPackages</code></a>
+<dd>
+Dump symbol tables of packages.
+<dt class="POD_ITEM"><a name="DumpReused"><code>DumpReused</code></a>
+<dd>
+Dump contents of &quot;reused&quot; addresses.
+<dt class="POD_ITEM"><a name="tick_HighBit_printUn"><code>tick</code>, <code>HighBit</code>, <code>printUndef</code></a>
+<dd>
+Change style of string dump.  Default value of <code>tick</code> is <code>auto</code>, one
+can enable either double-quotish dump, or single-quotish by setting it
+to <code>&quot;</code> or <code>'</code>.  By default, characters with high bit set are printed
+<i>as is</i>.
+<dt class="POD_ITEM"><a name="UsageOnly"><code>UsageOnly</code></a>
+<dd>
+<i>very</i> rudimentally per-package memory usage dump.  If set,
+<code>dumpvars</code> calculates total size of strings in variables in the package.
+<dt class="POD_ITEM"><a name="unctrl">unctrl</a>
+<dd>
+Changes the style of printout of strings.  Possible values are
+<code>unctrl</code> and <code>quote</code>.
+<dt class="POD_ITEM"><a name="subdump">subdump</a>
+<dd>
+Whether to try to find the subroutine name given the reference.
+<dt class="POD_ITEM"><a name="bareStringify">bareStringify</a>
+<dd>
+Whether to write the non-overloaded form of the stringify-overloaded objects.
+<dt class="POD_ITEM"><a name="quoteHighBit">quoteHighBit</a>
+<dd>
+Whether to print chars with high bit set in binary or &quot;as is&quot;.
+<dt class="POD_ITEM"><a name="stopDbSignal">stopDbSignal</a>
+<dd>
+Whether to abort printing if debugger signal flag is raised.
+</dl>
+<p class="POD_TEXT">
+Later in the life of the object the methods may be queries with get()
+method and set() method (which accept multiple arguments).
+</p>
+<h3 class="POD_HEAD2"><a name="Methods">Methods</a></h3>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="dumpValue">dumpValue</a>
+<dd><pre class="POD_VERBATIM">
+  $dumper-&gt;dumpValue($value);
+  $dumper-&gt;dumpValue([$value1, $value2]);
+</pre>
+<dt class="POD_ITEM"><a name="dumpValues">dumpValues</a>
+<dd><pre class="POD_VERBATIM">
+  $dumper-&gt;dumpValues($value1, $value2);
+</pre>
+<dt class="POD_ITEM"><a name="dumpvars">dumpvars</a>
+<dd><pre class="POD_VERBATIM">
+  $dumper-&gt;dumpvars('my_package');
+  $dumper-&gt;dumpvars('my_package', 'foo', '~bar$', '!......');
+</pre>
+
+The optional arguments are considered as literal strings unless they
+start with <code>~</code> or <code>!</code>, in which case they are interpreted as regular
+expressions (possibly negated).
+<p class="POD_TEXT">
+The second example prints entries with names <code>foo</code>, and also entries
+with names which ends on <code>bar</code>, or are shorter than 5 chars.
+</p>
+<dt class="POD_ITEM"><a name="set_quote">set_quote</a>
+<dd><pre class="POD_VERBATIM">
+  $d-&gt;set_quote('&quot;');
+</pre>
+
+Sets <code>tick</code> and <code>unctrl</code> options to suitable values for printout with the
+given quote char.  Possible values are <code>auto</code>, <code>'</code> and <code>&quot;</code>.
+<dt class="POD_ITEM"><a name="set_unctrl">set_unctrl</a>
+<dd><pre class="POD_VERBATIM">
+  $d-&gt;set_unctrl('&quot;');
+</pre>
+
+Sets <code>unctrl</code> option with checking for an invalid argument.
+Possible values are <code>unctrl</code> and <code>quote</code>.
+<dt class="POD_ITEM"><a name="compactDump">compactDump</a>
+<dd><pre class="POD_VERBATIM">
+  $d-&gt;compactDump(1);
+</pre>
+
+Sets <code>compactDump</code> option.  If the value is 1, sets to a reasonable
+big number.
+<dt class="POD_ITEM"><a name="veryCompact">veryCompact</a>
+<dd><pre class="POD_VERBATIM">
+  $d-&gt;veryCompact(1);
+</pre>
+
+Sets <code>compactDump</code> and <code>veryCompact</code> options simultaneously.
+<dt class="POD_ITEM"><a name="set">set</a>
+<dd><pre class="POD_VERBATIM">
+  $d-&gt;set(option1 =&gt; value1, option2 =&gt; value2);
+</pre>
+<dt class="POD_ITEM"><a name="get">get</a>
+<dd><pre class="POD_VERBATIM">
+  @values = $d-&gt;get('option1', 'option2');
+</pre>
+</dl>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:21 2001
+</body>
+</html>
+

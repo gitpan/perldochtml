@@ -1,0 +1,173 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>CGI::Fast</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="../CGI/Pretty.html">Next:<br>CGI::Pretty</a></td><td align="left" width="1%"><a  href="../CGI/Cookie.html">Previous:<br>CGI::Cookie</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="../podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="../podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">CGI::Fast</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#OTHER_PIECES_OF_THE_">OTHER PIECES OF THE PUZZLE</a>
+<li><a href="#WRITING_FASTCGI_PERL">WRITING FASTCGI PERL SCRIPTS</a>
+<li><a href="#INSTALLING_FASTCGI_S">INSTALLING FASTCGI SCRIPTS</a>
+<li><a href="#USING_FASTCGI_SCRIPT">USING FASTCGI SCRIPTS AS CGI SCRIPTS</a>
+<li><a href="#CAVEATS">CAVEATS</a>
+<li><a href="#AUTHOR_INFORMATION">AUTHOR INFORMATION</a>
+<li><a href="#BUGS">BUGS</a>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+CGI::Fast - CGI Interface for Fast CGI
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+    use CGI::Fast qw(:standard);
+    $COUNTER = 0;
+    while (new CGI::Fast) {
+	print header;
+	print start_html(&quot;Fast CGI Rocks&quot;);
+	print
+	    h1(&quot;Fast CGI Rocks&quot;),
+	    &quot;Invocation number &quot;,b($COUNTER++),
+            &quot; PID &quot;,b($$),&quot;.&quot;,
+	    hr;
+        print end_html;
+    }
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+CGI::Fast is a subclass of the CGI object created by
+CGI.pm.  It is specialized to work well with the Open Market
+FastCGI standard, which greatly speeds up CGI scripts by
+turning them into persistently running server processes.  Scripts
+that perform time-consuming initialization processes, such as
+loading large modules or opening persistent database connections,
+will see large performance improvements.
+</p>
+<h2 class="POD_HEAD1"><a name="OTHER_PIECES_OF_THE_">OTHER PIECES OF THE PUZZLE</a></h2>
+<p class="POD_TEXT">
+In order to use CGI::Fast you'll need a FastCGI-enabled Web
+server.  Open Market's server is FastCGI-savvy.  There are also
+freely redistributable FastCGI modules for NCSA httpd 1.5 and Apache.
+FastCGI-enabling modules for Microsoft Internet Information Server and
+Netscape Communications Server have been announced.
+</p>
+<p class="POD_TEXT">
+In addition, you'll need a version of the Perl interpreter that has
+been linked with the FastCGI I/O library.  Precompiled binaries are
+available for several platforms, including DEC Alpha, HP-UX and 
+SPARC/Solaris, or you can rebuild Perl from source with patches
+provided in the FastCGI developer's kit.  The FastCGI Perl interpreter
+can be used in place of your normal Perl without ill consequences.
+</p>
+<pre class="POD_TEXT">
+You can find FastCGI modules for Apache and NCSA httpd, precompiled
+Perl interpreters, and the FastCGI developer's kit all at URL:
+
+  http://www.fastcgi.com/
+</pre>
+<h2 class="POD_HEAD1"><a name="WRITING_FASTCGI_PERL">WRITING FASTCGI PERL SCRIPTS</a></h2>
+<p class="POD_TEXT">
+FastCGI scripts are persistent: one or more copies of the script 
+are started up when the server initializes, and stay around until
+the server exits or they die a natural death.  After performing
+whatever one-time initialization it needs, the script enters a 
+loop waiting for incoming connections, processing the request, and
+waiting some more.
+</p>
+<pre class="POD_TEXT">
+A typical FastCGI script will look like this:
+
+    #!/usr/local/bin/perl    # must be a FastCGI version of perl!
+    use CGI::Fast;
+    &amp;do_some_initialization();
+    while ($q = new CGI::Fast) {
+	&amp;process_request($q);
+    }
+</pre>
+<p class="POD_TEXT">
+Each time there's a new request, CGI::Fast returns a
+CGI object to your loop.  The rest of the time your script
+waits in the call to new().  When the server requests that
+your script be terminated, new() will return undef.  You can
+of course exit earlier if you choose.  A new version of the
+script will be respawned to take its place (this may be
+necessary in order to avoid Perl memory leaks in long-running
+scripts).
+</p>
+<pre class="POD_TEXT">
+CGI.pm's default CGI object mode also works.  Just modify the loop
+this way:
+
+    while (new CGI::Fast) {
+	&amp;process_request;
+    }
+</pre>
+<p class="POD_TEXT">
+Calls to header(), start_form(), etc. will all operate on the
+current request.
+</p>
+<h2 class="POD_HEAD1"><a name="INSTALLING_FASTCGI_S">INSTALLING FASTCGI SCRIPTS</a></h2>
+<pre class="POD_TEXT">
+See the FastCGI developer's kit documentation for full details.  On
+the Apache server, the following line must be added to srm.conf:
+
+    AddType application/x-httpd-fcgi .fcgi
+</pre>
+<pre class="POD_TEXT">
+FastCGI scripts must end in the extension .fcgi.  For each script you
+install, you must add something like the following to srm.conf:
+
+   AppClass /usr/etc/httpd/fcgi-bin/file_upload.fcgi -processes 2
+</pre>
+<p class="POD_TEXT">
+This instructs Apache to launch two copies of file_upload.fcgi at 
+startup time.
+</p>
+<h2 class="POD_HEAD1"><a name="USING_FASTCGI_SCRIPT">USING FASTCGI SCRIPTS AS CGI SCRIPTS</a></h2>
+<p class="POD_TEXT">
+Any script that works correctly as a FastCGI script will also work
+correctly when installed as a vanilla CGI script.  However it will
+not see any performance benefit.
+</p>
+<h2 class="POD_HEAD1"><a name="CAVEATS">CAVEATS</a></h2>
+<p class="POD_TEXT">
+I haven't tested this very much.
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHOR_INFORMATION">AUTHOR INFORMATION</a></h2>
+<p class="POD_TEXT">
+Copyright 1996-1998, Lincoln D. Stein.  All rights reserved.
+</p>
+<p class="POD_TEXT">
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+</p>
+<p class="POD_TEXT">
+Address bug reports and comments to: lstein@cshl.org
+</p>
+<h2 class="POD_HEAD1"><a name="BUGS">BUGS</a></h2>
+<p class="POD_TEXT">
+This section intentionally left blank.
+</p>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+the <a class="POD_LINK" href="../CGI/Carp.html">CGI::Carp</a> manpage, the <a class="POD_LINK" href="../CGI.html">CGI</a> manpage
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:16 2001
+</body>
+</html>
+

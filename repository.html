@@ -1,0 +1,368 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>repository</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="Search/Dict.html">Next:<br>Search::Dict</a></td><td align="left" width="1%"><a  href="pumpkin.html">Previous:<br>pumpkin</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">repository</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#Prerequisites">Prerequisites</a>
+<li><a href="#Creating_an_SSH_Key_">Creating an SSH Key Pair</a>
+<li><a href="#Notifying_the_Reposi">Notifying the Repository Keeper</a>
+<li><a href="#Connecting_to_the_Re">Connecting to the Repository</a>
+<li><a href="#Problems">Problems</a>
+<li><a href="#Using_the_Perforce_C">Using the Perforce Client</a>
+<li><a href="#Ending_a_Repository_">Ending a Repository Session</a>
+<li><a href="#Overview_of_the_Repo">Overview of the Repository</a>
+<li><a href="#Contact_Information">Contact Information</a>
+<li><a href="#AUTHORS">AUTHORS</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+repository - Using the Perl repository
+</p>
+<p class="POD_TEXT">
+This document describes what a Perl Porter needs to do
+to start using the Perl repository.
+</p>
+<h2 class="POD_HEAD1"><a name="Prerequisites">Prerequisites</a></h2>
+<p class="POD_TEXT">
+You'll need to get hold of the following software.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Perforce">Perforce</a>
+<dd>
+Download a perforce client from:
+<pre class="POD_VERBATIM">
+   http://www.perforce.com/perforce/loadprog.html
+</pre>
+<pre class="POD_TEXT">
+You'll probably also want to look at:
+
+   http://www.perforce.com/perforce/technical.html
+</pre>
+<p class="POD_TEXT">
+where you can look at or download its documentation.
+</p>
+<dt class="POD_ITEM"><a name="ssh">ssh</a>
+<dd>
+If you don't already have access to an ssh client, then look at its
+home site <code>http://www.cs.hut.fi/ssh</code> which mentions ftp sites from
+which it's available. You only need to build the client parts (ssh
+and ssh-keygen should suffice).
+</dl>
+<h2 class="POD_HEAD1"><a name="Creating_an_SSH_Key_">Creating an SSH Key Pair</a></h2>
+<pre class="POD_TEXT">
+If you already use ssh and want to use the same key pair for perl
+repository access then you can skip the rest of this section.
+Otherwise, generate an ssh key pair for use with the repository
+by typing the command
+
+    ssh-keygen
+</pre>
+<p class="POD_TEXT">
+After generating a key pair and testing it, ssh-keygen will ask you
+to enter a filename in which to save the key. The default it offers
+will be the file <code>~/.ssh/identity</code> which is suitable unless you
+particularly want to keep separate ssh identities for some reason.
+If so, you could save the perl repository private key in the file
+<code>~/.ssh/perl</code>, for example, but I will use the standard filename
+in the remainder of the examples of this document.
+</p>
+<p class="POD_TEXT">
+After typing in the filename, it will prompt you to type in a
+passphrase. The private key will itself be encrypted so that it is
+usable only when that passphrase is typed. (When using ssh, you will
+be prompted when it requires a pass phrase to unlock a private key.)
+If you provide a blank passphrase then no passphrase will be needed
+to unlock the key and, as a consequence, anyone who gains access to
+the key file gains access to accounts protected with that key
+(barring additional configuration to restrict access by IP address).
+</p>
+<p class="POD_TEXT">
+When you have typed the passphrase in twice, ssh-keygen will confirm
+where it has saved the private key (in the filename you gave and
+with permissions set to be only readable by you), what your public
+key is (don't worry: you don't need to memorise it) and where it
+has saved the corresponding public key. The public key is saved in
+a filename corresponding to your private key's filename but with
+&quot;.pub&quot; appended, usually <code>~/.ssh/identity.pub</code>. That public key
+can be (but need not be) world readable. It is not used by your
+own system at all.
+</p>
+<h2 class="POD_HEAD1"><a name="Notifying_the_Reposi">Notifying the Repository Keeper</a></h2>
+<p class="POD_TEXT">
+Mail the contents of that public key file to the keeper of the perl
+repository (see the <a class="POD_LINK" href="#Contact_Information">Contact Information</a> entry elsewhere in this document below).
+When the key is added to the repository host's configuration file,
+you will be able to connect to it with ssh by using the corresponding
+private key file (after unlocking it with your chosen passphrase).
+</p>
+<h2 class="POD_HEAD1"><a name="Connecting_to_the_Re">Connecting to the Repository</a></h2>
+<pre class="POD_TEXT">
+Connections to the repository are made by using ssh to provide a
+TCP &quot;tunnel&quot; rather than by using ssh to login to or invoke any
+ordinary commands on the repository. When you want to start a
+session using the repository, use the command
+
+    ssh -l perlrep -f -q -x -L 1666:127.0.0.1:1666 sickle.activestate.com 
+foo
+</pre>
+<p class="POD_TEXT">
+If you are not using the default filename of <code>~/.ssh/identity</code>
+to hold your perl repository private key then you'll need to add
+the option <b>-i filename</b> to tell ssh where it is. Unless you chose
+a blank passphrase for that private key, ssh will prompt you for the
+passphrase to unlock that key. Then ssh will fork and put itself
+in the background, returning you (silently) to your shell prompt.
+The tunnel for repository access is now ready for use.
+</p>
+<p class="POD_TEXT">
+For the sake of completeness (and for the case where the chosen
+port of 1666 is already in use on your machine), I'll briefly
+describe what all those ssh arguments are for.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_l_perl"><b>-l perl</b></a>
+<dd>
+Use a remote username of perl. The account on the repository which
+provides the end-point of the ssh tunnel is named &quot;perl&quot;.
+<dt class="POD_ITEM"><a name="_f"><b>-f</b></a>
+<dd>
+Tells ssh to fork and remain running in the background. Since ssh
+is only being used for its tunnelling capabilities, the command
+that ssh runs never does any I/O and can sit silently in the
+background.
+<dt class="POD_ITEM"><a name="_q"><b>-q</b></a>
+<dd>
+Tells ssh to be quiet. Without this option, ssh will output a
+message each time you use a p4 command (since each p4 command
+tunnels over the ssh connection to reach the repository).
+<dt class="POD_ITEM"><a name="_x"><b>-x</b></a>
+<dd>
+Tells ssh not to bother to set up a tunnel for X11 connections.
+The repository doesn't allow this anyway.
+<dt class="POD_ITEM"><a name="_L_1666_127_0_0_1_16"><b>-L 1666:127.0.0.1:1666</b></a>
+<dd>
+This is the important option. It tells ssh to listen out for
+connections made to port 1666 on your local machine. When such
+a connection is made, the ssh client tells the remote side
+(the corresponding ssh daemon on the repository) to make a
+connection to IP address 127.0.0.1, port 1666. Data flowing
+along that connection is tunnelled over the ssh connection
+(encrypted). The perforce daemon running on the repository
+only accepts connections from localhost and that is exactly
+where ssh-tunnelled connections appear to come from.
+<p class="POD_TEXT">
+If port 1666 is already in use on your machine then you can
+choose any non-privileged port (a number between 1024 and 65535)
+which happens to be free on your machine. It's the first of the
+three colon separated values that you should change. Picking
+port 2345 would mean changing the option to
+<b>-L 2345:127.0.0.1:1666</b>. Whatever port number you choose should
+be used for the value of the P4PORT environment variable (q.v.).
+</p>
+<dt class="POD_ITEM"><a name="sickle_activestate_c">sickle.activestate.com</a>
+<dd>
+This is the canonical IP name of the host on which the perl
+repository runs. Its IP number is 199.60.48.20.
+<dt class="POD_ITEM"><a name="foo">foo</a>
+<dd>
+This is a dummy place holder argument. Without an argument
+here, ssh will try to perform an interactive login to the
+repository which is not allowed. Ordinarily, this argument
+is for the one-off command which is to be executed on the
+remote host. However, the repository's ssh configuration
+file uses the &quot;command=&quot; option to force a particular
+command to run so the actual value of the argument is
+ignored. The command that's actually run merely pauses and
+waits for the ssh connection to drop, then exits.
+</dl>
+<h2 class="POD_HEAD1"><a name="Problems">Problems</a></h2>
+<pre class="POD_TEXT">
+You should normally get a prompt that asks for the passphrase
+for your RSA key when you connect with the ssh command shown
+above.  If you see a prompt that looks like:
+
+    perlrep@sickle.activestate.com's password:
+</pre>
+<p class="POD_TEXT">
+Then you either don't have a ~/.ssh/identity file corresponding
+to your public key, or your ~/.ssh/identity file is not readable.
+Fix the problem and try again.
+</p>
+<h2 class="POD_HEAD1"><a name="Using_the_Perforce_C">Using the Perforce Client</a></h2>
+<p class="POD_TEXT">
+Remember to read the documentation for Perforce. You need
+to make sure that three environment variable are set
+correctly before using the p4 client with the perl repository.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="P4PORT">P4PORT</a>
+<dd>
+Set this to localhost:1666 (the port for your ssh client to listen on)
+unless that port is already in use on your host. If it is, see
+the section above on the <b>-L 1666:127.0.0.1:1666</b> option to ssh.
+<dt class="POD_ITEM"><a name="P4CLIENT">P4CLIENT</a>
+<dd>
+The value of this is the name by which Perforce knows your
+host's workspace. You need to pick a name (for example, your
+hostname unless that clashes with someone else's client name)
+when you first start using the perl repository and then
+stick with it. If you connect from multiple hosts (with
+different workspaces) then maybe you could have multiple
+clients. There is a licence limit on the number of perforce
+clients which can be created. Although we have been told that
+Perforce will raise our licence limits within reason, it's
+probably best not to use additional clients unless needed.
+<p class="POD_TEXT">
+Note that perforce only needs the client name so that it can
+find the directory under which your client files are stored.
+If you have multiple hosts sharing the same directory structure
+via NFS then only one client name is necessary.
+</p>
+<p class="POD_TEXT">
+The <code>p4 clients</code> command lists all currently known clients.
+</p>
+<dt class="POD_ITEM"><a name="P4USER">P4USER</a>
+<dd>
+This is the username by which perforce knows you. Use your
+username if you have a well known or obvious one or else pick
+a new one which other perl5-porters will recognise. There is
+a licence limit on the number of these usernames. Perforce
+doesn't enforce security between usernames. If you set P4USER
+to be somebody else's username then perforce will believe you
+completely with regard to access control, logging and so on.
+<p class="POD_TEXT">
+The <code>p4 users</code> command lists all currently known users.
+</p>
+</dl>
+<p class="POD_TEXT">
+Once these three environment variables are set, you can use the
+perforce p4 client exactly as described in its documentation.
+After setting these variables and connecting to the repository
+for the first time, you should use the <code>p4 user</code> and
+<code>p4 client</code> commands to tell perforce the details of your
+new username and your new client workspace specifications.
+</p>
+<h2 class="POD_HEAD1"><a name="Ending_a_Repository_">Ending a Repository Session</a></h2>
+<p class="POD_TEXT">
+When you have finished a session using the repository, you
+should kill off the ssh client process to break the tunnel.
+Since ssh forked itself into the background, you'll need to use
+something like ps with the appropriate options to find the ssh
+process and then kill it manually. The default signal of
+SIGTERM is fine.
+</p>
+<h2 class="POD_HEAD1"><a name="Overview_of_the_Repo">Overview of the Repository</a></h2>
+<p class="POD_TEXT">
+Please read at least the introductory sections of the Perforce
+User Guide (and perhaps the Quick Start Guide as well) before
+reading this section.
+</p>
+<p class="POD_TEXT">
+Every repository user typically &quot;owns&quot; a &quot;branch&quot; of the mainline
+code in the repository.  They hold the &quot;pumpkin&quot; for things in this
+area, and are usually the only user who will modify files there.
+This is not strictly enforced in order to allow the flexibility
+of other users stealing the pumpkin for short periods with the
+owner's permission.
+</p>
+<pre class="POD_TEXT">
+Here is the current structure of the repository:
+
+    /----+-----perl                  - Mainline development (bleadperl)
+         +-----cfgperl               - Configure Pumpkin's Perl
+         +-----vmsperl               - VMS Pumpkin's Perl
+         +-----maint-5.004------perl - Maintainance branches
+         +-----maint-5.005------perl
+         +-----maint-5.6------perl
+</pre>
+<p class="POD_TEXT">
+Perforce uses a branching model that simply tracks relationships
+between files.  It does not care about directories at all, so
+any file can be a branch of any other file--the fully qualified
+depot path name (of the form //depot/foo/bar.c) uniquely determines
+a file for the purpose of establishing branching relationships.
+Since a branch usually involves hundreds of files, such relationships
+are typically specified en masse using a branch map (try `p4 help branch`).
+`p4 branches` lists the existing branches that have been set up.
+`p4 branch -o branchname` can be used to view the map for a particular
+branch, if you want to determine the ancestor for a particular set of
+files.
+</p>
+<p class="POD_TEXT">
+The mainline (aka &quot;trunk&quot;) code in the Perl repository is under
+&quot;//depot/perl/...&quot;.  Most branches typically map its entire
+contents under a directory that goes by the same name as the branch
+name.  Thus the contents of the cfgperl branch are to be found
+in //depot/cfgperl.
+</p>
+<p class="POD_TEXT">
+Run `p4 client` to specify how the repository contents should map to
+your local disk.  Most users will typically have a client map that
+includes at least their entire branch and the contents of the mainline.
+</p>
+<pre class="POD_TEXT">
+Run `p4 changes -l -m10` to check on the activity in the repository.
+//depot/perl/Porting/genlog is useful to get an annotated changelog
+that shows files and branches.  You can use this listing to determine
+if there are any changes in the mainline that you need to merge into
+your own branch.  A typical merging session looks like this:
+
+    % cd ~/p4view/cfgperl
+    % p4 integrate -b cfgperl    # to bring parent changes into cfgperl
+    % p4 resolve -a ./...        # auto merge the changes
+    % p4 resolve ./...           # manual merge conflicting changes
+    % p4 submit ./...            # check in
+</pre>
+<pre class="POD_TEXT">
+If the owner of the mainline wants to bring the changes in cfgperl
+back into the mainline, they do:
+
+    % p4 integrate -r -b cfgperl
+    ...
+</pre>
+<pre class="POD_TEXT">
+Generating a patch for change#42 is done as follows:
+
+    % p4 describe -du 42 | p4desc | p4d2p &gt; change-42.patch
+</pre>
+<p class="POD_TEXT">
+p4desc and p4d2p are to be found in //depot/perl/Porting/.
+</p>
+<h2 class="POD_HEAD1"><a name="Contact_Information">Contact Information</a></h2>
+<p class="POD_TEXT">
+The mail alias &lt;perl-repository-keepers@perl.org&gt; can be used to reach
+all current users of the repository.
+</p>
+<p class="POD_TEXT">
+The repository keeper is currently Gurusamy Sarathy
+&lt;gsar@activestate.com&gt;.
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHORS">AUTHORS</a></h2>
+<p class="POD_TEXT">
+Malcolm Beattie, mbeattie@sable.ox.ac.uk, 24 June 1997.
+</p>
+<p class="POD_TEXT">
+Gurusamy Sarathy, gsar@activestate.com, 8 May 1999.
+</p>
+<p class="POD_TEXT">
+Slightly updated by Simon Cozens, simon@brecon.co.uk, 3 July 2000
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:36:57 2001
+</body>
+</html>
+

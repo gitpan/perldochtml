@@ -1,0 +1,411 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>Class::Struct</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="../constant.html">Next:<br>constant</a></td><td align="left" width="1%"><a  href="../charnames.html">Previous:<br>charnames</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="../podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="../podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">Class::Struct</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#The_struct_function">The <code>struct()</code> function</a>
+<li><a href="#Class_Creation_at_Co">Class Creation at Compile Time</a>
+<li><a href="#Element_Types_and_Ac">Element Types and Accessor Methods</a>
+<li><a href="#Initializing_with_ne">Initializing with <code>new</code></a>
+</ul>
+<li><a href="#EXAMPLES">EXAMPLES</a>
+<li><a href="#Author_and_Modificat">Author and Modification History</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+Class::Struct - declare struct-like datatypes as Perl classes
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+    use Class::Struct;
+            # declare struct, based on array:
+    struct( CLASS_NAME =&gt; [ ELEMENT_NAME =&gt; ELEMENT_TYPE, ... ]);
+            # declare struct, based on hash:
+    struct( CLASS_NAME =&gt; { ELEMENT_NAME =&gt; ELEMENT_TYPE, ... });
+
+    package CLASS_NAME;
+    use Class::Struct;
+            # declare struct, based on array, implicit class name:
+    struct( ELEMENT_NAME =&gt; ELEMENT_TYPE, ... );
+
+    # Declare struct at compile time
+    use Class::Struct CLASS_NAME =&gt; [ ELEMENT_NAME =&gt; ELEMENT_TYPE, ... ];
+    use Class::Struct CLASS_NAME =&gt; { ELEMENT_NAME =&gt; ELEMENT_TYPE, ... };
+
+    package Myobj;
+    use Class::Struct;
+            # declare struct with four types of elements:
+    struct( s =&gt; '$', a =&gt; '@', h =&gt; '%', c =&gt; 'My_Other_Class' );
+
+    $obj = new Myobj;               # constructor
+
+                                    # scalar type accessor:
+    $element_value = $obj-&gt;s;           # element value
+    $obj-&gt;s('new value');               # assign to element
+
+                                    # array type accessor:
+    $ary_ref = $obj-&gt;a;                 # reference to whole array
+    $ary_element_value = $obj-&gt;a(2);    # array element value
+    $obj-&gt;a(2, 'new value');            # assign to array element
+
+                                    # hash type accessor:
+    $hash_ref = $obj-&gt;h;                # reference to whole hash
+    $hash_element_value = $obj-&gt;h('x'); # hash element value
+    $obj-&gt;h('x', 'new value');          # assign to hash element
+
+                                    # class type accessor:
+    $element_value = $obj-&gt;c;           # object reference
+    $obj-&gt;c-&gt;method(...);               # call method of object
+    $obj-&gt;c(new My_Other_Class);        # assign a new object
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+<code>Class::Struct</code> exports a single function, <code>struct</code>.
+Given a list of element names and types, and optionally
+a class name, <code>struct</code> creates a Perl 5 class that implements
+a &quot;struct-like&quot; data structure.
+</p>
+<p class="POD_TEXT">
+The new class is given a constructor method, <code>new</code>, for creating
+struct objects.
+</p>
+<p class="POD_TEXT">
+Each element in the struct data has an accessor method, which is
+used to assign to the element and to fetch its value.  The
+default accessor can be overridden by declaring a <code><a class="POD_LINK" href="../perlfunc.html#sub_NAME">sub</a></code> of the
+same name in the package.  (See Example 2.)
+</p>
+<p class="POD_TEXT">
+Each element's type can be scalar, array, hash, or class.
+</p>
+<h3 class="POD_HEAD2"><a name="The_struct_function">The <code>struct()</code> function</a></h3>
+<pre class="POD_TEXT">
+The <code>struct</code> function has three forms of parameter-list.
+
+    struct( CLASS_NAME =&gt; [ ELEMENT_LIST ]);
+    struct( CLASS_NAME =&gt; { ELEMENT_LIST });
+    struct( ELEMENT_LIST );
+</pre>
+<p class="POD_TEXT">
+The first and second forms explicitly identify the name of the
+class being created.  The third form assumes the current package
+name as the class name.
+</p>
+<p class="POD_TEXT">
+An object of a class created by the first and third forms is
+based on an array, whereas an object of a class created by the
+second form is based on a hash. The array-based forms will be
+somewhat faster and smaller; the hash-based forms are more
+flexible.
+</p>
+<p class="POD_TEXT">
+The class created by <code>struct</code> must not be a subclass of another
+class other than <code>UNIVERSAL</code>.
+</p>
+<p class="POD_TEXT">
+It can, however, be used as a superclass for other classes. To facilitate
+this, the generated constructor method uses a two-argument blessing.
+Furthermore, if the class is hash-based, the key of each element is
+prefixed with the class name (see <i>Perl Cookbook</i>, Recipe 13.12).
+</p>
+<p class="POD_TEXT">
+A function named <code>new</code> must not be explicitly defined in a class
+created by <code>struct</code>.
+</p>
+<pre class="POD_TEXT">
+The <i>ELEMENT_LIST</i> has the form
+
+    NAME =&gt; TYPE, ...
+</pre>
+<p class="POD_TEXT">
+Each name-type pair declares one element of the struct. Each
+element name will be defined as an accessor method unless a
+method by that name is explicitly defined; in the latter case, a
+warning is issued if the warning flag (<b>-w</b>) is set.
+</p>
+<h3 class="POD_HEAD2"><a name="Class_Creation_at_Co">Class Creation at Compile Time</a></h3>
+<p class="POD_TEXT">
+<code>Class::Struct</code> can create your class at compile time.  The main reason
+for doing this is obvious, so your class acts like every other class in
+Perl.  Creating your class at compile time will make the order of events
+similar to using any other class ( or Perl module ).
+</p>
+<p class="POD_TEXT">
+There is no significant speed gain between compile time and run time
+class creation, there is just a new, more standard order of events.
+</p>
+<h3 class="POD_HEAD2"><a name="Element_Types_and_Ac">Element Types and Accessor Methods</a></h3>
+<p class="POD_TEXT">
+The four element types -- scalar, array, hash, and class -- are
+represented by strings -- <code>'$'</code>, <code>'@'</code>, <code>'%'</code>, and a class name --
+optionally preceded by a <code>'*'</code>.
+</p>
+<p class="POD_TEXT">
+The accessor method provided by <code>struct</code> for an element depends
+on the declared type of the element.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Scalar_or_">Scalar (<code>'$'</code> or <code>'*$'</code>)</a>
+<dd>
+The element is a scalar, and by default is initialized to <code><a class="POD_LINK" href="../perlfunc.html#undef">undef</a></code>
+(but see the <a class="POD_LINK" href="#Initializing_with_ne">Initializing with new</a> entry elsewhere in this document).
+<p class="POD_TEXT">
+The accessor's argument, if any, is assigned to the element.
+</p>
+<p class="POD_TEXT">
+If the element type is <code>'$'</code>, the value of the element (after
+assignment) is returned. If the element type is <code>'*$'</code>, a reference
+to the element is returned.
+</p>
+<dt class="POD_ITEM"><a name="Array_or_">Array (<code>'@'</code> or <code>'*@'</code>)</a>
+<dd>
+The element is an array, initialized by default to <code>()</code>.
+<p class="POD_TEXT">
+With no argument, the accessor returns a reference to the
+element's whole array (whether or not the element was
+specified as <code>'@'</code> or <code>'*@'</code>).
+</p>
+<p class="POD_TEXT">
+With one or two arguments, the first argument is an index
+specifying one element of the array; the second argument, if
+present, is assigned to the array element.  If the element type
+is <code>'@'</code>, the accessor returns the array element value.  If the
+element type is <code>'*@'</code>, a reference to the array element is
+returned.
+</p>
+<dt class="POD_ITEM"><a name="Hash_or_">Hash (<code>'%'</code> or <code>'*%'</code>)</a>
+<dd>
+The element is a hash, initialized by default to <code>()</code>.
+<p class="POD_TEXT">
+With no argument, the accessor returns a reference to the
+element's whole hash (whether or not the element was
+specified as <code>'%'</code> or <code>'*%'</code>).
+</p>
+<p class="POD_TEXT">
+With one or two arguments, the first argument is a key specifying
+one element of the hash; the second argument, if present, is
+assigned to the hash element.  If the element type is <code>'%'</code>, the
+accessor returns the hash element value.  If the element type is
+<code>'*%'</code>, a reference to the hash element is returned.
+</p>
+<dt class="POD_ITEM"><a name="Class_Class_Name_or_">Class (<code>'Class_Name'</code> or <code>'*Class_Name'</code>)</a>
+<dd>
+The element's value must be a reference blessed to the named
+class or to one of its subclasses. The element is initialized to
+the result of calling the <code>new</code> constructor of the named class.
+<p class="POD_TEXT">
+The accessor's argument, if any, is assigned to the element. The
+accessor will <code>croak</code> if this is not an appropriate object
+reference.
+</p>
+<p class="POD_TEXT">
+If the element type does not start with a <code>'*'</code>, the accessor
+returns the element value (after assignment). If the element type
+starts with a <code>'*'</code>, a reference to the element itself is returned.
+</p>
+</dl>
+<h3 class="POD_HEAD2"><a name="Initializing_with_ne">Initializing with <code>new</code></a></h3>
+<p class="POD_TEXT">
+<code>struct</code> always creates a constructor called <code>new</code>. That constructor
+may take a list of initializers for the various elements of the new
+struct.
+</p>
+<p class="POD_TEXT">
+Each initializer is a pair of values: <i>element name</i><code> =&gt; </code><i>value</i>.
+The initializer value for a scalar element is just a scalar value. The 
+initializer for an array element is an array reference. The initializer
+for a hash is a hash reference.
+</p>
+<p class="POD_TEXT">
+The initializer for a class element is also a hash reference, and the
+contents of that hash are passed to the element's own constructor.
+</p>
+<p class="POD_TEXT">
+See Example 3 below for an example of initialization.
+</p>
+<h2 class="POD_HEAD1"><a name="EXAMPLES">EXAMPLES</a></h2>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Example_1">Example 1</a>
+<dd>
+Giving a struct element a class type that is also a struct is how
+structs are nested.  Here, <code>timeval</code> represents a time (seconds and
+microseconds), and <code>rusage</code> has two elements, each of which is of
+type <code>timeval</code>.
+<pre class="POD_VERBATIM">
+    use Class::Struct;
+
+    struct( rusage =&gt; {
+        ru_utime =&gt; timeval,  # seconds
+        ru_stime =&gt; timeval,  # microseconds
+    });
+
+    struct( timeval =&gt; [
+        tv_secs  =&gt; '$',
+        tv_usecs =&gt; '$',
+    ]);
+
+        # create an object:
+    my $t = new rusage;
+
+        # $t-&gt;ru_utime and $t-&gt;ru_stime are objects of type timeval.
+        # set $t-&gt;ru_utime to 100.0 sec and $t-&gt;ru_stime to 5.0 sec.
+    $t-&gt;ru_utime-&gt;tv_secs(100);
+    $t-&gt;ru_utime-&gt;tv_usecs(0);
+    $t-&gt;ru_stime-&gt;tv_secs(5);
+    $t-&gt;ru_stime-&gt;tv_usecs(0);
+</pre>
+<dt class="POD_ITEM"><a name="Example_2">Example 2</a>
+<dd>
+An accessor function can be redefined in order to provide
+additional checking of values, etc.  Here, we want the <code>count</code>
+element always to be nonnegative, so we redefine the <code>count</code>
+accessor accordingly.
+<pre class="POD_VERBATIM">
+    package MyObj;
+    use Class::Struct;
+
+    # declare the struct
+    struct ( 'MyObj', { count =&gt; '$', stuff =&gt; '%' } );
+
+    # override the default accessor method for 'count'
+    sub count {
+        my $self = shift;
+        if ( @_ ) {
+            die 'count must be nonnegative' if $_[0] &lt; 0;
+            $self-&gt;{'count'} = shift;
+            warn &quot;Too many args to count&quot; if @_;
+        }
+        return $self-&gt;{'count'};
+    }
+
+    package main;
+    $x = new MyObj;
+    print &quot;\$x-&gt;count(5) = &quot;, $x-&gt;count(5), &quot;\n&quot;;
+                            # prints '$x-&gt;count(5) = 5'
+
+    print &quot;\$x-&gt;count = &quot;, $x-&gt;count, &quot;\n&quot;;
+                            # prints '$x-&gt;count = 5'
+
+    print &quot;\$x-&gt;count(-5) = &quot;, $x-&gt;count(-5), &quot;\n&quot;;
+                            # dies due to negative argument!
+</pre>
+<dt class="POD_ITEM"><a name="Example_3">Example 3</a>
+<dd>
+The constructor of a generated class can be passed a list
+of <i>element</i>=&gt;<i>value</i> pairs, with which to initialize the struct.
+If no initializer is specified for a particular element, its default
+initialization is performed instead. Initializers for non-existent
+elements are silently ignored.
+<pre class="POD_TEXT">
+Note that the initializer for a nested struct is specified
+as an anonymous hash of initializers, which is passed on to the nested
+struct's constructor.
+
+    use Class::Struct;
+
+    struct Breed =&gt;
+    {
+        name  =&gt; '$',
+        cross =&gt; '$',
+    };
+
+    struct Cat =&gt;
+    [
+        name     =&gt; '$',
+        kittens  =&gt; '@',
+        markings =&gt; '%',
+        breed    =&gt; 'Breed',
+    ];
+</pre>
+<pre>
+    my $cat = Cat-&gt;new( name     =&gt; 'Socks',
+                        kittens  =&gt; ['Monica', 'Kenneth'],
+                        markings =&gt; { socks=&gt;1, blaze=&gt;&quot;white&quot; },
+                        breed    =&gt; { name=&gt;'short-hair', cross=&gt;1 },
+                      );
+
+    print &quot;Once a cat called &quot;, $cat-&gt;name, &quot;\n&quot;;
+    print &quot;(which was a &quot;, $cat-&gt;breed-&gt;name, &quot;)\n&quot;;
+    print &quot;had two kittens: &quot;, join(' and ', @{$cat-&gt;kittens}), &quot;\n&quot;;
+</pre>
+</dl>
+<h2 class="POD_HEAD1"><a name="Author_and_Modificat">Author and Modification History</a></h2>
+<pre class="POD_TEXT">
+Modified by Casey Tweten, 2000-11-08, v0.59.
+
+    Added the ability for compile time class creation.
+</pre>
+<pre class="POD_TEXT">
+Modified by Damian Conway, 1999-03-05, v0.58.
+
+    Added handling of hash-like arg list to class ctor.
+
+    Changed to two-argument blessing in ctor to support
+    derivation from created classes.
+
+    Added classname prefixes to keys in hash-based classes
+    (refer to &quot;Perl Cookbook&quot;, Recipe 13.12 for rationale).
+
+    Corrected behaviour of accessors for '*@' and '*%' struct
+    elements.  Package now implements documented behaviour when
+    returning a reference to an entire hash or array element.
+    Previously these were returned as a reference to a reference
+    to the element.
+</pre>
+<pre class="POD_TEXT">
+Renamed to <code>Class::Struct</code> and modified by Jim Miner, 1997-04-02.
+
+    members() function removed.
+    Documentation corrected and extended.
+    Use of struct() in a subclass prohibited.
+    User definition of accessor allowed.
+    Treatment of '*' in element types corrected.
+    Treatment of classes as element types corrected.
+    Class name to struct() made optional.
+    Diagnostic checks added.
+</pre>
+<pre class="POD_TEXT">
+Originally <code>Class::Template</code> by Dean Roehrich.
+
+    # Template.pm   --- struct/member template builder
+    #   12mar95
+    #   Dean Roehrich
+    #
+    # changes/bugs fixed since 28nov94 version:
+    #  - podified
+    # changes/bugs fixed since 21nov94 version:
+    #  - Fixed examples.
+    # changes/bugs fixed since 02sep94 version:
+    #  - Moved to Class::Template.
+    # changes/bugs fixed since 20feb94 version:
+    #  - Updated to be a more proper module.
+    #  - Added &quot;use strict&quot;.
+    #  - Bug in build_methods, was using @var when @$var needed.
+    #  - Now using my() rather than local().
+    #
+    # Uses perl5 classes to create nested data types.
+    # This is offered as one implementation of Tom Christiansen's &quot;structs.pl&quot;
+    # idea.
+</pre>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:17 2001
+</body>
+</html>
+

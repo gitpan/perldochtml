@@ -1,0 +1,1640 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>perl5004delta</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="perl5005delta.html">Next:<br>perl5005delta</a></td><td align="left" width="1%"><a href="perl.html">Previous:<br>perl</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">perl5004delta</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#Supported_Environmen">Supported Environments</a>
+<li><a href="#Core_Changes">Core Changes</a>
+<ul>
+<li><a href="#List_assignment_to_E">List assignment to %ENV works</a>
+<li><a href="#Change_to_Can_t_loca">Change to &quot;Can't locate Foo.pm in @INC&quot; error</a>
+<li><a href="#Compilation_option_B">Compilation option: Binary compatibility with 5.003</a>
+<li><a href="#_PERL5OPT_environmen">$PERL5OPT environment variable</a>
+<li><a href="#Limitations_on_M_m_a">Limitations on <b>-M</b>, <b>-m</b>, and <b>-T</b> options</a>
+<li><a href="#More_precise_warning">More precise warnings</a>
+<li><a href="#Deprecated_Inherited">Deprecated: Inherited <code>AUTOLOAD</code> for non-methods</a>
+<li><a href="#Previously_deprecate">Previously deprecated %OVERLOAD is no longer usable</a>
+<li><a href="#Subroutine_arguments">Subroutine arguments created only when they're modified</a>
+<li><a href="#Group_vector_changea">Group vector changeable with <code><a class="POD_LINK" href="perlvar.html#_35">$)</a></code></a>
+<li><a href="#Fixed_parsing_of_dig">Fixed parsing of $$&lt;digit&gt;, &amp;$&lt;digit&gt;, etc.</a>
+<li><a href="#Fixed_localization_o">Fixed localization of $&lt;digit&gt;, $&amp;, etc.</a>
+<li><a href="#No_resetting_of_on_i">No resetting of $. on implicit close</a>
+<li><a href="#wantarray_may_return"><code><a class="POD_LINK" href="perlfunc.html#wantarray">wantarray</a></code> may return undef</a>
+<li><a href="#eval_EXPR_determines"><code><a class="POD_LINK" href="perlfunc.html#eval_EXPR">eval EXPR</a></code> determines value of EXPR in scalar context</a>
+<li><a href="#Changes_to_tainting_">Changes to tainting checks</a>
+<li><a href="#New_Opcode_module_an">New Opcode module and revised Safe module</a>
+<li><a href="#Embedding_improvemen">Embedding improvements</a>
+<li><a href="#Internal_change_File">Internal change: FileHandle class based on IO::* classes</a>
+<li><a href="#Internal_change_Perl">Internal change: PerlIO abstraction interface</a>
+<li><a href="#New_and_changed_synt">New and changed syntax</a>
+<li><a href="#New_and_changed_buil">New and changed builtin constants</a>
+<li><a href="#New_and_changed_buil1">New and changed builtin variables</a>
+<li><a href="#New_and_changed_buil2">New and changed builtin functions</a>
+<li><a href="#New_builtin_methods">New builtin methods</a>
+<li><a href="#TIEHANDLE_now_suppor">TIEHANDLE now supported</a>
+<li><a href="#Malloc_enhancements">Malloc enhancements</a>
+<li><a href="#Miscellaneous_effici">Miscellaneous efficiency enhancements</a>
+</ul>
+<li><a href="#Support_for_More_Ope">Support for More Operating Systems</a>
+<ul>
+<li><a href="#Win32">Win32</a>
+<li><a href="#Plan_9">Plan 9</a>
+<li><a href="#QNX">QNX</a>
+<li><a href="#AmigaOS">AmigaOS</a>
+</ul>
+<li><a href="#Pragmata">Pragmata</a>
+<li><a href="#Modules">Modules</a>
+<ul>
+<li><a href="#Required_Updates">Required Updates</a>
+<li><a href="#Installation_directo">Installation directories</a>
+<li><a href="#Module_information_s">Module information summary</a>
+<li><a href="#Fcntl">Fcntl</a>
+<li><a href="#IO">IO</a>
+<li><a href="#Math_Complex">Math::Complex</a>
+<li><a href="#Math_Trig">Math::Trig</a>
+<li><a href="#DB_File">DB_File</a>
+<li><a href="#Net_Ping">Net::Ping</a>
+<li><a href="#Object_oriented_over">Object-oriented overrides for builtin operators</a>
+</ul>
+<li><a href="#Utility_Changes">Utility Changes</a>
+<ul>
+<li><a href="#pod2html">pod2html</a>
+<li><a href="#xsubpp">xsubpp</a>
+</ul>
+<li><a href="#C_Language_API_Chang">C Language API Changes</a>
+<li><a href="#Documentation_Change">Documentation Changes</a>
+<li><a href="#New_Diagnostics">New Diagnostics</a>
+<li><a href="#BUGS">BUGS</a>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+<li><a href="#HISTORY">HISTORY</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+perldelta - what's new for perl5.004
+</p>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+This document describes differences between the 5.003 release (as
+documented in <i>Programming Perl</i>, second edition--the Camel Book) and
+this one.
+</p>
+<h2 class="POD_HEAD1"><a name="Supported_Environmen">Supported Environments</a></h2>
+<p class="POD_TEXT">
+Perl5.004 builds out of the box on Unix, Plan 9, LynxOS, VMS, OS/2,
+QNX, AmigaOS, and Windows NT.  Perl runs on Windows 95 as well, but it
+cannot be built there, for lack of a reasonable command interpreter.
+</p>
+<h2 class="POD_HEAD1"><a name="Core_Changes">Core Changes</a></h2>
+<p class="POD_TEXT">
+Most importantly, many bugs were fixed, including several security
+problems.  See the <code>Changes</code> file in the distribution for details.
+</p>
+<h3 class="POD_HEAD2"><a name="List_assignment_to_E">List assignment to %ENV works</a></h3>
+<p class="POD_TEXT">
+<code>%ENV = ()</code> and <code>%ENV = @list</code> now work as expected (except on VMS
+where it generates a fatal error).
+</p>
+<h3 class="POD_HEAD2"><a name="Change_to_Can_t_loca">Change to &quot;Can't locate Foo.pm in @INC&quot; error</a></h3>
+<p class="POD_TEXT">
+The error &quot;Can't locate Foo.pm in @INC&quot; now lists the contents of @INC
+for easier debugging.
+</p>
+<h3 class="POD_HEAD2"><a name="Compilation_option_B">Compilation option: Binary compatibility with 5.003</a></h3>
+<p class="POD_TEXT">
+There is a new Configure question that asks if you want to maintain
+binary compatibility with Perl 5.003.  If you choose binary
+compatibility, you do not have to recompile your extensions, but you
+might have symbol conflicts if you embed Perl in another application,
+just as in the 5.003 release.  By default, binary compatibility
+is preserved at the expense of symbol table pollution.
+</p>
+<h3 class="POD_HEAD2"><a name="_PERL5OPT_environmen">$PERL5OPT environment variable</a></h3>
+<p class="POD_TEXT">
+You may now put Perl options in the $PERL5OPT environment variable.
+Unless Perl is running with taint checks, it will interpret this
+variable as if its contents had appeared on a &quot;#!perl&quot; line at the
+beginning of your script, except that hyphens are optional.  PERL5OPT
+may only be used to set the following switches: <b>-[DIMUdmw]</b>.
+</p>
+<h3 class="POD_HEAD2"><a name="Limitations_on_M_m_a">Limitations on <b>-M</b>, <b>-m</b>, and <b>-T</b> options</a></h3>
+<p class="POD_TEXT">
+The <code><a class="POD_LINK" href="perlrun.html#_M_module">-M</a></code> and <code><a class="POD_LINK" href="perlrun.html#_m_module">-m</a></code> options are no longer allowed on the <code><a class="POD_LINK" href="perlrun.html#_and_quoting_on_non_">#!</a></code> line of
+a script.  If a script needs a module, it should invoke it with the
+<code><a class="POD_LINK" href="perlfunc.html#use_Module_LIST">use</a></code> pragma.
+</p>
+<pre class="POD_TEXT">
+The <b>-T</b> option is also forbidden on the <code><a class="POD_LINK" href="perlrun.html#_and_quoting_on_non_">#!</a></code> line of a script,
+unless it was present on the Perl command line.  Due to the way <code><a class="POD_LINK" href="perlrun.html#_and_quoting_on_non_">#!</a></code>
+works, this usually means that <b>-T</b> must be in the first argument.
+Thus:
+
+    #!/usr/bin/perl -T -w
+</pre>
+<pre class="POD_TEXT">
+will probably work for an executable script invoked as <code>scriptname</code>,
+while:
+
+    #!/usr/bin/perl -w -T
+</pre>
+<p class="POD_TEXT">
+will probably fail under the same conditions.  (Non-Unix systems will
+probably not follow this rule.)  But <code>perl scriptname</code> is guaranteed
+to fail, since then there is no chance of <b>-T</b> being found on the
+command line before it is found on the <code><a class="POD_LINK" href="perlrun.html#_and_quoting_on_non_">#!</a></code> line.
+</p>
+<h3 class="POD_HEAD2"><a name="More_precise_warning">More precise warnings</a></h3>
+<p class="POD_TEXT">
+If you removed the <b>-w</b> option from your Perl 5.003 scripts because it
+made Perl too verbose, we recommend that you try putting it back when
+you upgrade to Perl 5.004.  Each new perl version tends to remove some
+undesirable warnings, while adding new warnings that may catch bugs in
+your scripts.
+</p>
+<h3 class="POD_HEAD2"><a name="Deprecated_Inherited">Deprecated: Inherited <code>AUTOLOAD</code> for non-methods</a></h3>
+<p class="POD_TEXT">
+Before Perl 5.004, <code>AUTOLOAD</code> functions were looked up as methods
+(using the <code>@ISA</code> hierarchy), even when the function to be autoloaded
+was called as a plain function (e.g. <code>Foo::bar()</code>), not a method
+(e.g. <code>Foo-&gt;bar()</code> or <code>$obj-&gt;bar()</code>).
+</p>
+<p class="POD_TEXT">
+Perl 5.005 will use method lookup only for methods' <code>AUTOLOAD</code>s.
+However, there is a significant base of existing code that may be using
+the old behavior.  So, as an interim step, Perl 5.004 issues an optional
+warning when a non-method uses an inherited <code>AUTOLOAD</code>.
+</p>
+<p class="POD_TEXT">
+The simple rule is:  Inheritance will not work when autoloading
+non-methods.  The simple fix for old code is:  In any module that used to
+depend on inheriting <code>AUTOLOAD</code> for non-methods from a base class named
+<code>BaseClass</code>, execute <code>*AUTOLOAD = \&amp;BaseClass::AUTOLOAD</code> during startup.
+</p>
+<h3 class="POD_HEAD2"><a name="Previously_deprecate">Previously deprecated %OVERLOAD is no longer usable</a></h3>
+<p class="POD_TEXT">
+Using %OVERLOAD to define overloading was deprecated in 5.003.
+Overloading is now defined using the overload pragma. %OVERLOAD is
+still used internally but should not be used by Perl scripts. See
+the <a class="POD_LINK" href="overload.html">overload</a> manpage for more details.
+</p>
+<h3 class="POD_HEAD2"><a name="Subroutine_arguments">Subroutine arguments created only when they're modified</a></h3>
+<p class="POD_TEXT">
+In Perl 5.004, nonexistent array and hash elements used as subroutine
+parameters are brought into existence only if they are actually
+assigned to (via <code><a class="POD_LINK" href="perlvar.html#_38">@_</a></code>).
+</p>
+<p class="POD_TEXT">
+Earlier versions of Perl vary in their handling of such arguments.
+Perl versions 5.002 and 5.003 always brought them into existence.
+Perl versions 5.000 and 5.001 brought them into existence only if
+they were not the first argument (which was almost certainly a bug).
+Earlier versions of Perl never brought them into existence.
+</p>
+<pre class="POD_TEXT">
+For example, given this code:
+
+     undef @a; undef %a;
+     sub show { print $_[0] };
+     sub change { $_[0]++ };
+     show($a[2]);
+     change($a{b});
+</pre>
+<p class="POD_TEXT">
+After this code executes in Perl 5.004, $a{b} exists but $a[2] does
+not.  In Perl 5.002 and 5.003, both $a{b} and $a[2] would have existed
+(but $a[2]'s value would have been undefined).
+</p>
+<h3 class="POD_HEAD2"><a name="Group_vector_changea">Group vector changeable with <code><a class="POD_LINK" href="perlvar.html#_35">$)</a></code></a></h3>
+<p class="POD_TEXT">
+The <code><a class="POD_LINK" href="perlvar.html#_35">$)</a></code> special variable has always (well, in Perl 5, at least)
+reflected not only the current effective group, but also the group list
+as returned by the <code>getgroups()</code> C function (if there is one).
+However, until this release, there has not been a way to call the
+<code>setgroups()</code> C function from Perl.
+</p>
+<p class="POD_TEXT">
+In Perl 5.004, assigning to <code><a class="POD_LINK" href="perlvar.html#_35">$)</a></code> is exactly symmetrical with examining
+it: The first number in its string value is used as the effective gid;
+if there are any numbers after the first one, they are passed to the
+<code>setgroups()</code> C function (if there is one).
+</p>
+<h3 class="POD_HEAD2"><a name="Fixed_parsing_of_dig">Fixed parsing of $$&lt;digit&gt;, &amp;$&lt;digit&gt;, etc.</a></h3>
+<p class="POD_TEXT">
+Perl versions before 5.004 misinterpreted any type marker followed by
+&quot;$&quot; and a digit.  For example, &quot;$$0&quot; was incorrectly taken to mean
+&quot;${$}0&quot; instead of &quot;${$0}&quot;.  This bug is (mostly) fixed in Perl 5.004.
+</p>
+<p class="POD_TEXT">
+However, the developers of Perl 5.004 could not fix this bug completely,
+because at least two widely-used modules depend on the old meaning of
+&quot;$$0&quot; in a string.  So Perl 5.004 still interprets &quot;$$&lt;digit&gt;&quot; in the
+old (broken) way inside strings; but it generates this message as a
+warning.  And in Perl 5.005, this special treatment will cease.
+</p>
+<h3 class="POD_HEAD2"><a name="Fixed_localization_o">Fixed localization of $&lt;digit&gt;, $&amp;, etc.</a></h3>
+<p class="POD_TEXT">
+Perl versions before 5.004 did not always properly localize the
+regex-related special variables.  Perl 5.004 does localize them, as
+the documentation has always said it should.  This may result in $1,
+$2, etc. no longer being set where existing programs use them.
+</p>
+<h3 class="POD_HEAD2"><a name="No_resetting_of_on_i">No resetting of $. on implicit close</a></h3>
+<p class="POD_TEXT">
+The documentation for Perl 5.0 has always stated that <code><a class="POD_LINK" href="perlvar.html#_13">$.</a></code> is <i>not</i>
+reset when an already-open file handle is reopened with no intervening
+call to <code><a class="POD_LINK" href="perlfunc.html#close">close</a></code>.  Due to a bug, perl versions 5.000 through 5.003
+<i>did</i> reset <code><a class="POD_LINK" href="perlvar.html#_13">$.</a></code> under that circumstance; Perl 5.004 does not.
+</p>
+<h3 class="POD_HEAD2"><a name="wantarray_may_return"><code><a class="POD_LINK" href="perlfunc.html#wantarray">wantarray</a></code> may return undef</a></h3>
+<p class="POD_TEXT">
+The <code><a class="POD_LINK" href="perlfunc.html#wantarray">wantarray</a></code> operator returns true if a subroutine is expected to
+return a list, and false otherwise.  In Perl 5.004, <code><a class="POD_LINK" href="perlfunc.html#wantarray">wantarray</a></code> can
+also return the undefined value if a subroutine's return value will
+not be used at all, which allows subroutines to avoid a time-consuming
+calculation of a return value if it isn't going to be used.
+</p>
+<h3 class="POD_HEAD2"><a name="eval_EXPR_determines"><code><a class="POD_LINK" href="perlfunc.html#eval_EXPR">eval EXPR</a></code> determines value of EXPR in scalar context</a></h3>
+<pre class="POD_TEXT">
+Perl (version 5) used to determine the value of EXPR inconsistently,
+sometimes incorrectly using the surrounding context for the determination.
+Now, the value of EXPR (before being parsed by eval) is always determined in
+a scalar context.  Once parsed, it is executed as before, by providing
+the context that the scope surrounding the eval provided.  This change
+makes the behavior Perl4 compatible, besides fixing bugs resulting from
+the inconsistent behavior.  This program:
+
+    @a = qw(time now is time);
+    print eval @a;
+    print '|', scalar eval @a;
+</pre>
+<p class="POD_TEXT">
+used to print something like &quot;timenowis881399109|4&quot;, but now (and in perl4)
+prints &quot;4|4&quot;.
+</p>
+<h3 class="POD_HEAD2"><a name="Changes_to_tainting_">Changes to tainting checks</a></h3>
+<p class="POD_TEXT">
+A bug in previous versions may have failed to detect some insecure
+conditions when taint checks are turned on.  (Taint checks are used
+in setuid or setgid scripts, or when explicitly turned on with the
+<code><a class="POD_LINK" href="perlrun.html#_T">-T</a></code> invocation option.)  Although it's unlikely, this may cause a
+previously-working script to now fail -- which should be construed
+as a blessing, since that indicates a potentially-serious security
+hole was just plugged.
+</p>
+<p class="POD_TEXT">
+The new restrictions when tainting include:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="No_glob_or_">No glob() or &lt;*&gt;</a>
+<dd>
+These operators may spawn the C shell (csh), which cannot be made
+safe.  This restriction will be lifted in a future version of Perl
+when globbing is implemented without the use of an external program.
+<dt class="POD_ITEM"><a name="No_spawning_if_taint">No spawning if tainted $CDPATH, $ENV, $BASH_ENV</a>
+<dd>
+These environment variables may alter the behavior of spawned programs
+(especially shells) in ways that subvert security.  So now they are
+treated as dangerous, in the manner of $IFS and $PATH.
+<dt class="POD_ITEM"><a name="No_spawning_if_taint1">No spawning if tainted $TERM doesn't look like a terminal name</a>
+<dd>
+Some termcap libraries do unsafe things with $TERM.  However, it would be
+unnecessarily harsh to treat all $TERM values as unsafe, since only shell
+metacharacters can cause trouble in $TERM.  So a tainted $TERM is
+considered to be safe if it contains only alphanumerics, underscores,
+dashes, and colons, and unsafe if it contains other characters (including
+whitespace).
+</dl>
+<h3 class="POD_HEAD2"><a name="New_Opcode_module_an">New Opcode module and revised Safe module</a></h3>
+<p class="POD_TEXT">
+A new Opcode module supports the creation, manipulation and
+application of opcode masks.  The revised Safe module has a new API
+and is implemented using the new Opcode module.  Please read the new
+Opcode and Safe documentation.
+</p>
+<h3 class="POD_HEAD2"><a name="Embedding_improvemen">Embedding improvements</a></h3>
+<p class="POD_TEXT">
+In older versions of Perl it was not possible to create more than one
+Perl interpreter instance inside a single process without leaking like a
+sieve and/or crashing.  The bugs that caused this behavior have all been
+fixed.  However, you still must take care when embedding Perl in a C
+program.  See the updated perlembed manpage for tips on how to manage
+your interpreters.
+</p>
+<h3 class="POD_HEAD2"><a name="Internal_change_File">Internal change: FileHandle class based on IO::* classes</a></h3>
+<p class="POD_TEXT">
+File handles are now stored internally as type IO::Handle.  The
+FileHandle module is still supported for backwards compatibility, but
+it is now merely a front end to the IO::* modules -- specifically,
+IO::Handle, IO::Seekable, and IO::File.  We suggest, but do not
+require, that you use the IO::* modules in new code.
+</p>
+<p class="POD_TEXT">
+In harmony with this change, <code>*GLOB{FILEHANDLE}</code> is now just a
+backward-compatible synonym for <code>*GLOB{IO}</code>.
+</p>
+<h3 class="POD_HEAD2"><a name="Internal_change_Perl">Internal change: PerlIO abstraction interface</a></h3>
+<p class="POD_TEXT">
+It is now possible to build Perl with AT&amp;T's sfio IO package
+instead of stdio.  See the <a class="POD_LINK" href="perlapio.html">perlapio</a> manpage for more details, and
+the <code>INSTALL</code> file for how to use it.
+</p>
+<h3 class="POD_HEAD2"><a name="New_and_changed_synt">New and changed syntax</a></h3>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_coderef_PARAMS_">$coderef-&gt;(PARAMS)</a>
+<dd>
+A subroutine reference may now be suffixed with an arrow and a
+(possibly empty) parameter list.  This syntax denotes a call of the
+referenced subroutine, with the given parameters (if any).
+<p class="POD_TEXT">
+This new syntax follows the pattern of <code>$hashref-&gt;{FOO}</code> and
+<code>$aryref-&gt;[$foo]</code>: You may now write <code>&amp;$subref($foo)</code> as
+<code>$subref-&gt;($foo)</code>.  All these arrow terms may be chained;
+thus, <code>&amp;{$table-&gt;{FOO}}($bar)</code> may now be written
+<code>$table-&gt;{FOO}-&gt;($bar)</code>.
+</p>
+</dl>
+<h3 class="POD_HEAD2"><a name="New_and_changed_buil">New and changed builtin constants</a></h3>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_PACKAGE_">__PACKAGE__</a>
+<dd>
+The current package name at compile time, or the undefined value if
+there is no current package (due to a <code>package;</code> directive).  Like
+<code>__FILE__</code> and <code>__LINE__</code>, <code>__PACKAGE__</code> does <i>not</i> interpolate
+into strings.
+</dl>
+<h3 class="POD_HEAD2"><a name="New_and_changed_buil1">New and changed builtin variables</a></h3>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_E">$^E</a>
+<dd>
+Extended error message on some platforms.  (Also known as
+$EXTENDED_OS_ERROR if you <code>use English</code>).
+<dt class="POD_ITEM"><a name="_H">$^H</a>
+<dd>
+The current set of syntax checks enabled by <code>use strict</code>.  See the
+documentation of <code>strict</code> for more details.  Not actually new, but
+newly documented.
+Because it is intended for internal use by Perl core components,
+there is no <code>use English</code> long name for this variable.
+<dt class="POD_ITEM"><a name="_M">$^M</a>
+<dd>
+By default, running out of memory it is not trappable.  However, if
+compiled for this, Perl may use the contents of <code><a class="POD_LINK" href="perlvar.html#_M">$^M</a></code> as an emergency
+pool after die()ing with this message.  Suppose that your Perl were
+compiled with -DPERL_EMERGENCY_SBRK and used Perl's malloc.  Then
+<pre class="POD_VERBATIM">
+    $^M = 'a' x (1&lt;&lt;16);
+</pre>
+<p class="POD_TEXT">
+would allocate a 64K buffer for use when in emergency.
+See the <code>INSTALL</code> file for information on how to enable this option.
+As a disincentive to casual use of this advanced feature,
+there is no <code>use English</code> long name for this variable.
+</p>
+</dl>
+<h3 class="POD_HEAD2"><a name="New_and_changed_buil2">New and changed builtin functions</a></h3>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="delete_on_slices">delete on slices</a>
+<dd>
+This now works.  (e.g. <code>delete @ENV{'PATH', 'MANPATH'}</code>)
+<dt class="POD_ITEM"><a name="flock">flock</a>
+<dd>
+is now supported on more platforms, prefers fcntl to lockf when
+emulating, and always flushes before (un)locking.
+<dt class="POD_ITEM"><a name="printf_and_sprintf">printf and sprintf</a>
+<dd>
+Perl now implements these functions itself; it doesn't use the C
+library function sprintf() any more, except for floating-point
+numbers, and even then only known flags are allowed.  As a result, it
+is now possible to know which conversions and flags will work, and
+what they will do.
+<pre class="POD_TEXT">
+The new conversions in Perl's sprintf() are:
+
+   %i	a synonym for %d
+   %p	a pointer (the address of the Perl value, in hexadecimal)
+   %n	special: *stores* the number of characters output so far
+        into the next variable in the parameter list
+</pre>
+<pre class="POD_TEXT">
+The new flags that go between the <code>%</code> and the conversion are:
+
+   #	prefix octal with &quot;0&quot;, hex with &quot;0x&quot;
+   h	interpret integer as C type &quot;short&quot; or &quot;unsigned short&quot;
+   V	interpret integer as Perl's standard integer type
+</pre>
+<p class="POD_TEXT">
+Also, where a number would appear in the flags, an asterisk (&quot;*&quot;) may
+be used instead, in which case Perl uses the next item in the
+parameter list as the given number (that is, as the field width or
+precision).  If a field width obtained through &quot;*&quot; is negative, it has
+the same effect as the '-' flag: left-justification.
+</p>
+<p class="POD_TEXT">
+See the <a class="POD_LINK" href="perlfunc.html#sprintf_FORMAT_LIST">sprintf</a> entry in the <a class="POD_LINK" href="perlfunc.html">perlfunc</a> manpage for a complete list of conversion and flags.
+</p>
+<dt class="POD_ITEM"><a name="keys_as_an_lvalue">keys as an lvalue</a>
+<dd>
+As an lvalue, <code><a class="POD_LINK" href="perlfunc.html#keys_HASH">keys</a></code> allows you to increase the number of hash buckets
+allocated for the given hash.  This can gain you a measure of efficiency if
+you know the hash is going to get big.  (This is similar to pre-extending
+an array by assigning a larger number to $#array.)  If you say
+<pre class="POD_VERBATIM">
+    keys %hash = 200;
+</pre>
+<p class="POD_TEXT">
+then <code>%hash</code> will have at least 200 buckets allocated for it.  These
+buckets will be retained even if you do <code>%hash = ()</code>; use <code>undef
+%hash</code> if you want to free the storage while <code>%hash</code> is still in scope.
+You can't shrink the number of buckets allocated for the hash using
+<code><a class="POD_LINK" href="perlfunc.html#keys_HASH">keys</a></code> in this way (but you needn't worry about doing this by accident,
+as trying has no effect).
+</p>
+<dt class="POD_ITEM"><a name="my_in_Control_Struct">my() in Control Structures</a>
+<dd>
+You can now use my() (with or without the parentheses) in the control
+expressions of control structures such as:
+<pre class="POD_VERBATIM">
+    while (defined(my $line = &lt;&gt;)) {
+        $line = lc $line;
+    } continue {
+        print $line;
+    }
+
+    if ((my $answer = &lt;STDIN&gt;) =~ /^y(es)?$/i) {
+        user_agrees();
+    } elsif ($answer =~ /^n(o)?$/i) {
+        user_disagrees();
+    } else {
+        chomp $answer;
+        die &quot;`$answer' is neither `yes' nor `no'&quot;;
+    }
+</pre>
+<pre class="POD_TEXT">
+Also, you can declare a foreach loop control variable as lexical by
+preceding it with the word &quot;my&quot;.  For example, in:
+
+    foreach my $i (1, 2, 3) {
+        some_function();
+    }
+</pre>
+<p class="POD_TEXT">
+$i is a lexical variable, and the scope of $i extends to the end of
+the loop, but not beyond it.
+</p>
+<p class="POD_TEXT">
+Note that you still cannot use my() on global punctuation variables
+such as $_ and the like.
+</p>
+<dt class="POD_ITEM"><a name="pack_and_unpack_">pack() and unpack()</a>
+<dd>
+A new format 'w' represents a BER compressed integer (as defined in
+ASN.1).  Its format is a sequence of one or more bytes, each of which
+provides seven bits of the total value, with the most significant
+first.  Bit eight of each byte is set, except for the last byte, in
+which bit eight is clear.
+<p class="POD_TEXT">
+If 'p' or 'P' are given undef as values, they now generate a NULL
+pointer.
+</p>
+<p class="POD_TEXT">
+Both pack() and unpack() now fail when their templates contain invalid
+types.  (Invalid types used to be ignored.)
+</p>
+<dt class="POD_ITEM"><a name="sysseek_">sysseek()</a>
+<dd>
+The new sysseek() operator is a variant of seek() that sets and gets the
+file's system read/write position, using the lseek(2) system call.  It is
+the only reliable way to seek before using sysread() or syswrite().  Its
+return value is the new position, or the undefined value on failure.
+<dt class="POD_ITEM"><a name="use_VERSION">use VERSION</a>
+<dd>
+If the first argument to <code><a class="POD_LINK" href="perlfunc.html#use_Module_LIST">use</a></code> is a number, it is treated as a version
+number instead of a module name.  If the version of the Perl interpreter
+is less than VERSION, then an error message is printed and Perl exits
+immediately.  Because <code><a class="POD_LINK" href="perlfunc.html#use_Module_LIST">use</a></code> occurs at compile time, this check happens
+immediately during the compilation process, unlike <code><a class="POD_LINK" href="perlfunc.html#require_VERSION">require VERSION</a></code>,
+which waits until runtime for the check.  This is often useful if you
+need to check the current Perl version before <code><a class="POD_LINK" href="perlfunc.html#use_Module_LIST">use</a></code>ing library modules
+which have changed in incompatible ways from older versions of Perl.
+(We try not to do this more than we have to.)
+<dt class="POD_ITEM"><a name="use_Module_VERSION_L">use Module VERSION LIST</a>
+<dd>
+If the VERSION argument is present between Module and LIST, then the
+<code><a class="POD_LINK" href="perlfunc.html#use_Module_LIST">use</a></code> will call the VERSION method in class Module with the given
+version as an argument.  The default VERSION method, inherited from
+the UNIVERSAL class, croaks if the given version is larger than the
+value of the variable $Module::VERSION.  (Note that there is not a
+comma after VERSION!)
+<p class="POD_TEXT">
+This version-checking mechanism is similar to the one currently used
+in the Exporter module, but it is faster and can be used with modules
+that don't use the Exporter.  It is the recommended method for new
+code.
+</p>
+<dt class="POD_ITEM"><a name="prototype_FUNCTION_">prototype(FUNCTION)</a>
+<dd>
+Returns the prototype of a function as a string (or <code><a class="POD_LINK" href="perlfunc.html#undef">undef</a></code> if the
+function has no prototype).  FUNCTION is a reference to or the name of the
+function whose prototype you want to retrieve.
+(Not actually new; just never documented before.)
+<dt class="POD_ITEM"><a name="srand">srand</a>
+<dd>
+The default seed for <code><a class="POD_LINK" href="perlfunc.html#srand">srand</a></code>, which used to be <code><a class="POD_LINK" href="perlfunc.html#time">time</a></code>, has been changed.
+Now it's a heady mix of difficult-to-predict system-dependent values,
+which should be sufficient for most everyday purposes.
+<p class="POD_TEXT">
+Previous to version 5.004, calling <code><a class="POD_LINK" href="perlfunc.html#rand">rand</a></code> without first calling <code><a class="POD_LINK" href="perlfunc.html#srand">srand</a></code>
+would yield the same sequence of random numbers on most or all machines.
+Now, when perl sees that you're calling <code><a class="POD_LINK" href="perlfunc.html#rand">rand</a></code> and haven't yet called
+<code><a class="POD_LINK" href="perlfunc.html#srand">srand</a></code>, it calls <code><a class="POD_LINK" href="perlfunc.html#srand">srand</a></code> with the default seed. You should still call
+<code><a class="POD_LINK" href="perlfunc.html#srand">srand</a></code> manually if your code might ever be run on a pre-5.004 system,
+of course, or if you want a seed other than the default.
+</p>
+<dt class="POD_ITEM"><a name="_as_Default">$_ as Default</a>
+<dd>
+Functions documented in the Camel to default to $_ now in
+fact do, and all those that do are so documented in the <a class="POD_LINK" href="perlfunc.html">perlfunc</a> manpage.
+<dt class="POD_ITEM"><a name="m_gc_does_not_reset_"><code>m//gc</code> does not reset search position on failure</a>
+<dd>
+The <code>m//g</code> match iteration construct has always reset its target
+string's search position (which is visible through the <code><a class="POD_LINK" href="perlfunc.html#pos">pos</a></code> operator)
+when a match fails; as a result, the next <code>m//g</code> match after a failure
+starts again at the beginning of the string.  With Perl 5.004, this
+reset may be disabled by adding the &quot;c&quot; (for &quot;continue&quot;) modifier,
+i.e. <code>m//gc</code>.  This feature, in conjunction with the <code>\G</code> zero-width
+assertion, makes it possible to chain matches together.  See the <a class="POD_LINK" href="perlop.html">perlop</a> manpage
+and the <a class="POD_LINK" href="perlre.html">perlre</a> manpage.
+<dt class="POD_ITEM"><a name="m_x_ignores_whitespa"><code>m//x</code> ignores whitespace before ?*+{}</a>
+<dd>
+The <code>m//x</code> construct has always been intended to ignore all unescaped
+whitespace.  However, before Perl 5.004, whitespace had the effect of
+escaping repeat modifiers like &quot;*&quot; or &quot;?&quot;; for example, <code>/a *b/x</code> was
+(mis)interpreted as <code>/a\*b/x</code>.  This bug has been fixed in 5.004.
+<dt class="POD_ITEM"><a name="nested_sub_closures_">nested <code>sub{}</code> closures work now</a>
+<dd>
+Prior to the 5.004 release, nested anonymous functions didn't work
+right.  They do now.
+<dt class="POD_ITEM"><a name="formats_work_right_o">formats work right on changing lexicals</a>
+<dd>
+Just like anonymous functions that contain lexical variables
+that change (like a lexical index variable for a <code>foreach</code> loop),
+formats now work properly.  For example, this silently failed
+before (printed only zeros), but is fine now:
+<pre class="POD_VERBATIM">
+    my $i;
+    foreach $i ( 1 .. 10 ) {
+	write;
+    }
+    format =
+	my i is @#
+	$i
+    .
+</pre>
+<pre class="POD_TEXT">
+However, it still fails (without a warning) if the foreach is within a
+subroutine:
+
+    my $i;
+    sub foo {
+      foreach $i ( 1 .. 10 ) {
+	write;
+      }
+    }
+    foo;
+    format =
+	my i is @#
+	$i
+    .
+</pre>
+</dl>
+<h3 class="POD_HEAD2"><a name="New_builtin_methods">New builtin methods</a></h3>
+<p class="POD_TEXT">
+The <code>UNIVERSAL</code> package automatically contains the following methods that
+are inherited by all other classes:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="isa_CLASS_">isa(CLASS)</a>
+<dd>
+<code>isa</code> returns <i>true</i> if its object is blessed into a subclass of <code>CLASS</code>
+<pre class="POD_TEXT">
+<code>isa</code> is also exportable and can be called as a sub with two arguments. This
+allows the ability to check what a reference points to. Example:
+
+    use UNIVERSAL qw(isa);
+
+    if(isa($ref, 'ARRAY')) {
+       ...
+    }
+</pre>
+<dt class="POD_ITEM"><a name="can_METHOD_">can(METHOD)</a>
+<dd>
+<code>can</code> checks to see if its object has a method called <code>METHOD</code>,
+if it does then a reference to the sub is returned; if it does not then
+<i>undef</i> is returned.
+<dt class="POD_ITEM"><a name="VERSION_NEED_">VERSION( [NEED] )</a>
+<dd>
+<code>VERSION</code> returns the version number of the class (package).  If the
+NEED argument is given then it will check that the current version (as
+defined by the $VERSION variable in the given package) not less than
+NEED; it will die if this is not the case.  This method is normally
+called as a class method.  This method is called automatically by the
+<code>VERSION</code> form of <code><a class="POD_LINK" href="perlfunc.html#use_Module_LIST">use</a></code>.
+<pre class="POD_VERBATIM">
+    use A 1.2 qw(some imported subs);
+    # implies:
+    A-&gt;VERSION(1.2);
+</pre>
+</dl>
+<p class="POD_TEXT">
+<b>NOTE:</b> <code>can</code> directly uses Perl's internal code for method lookup, and
+<code>isa</code> uses a very similar method and caching strategy. This may cause
+strange effects if the Perl code dynamically changes @ISA in any package.
+</p>
+<p class="POD_TEXT">
+You may add other methods to the UNIVERSAL class via Perl or XS code.
+You do not need to <code>use UNIVERSAL</code> in order to make these methods
+available to your program.  This is necessary only if you wish to
+have <code>isa</code> available as a plain subroutine in the current package.
+</p>
+<h3 class="POD_HEAD2"><a name="TIEHANDLE_now_suppor">TIEHANDLE now supported</a></h3>
+<p class="POD_TEXT">
+See the <a class="POD_LINK" href="perltie.html">perltie</a> manpage for other kinds of tie()s.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="TIEHANDLE_classname_">TIEHANDLE classname, LIST</a>
+<dd>
+This is the constructor for the class.  That means it is expected to
+return an object of some sort. The reference can be used to
+hold some internal information.
+<pre class="POD_VERBATIM">
+    sub TIEHANDLE {
+	print &quot;&lt;shout&gt;\n&quot;;
+	my $i;
+	return bless \$i, shift;
+    }
+</pre>
+<dt class="POD_ITEM"><a name="PRINT_this_LIST">PRINT this, LIST</a>
+<dd>
+This method will be triggered every time the tied handle is printed to.
+Beyond its self reference it also expects the list that was passed to
+the print function.
+<pre class="POD_VERBATIM">
+    sub PRINT {
+	$r = shift;
+	$$r++;
+	return print join( $, =&gt; map {uc} @_), $\;
+    }
+</pre>
+<dt class="POD_ITEM"><a name="PRINTF_this_LIST">PRINTF this, LIST</a>
+<dd>
+This method will be triggered every time the tied handle is printed to
+with the <code>printf()</code> function.
+Beyond its self reference it also expects the format and list that was
+passed to the printf function.
+<pre class="POD_VERBATIM">
+    sub PRINTF {
+        shift;
+	  my $fmt = shift;
+        print sprintf($fmt, @_).&quot;\n&quot;;
+    }
+</pre>
+<dt class="POD_ITEM"><a name="READ_this_LIST">READ this LIST</a>
+<dd>
+This method will be called when the handle is read from via the <code><a class="POD_LINK" href="perlfunc.html#read_FILEHANDLE_SCAL1">read</a></code>
+or <code><a class="POD_LINK" href="perlfunc.html#sysread_FILEHANDLE_S">sysread</a></code> functions.
+<pre class="POD_VERBATIM">
+    sub READ {
+	$r = shift;
+	my($buf,$len,$offset) = @_;
+	print &quot;READ called, \$buf=$buf, \$len=$len, \$offset=$offset&quot;;
+    }
+</pre>
+<dt class="POD_ITEM"><a name="READLINE_this">READLINE this</a>
+<dd>
+This method will be called when the handle is read from. The method
+should return undef when there is no more data.
+<pre class="POD_VERBATIM">
+    sub READLINE {
+	$r = shift;
+	return &quot;PRINT called $$r times\n&quot;
+    }
+</pre>
+<dt class="POD_ITEM"><a name="GETC_this">GETC this</a>
+<dd>
+This method will be called when the <code><a class="POD_LINK" href="perlfunc.html#getc">getc</a></code> function is called.
+<pre class="POD_VERBATIM">
+    sub GETC { print &quot;Don't GETC, Get Perl&quot;; return &quot;a&quot;; }
+</pre>
+<dt class="POD_ITEM"><a name="DESTROY_this">DESTROY this</a>
+<dd>
+As with the other types of ties, this method will be called when the
+tied handle is about to be destroyed. This is useful for debugging and
+possibly for cleaning up.
+<pre class="POD_VERBATIM">
+    sub DESTROY {
+	print &quot;&lt;/shout&gt;\n&quot;;
+    }
+</pre>
+</dl>
+<h3 class="POD_HEAD2"><a name="Malloc_enhancements">Malloc enhancements</a></h3>
+<pre class="POD_TEXT">
+If perl is compiled with the malloc included with the perl distribution
+(that is, if <code>perl -V:d_mymalloc</code> is 'define') then you can print
+memory statistics at runtime by running Perl thusly:
+
+  env PERL_DEBUG_MSTATS=2 perl your_script_here
+</pre>
+<p class="POD_TEXT">
+The value of 2 means to print statistics after compilation and on
+exit; with a value of 1, the statistics are printed only on exit.
+(If you want the statistics at an arbitrary time, you'll need to
+install the optional module Devel::Peek.)
+</p>
+<p class="POD_TEXT">
+Three new compilation flags are recognized by malloc.c.  (They have no
+effect if perl is compiled with system malloc().)
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_DPERL_EMERGENCY_SBR">-DPERL_EMERGENCY_SBRK</a>
+<dd>
+If this macro is defined, running out of memory need not be a fatal
+error: a memory pool can allocated by assigning to the special
+variable <code><a class="POD_LINK" href="perlvar.html#_M">$^M</a></code>.  See the section on <a class="POD_LINK" href="#_M">$^M</a> elsewhere in this document.
+<dt class="POD_ITEM"><a name="_DPACK_MALLOC">-DPACK_MALLOC</a>
+<dd>
+Perl memory allocation is by bucket with sizes close to powers of two.
+Because of these malloc overhead may be big, especially for data of
+size exactly a power of two.  If <code>PACK_MALLOC</code> is defined, perl uses
+a slightly different algorithm for small allocations (up to 64 bytes
+long), which makes it possible to have overhead down to 1 byte for
+allocations which are powers of two (and appear quite often).
+<p class="POD_TEXT">
+Expected memory savings (with 8-byte alignment in <code>alignbytes</code>) is
+about 20% for typical Perl usage.  Expected slowdown due to additional
+malloc overhead is in fractions of a percent (hard to measure, because
+of the effect of saved memory on speed).
+</p>
+<dt class="POD_ITEM"><a name="_DTWO_POT_OPTIMIZE">-DTWO_POT_OPTIMIZE</a>
+<dd>
+Similarly to <code>PACK_MALLOC</code>, this macro improves allocations of data
+with size close to a power of two; but this works for big allocations
+(starting with 16K by default).  Such allocations are typical for big
+hashes and special-purpose scripts, especially image processing.
+<p class="POD_TEXT">
+On recent systems, the fact that perl requires 2M from system for 1M
+allocation will not affect speed of execution, since the tail of such
+a chunk is not going to be touched (and thus will not require real
+memory).  However, it may result in a premature out-of-memory error.
+So if you will be manipulating very large blocks with sizes close to
+powers of two, it would be wise to define this macro.
+</p>
+<p class="POD_TEXT">
+Expected saving of memory is 0-100% (100% in applications which
+require most memory in such 2**n chunks); expected slowdown is
+negligible.
+</p>
+</dl>
+<h3 class="POD_HEAD2"><a name="Miscellaneous_effici">Miscellaneous efficiency enhancements</a></h3>
+<p class="POD_TEXT">
+Functions that have an empty prototype and that do nothing but return
+a fixed value are now inlined (e.g. <code>sub PI () { 3.14159 }</code>).
+</p>
+<p class="POD_TEXT">
+Each unique hash key is only allocated once, no matter how many hashes
+have an entry with that key.  So even if you have 100 copies of the
+same hash, the hash keys never have to be reallocated.
+</p>
+<h2 class="POD_HEAD1"><a name="Support_for_More_Ope">Support for More Operating Systems</a></h2>
+<p class="POD_TEXT">
+Support for the following operating systems is new in Perl 5.004.
+</p>
+<h3 class="POD_HEAD2"><a name="Win32">Win32</a></h3>
+<p class="POD_TEXT">
+Perl 5.004 now includes support for building a &quot;native&quot; perl under
+Windows NT, using the Microsoft Visual C++ compiler (versions 2.0
+and above) or the Borland C++ compiler (versions 5.02 and above).
+The resulting perl can be used under Windows 95 (if it
+is installed in the same directory locations as it got installed
+in Windows NT).  This port includes support for perl extension
+building tools like the <u>MakeMaker</u> manpage and the <a class="POD_LINK" href="h2xs.html">h2xs</a> manpage, so that many extensions
+available on the Comprehensive Perl Archive Network (CPAN) can now be
+readily built under Windows NT.  See http://www.perl.com/ for more
+information on CPAN and <code>README.win32</code> in the perl distribution for more
+details on how to get started with building this port.
+</p>
+<p class="POD_TEXT">
+There is also support for building perl under the Cygwin32 environment.
+Cygwin32 is a set of GNU tools that make it possible to compile and run
+many Unix programs under Windows NT by providing a mostly Unix-like 
+interface for compilation and execution.  See <code>README.cygwin32</code> in the
+perl distribution for more details on this port and how to obtain the
+Cygwin32 toolkit.
+</p>
+<h3 class="POD_HEAD2"><a name="Plan_9">Plan 9</a></h3>
+<p class="POD_TEXT">
+See <code>README.plan9</code> in the perl distribution.
+</p>
+<h3 class="POD_HEAD2"><a name="QNX">QNX</a></h3>
+<p class="POD_TEXT">
+See <code>README.qnx</code> in the perl distribution.
+</p>
+<h3 class="POD_HEAD2"><a name="AmigaOS">AmigaOS</a></h3>
+<p class="POD_TEXT">
+See <code>README.amigaos</code> in the perl distribution.
+</p>
+<h2 class="POD_HEAD1"><a name="Pragmata">Pragmata</a></h2>
+<p class="POD_TEXT">
+Six new pragmatic modules exist:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="use_autouse_MODULE_q">use autouse MODULE =&gt; qw(sub1 sub2 sub3)</a>
+<dd>
+Defers <code>require MODULE</code> until someone calls one of the specified
+subroutines (which must be exported by MODULE).  This pragma should be
+used with caution, and only when necessary.
+<dt class="POD_ITEM"><a name="use_blib">use blib</a>
+<dt><a name="use_blib_dir_">use blib 'dir'</a>
+<dd>
+Looks for MakeMaker-like <i>'blib'</i> directory structure starting in
+<i>dir</i> (or current directory) and working back up to five levels of
+parent directories.
+<p class="POD_TEXT">
+Intended for use on command line with <b>-M</b> option as a way of testing
+arbitrary scripts against an uninstalled version of a package.
+</p>
+<dt class="POD_ITEM"><a name="use_constant_NAME_VA">use constant NAME =&gt; VALUE</a>
+<dd>
+Provides a convenient interface for creating compile-time constants,
+See the section on <a class="POD_LINK" href="perlsub.html#Constant_Functions">Constant Functions</a> in the <a class="POD_LINK" href="perlsub.html">perlsub</a> manpage.
+<dt class="POD_ITEM"><a name="use_locale">use locale</a>
+<dd>
+Tells the compiler to enable (or disable) the use of POSIX locales for
+builtin operations.
+<p class="POD_TEXT">
+When <code>use locale</code> is in effect, the current LC_CTYPE locale is used
+for regular expressions and case mapping; LC_COLLATE for string
+ordering; and LC_NUMERIC for numeric formatting in printf and sprintf
+(but <b>not</b> in print).  LC_NUMERIC is always used in write, since
+lexical scoping of formats is problematic at best.
+</p>
+<p class="POD_TEXT">
+Each <code>use locale</code> or <code>no locale</code> affects statements to the end of
+the enclosing BLOCK or, if not inside a BLOCK, to the end of the
+current file.  Locales can be switched and queried with
+POSIX::setlocale().
+</p>
+<p class="POD_TEXT">
+See the <a class="POD_LINK" href="perllocale.html">perllocale</a> manpage for more information.
+</p>
+<dt class="POD_ITEM"><a name="use_ops">use ops</a>
+<dd>
+Disable unsafe opcodes, or any named opcodes, when compiling Perl code.
+<dt class="POD_ITEM"><a name="use_vmsish">use vmsish</a>
+<dd>
+Enable VMS-specific language features.  Currently, there are three
+VMS-specific features available: 'status', which makes <code><a class="POD_LINK" href="perlvar.html#_28">$?</a></code> and
+<code><a class="POD_LINK" href="perlfunc.html#system_LIST">system</a></code> return genuine VMS status values instead of emulating POSIX;
+'exit', which makes <code><a class="POD_LINK" href="perlfunc.html#exit_EXPR">exit</a></code> take a genuine VMS status value instead of
+assuming that <code>exit 1</code> is an error; and 'time', which makes all times
+relative to the local time zone, in the VMS tradition.
+</dl>
+<h2 class="POD_HEAD1"><a name="Modules">Modules</a></h2>
+<h3 class="POD_HEAD2"><a name="Required_Updates">Required Updates</a></h3>
+<pre class="POD_TEXT">
+Though Perl 5.004 is compatible with almost all modules that work
+with Perl 5.003, there are a few exceptions:
+
+    Module   Required Version for Perl 5.004
+    ------   -------------------------------
+    Filter   Filter-1.12
+    LWP      libwww-perl-5.08
+    Tk       Tk400.202 (-w makes noise)
+</pre>
+<p class="POD_TEXT">
+Also, the majordomo mailing list program, version 1.94.1, doesn't work
+with Perl 5.004 (nor with perl 4), because it executes an invalid
+regular expression.  This bug is fixed in majordomo version 1.94.2.
+</p>
+<h3 class="POD_HEAD2"><a name="Installation_directo">Installation directories</a></h3>
+<p class="POD_TEXT">
+The <i>installperl</i> script now places the Perl source files for
+extensions in the architecture-specific library directory, which is
+where the shared libraries for extensions have always been.  This
+change is intended to allow administrators to keep the Perl 5.004
+library directory unchanged from a previous version, without running
+the risk of binary incompatibility between extensions' Perl source and
+shared libraries.
+</p>
+<h3 class="POD_HEAD2"><a name="Module_information_s">Module information summary</a></h3>
+<pre class="POD_TEXT">
+Brand new modules, arranged by topic rather than strictly
+alphabetically:
+
+    CGI.pm               Web server interface (&quot;Common Gateway Interface&quot;)
+    CGI/Apache.pm        Support for Apache's Perl module
+    CGI/Carp.pm          Log server errors with helpful context
+    CGI/Fast.pm          Support for FastCGI (persistent server process)
+    CGI/Push.pm          Support for server push
+    CGI/Switch.pm        Simple interface for multiple server types
+
+    CPAN                 Interface to Comprehensive Perl Archive Network
+    CPAN::FirstTime      Utility for creating CPAN configuration file
+    CPAN::Nox            Runs CPAN while avoiding compiled extensions
+
+    IO.pm                Top-level interface to IO::* classes
+    IO/File.pm           IO::File extension Perl module
+    IO/Handle.pm         IO::Handle extension Perl module
+    IO/Pipe.pm           IO::Pipe extension Perl module
+    IO/Seekable.pm       IO::Seekable extension Perl module
+    IO/Select.pm         IO::Select extension Perl module
+    IO/Socket.pm         IO::Socket extension Perl module
+
+    Opcode.pm            Disable named opcodes when compiling Perl code
+
+    ExtUtils/Embed.pm    Utilities for embedding Perl in C programs
+    ExtUtils/testlib.pm  Fixes up @INC to use just-built extension
+
+    FindBin.pm           Find path of currently executing program
+
+    Class/Struct.pm      Declare struct-like datatypes as Perl classes
+    File/stat.pm         By-name interface to Perl's builtin stat
+    Net/hostent.pm       By-name interface to Perl's builtin gethost*
+    Net/netent.pm        By-name interface to Perl's builtin getnet*
+    Net/protoent.pm      By-name interface to Perl's builtin getproto*
+    Net/servent.pm       By-name interface to Perl's builtin getserv*
+    Time/gmtime.pm       By-name interface to Perl's builtin gmtime
+    Time/localtime.pm    By-name interface to Perl's builtin localtime
+    Time/tm.pm           Internal object for Time::{gm,local}time
+    User/grent.pm        By-name interface to Perl's builtin getgr*
+    User/pwent.pm        By-name interface to Perl's builtin getpw*
+
+    Tie/RefHash.pm       Base class for tied hashes with references as keys
+
+    UNIVERSAL.pm         Base class for *ALL* classes
+</pre>
+<h3 class="POD_HEAD2"><a name="Fcntl">Fcntl</a></h3>
+<pre class="POD_TEXT">
+New constants in the existing Fcntl modules are now supported,
+provided that your operating system happens to support them:
+
+    F_GETOWN F_SETOWN
+    O_ASYNC O_DEFER O_DSYNC O_FSYNC O_SYNC
+    O_EXLOCK O_SHLOCK
+</pre>
+<p class="POD_TEXT">
+These constants are intended for use with the Perl operators sysopen()
+and fcntl() and the basic database modules like SDBM_File.  For the
+exact meaning of these and other Fcntl constants please refer to your
+operating system's documentation for fcntl() and open().
+</p>
+<pre class="POD_TEXT">
+In addition, the Fcntl module now provides these constants for use
+with the Perl operator flock():
+
+	LOCK_SH LOCK_EX LOCK_NB LOCK_UN
+</pre>
+<p class="POD_TEXT">
+These constants are defined in all environments (because where there is
+no flock() system call, Perl emulates it).  However, for historical
+reasons, these constants are not exported unless they are explicitly
+requested with the &quot;:flock&quot; tag (e.g. <code>use Fcntl ':flock'</code>).
+</p>
+<h3 class="POD_HEAD2"><a name="IO">IO</a></h3>
+<pre class="POD_TEXT">
+The IO module provides a simple mechanism to load all the IO modules at one
+go.  Currently this includes:
+
+     IO::Handle
+     IO::Seekable
+     IO::File
+     IO::Pipe
+     IO::Socket
+</pre>
+<p class="POD_TEXT">
+For more information on any of these modules, please see its
+respective documentation.
+</p>
+<h3 class="POD_HEAD2"><a name="Math_Complex">Math::Complex</a></h3>
+<pre class="POD_TEXT">
+The Math::Complex module has been totally rewritten, and now supports
+more operations.  These are overloaded:
+
+     + - * / ** &lt;=&gt; neg ~ abs sqrt exp log sin cos atan2 &quot;&quot; (stringify)
+</pre>
+<pre class="POD_TEXT">
+And these functions are now exported:
+
+    pi i Re Im arg
+    log10 logn ln cbrt root
+    tan
+    csc sec cot
+    asin acos atan
+    acsc asec acot
+    sinh cosh tanh
+    csch sech coth
+    asinh acosh atanh
+    acsch asech acoth
+    cplx cplxe
+</pre>
+<h3 class="POD_HEAD2"><a name="Math_Trig">Math::Trig</a></h3>
+<p class="POD_TEXT">
+This new module provides a simpler interface to parts of Math::Complex for
+those who need trigonometric functions only for real numbers.
+</p>
+<h3 class="POD_HEAD2"><a name="DB_File">DB_File</a></h3>
+<p class="POD_TEXT">
+There have been quite a few changes made to DB_File. Here are a few of
+the highlights:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_"></a>
+
+Fixed a handful of bugs.
+<li class="POD_ITEM"><a name="_1"></a>
+
+By public demand, added support for the standard hash function exists().
+<li class="POD_ITEM"><a name="_2"></a>
+
+Made it compatible with Berkeley DB 1.86.
+<li class="POD_ITEM"><a name="_3"></a>
+
+Made negative subscripts work with RECNO interface.
+<li class="POD_ITEM"><a name="_4"></a>
+
+Changed the default flags from O_RDWR to O_CREAT|O_RDWR and the default
+mode from 0640 to 0666.
+<li class="POD_ITEM"><a name="_5"></a>
+
+Made DB_File automatically import the open() constants (O_RDWR,
+O_CREAT etc.) from Fcntl, if available.
+<li class="POD_ITEM"><a name="_6"></a>
+
+Updated documentation.
+</ul>
+<p class="POD_TEXT">
+Refer to the HISTORY section in DB_File.pm for a complete list of
+changes. Everything after DB_File 1.01 has been added since 5.003.
+</p>
+<h3 class="POD_HEAD2"><a name="Net_Ping">Net::Ping</a></h3>
+<p class="POD_TEXT">
+Major rewrite - support added for both udp echo and real icmp pings.
+</p>
+<h3 class="POD_HEAD2"><a name="Object_oriented_over">Object-oriented overrides for builtin operators</a></h3>
+<pre class="POD_TEXT">
+Many of the Perl builtins returning lists now have
+object-oriented overrides.  These are:
+
+    File::stat
+    Net::hostent
+    Net::netent
+    Net::protoent
+    Net::servent
+    Time::gmtime
+    Time::localtime
+    User::grent
+    User::pwent
+</pre>
+<pre class="POD_TEXT">
+For example, you can now say
+
+    use File::stat;
+    use User::pwent;
+    $his = (stat($filename)-&gt;st_uid == pwent($whoever)-&gt;pw_uid);
+</pre>
+<h2 class="POD_HEAD1"><a name="Utility_Changes">Utility Changes</a></h2>
+<h3 class="POD_HEAD2"><a name="pod2html">pod2html</a></h3>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Sends_converted_HTML">Sends converted HTML to standard output</a>
+<dd>
+The <i>pod2html</i> utility included with Perl 5.004 is entirely new.
+By default, it sends the converted HTML to its standard output,
+instead of writing it to a file like Perl 5.003's <i>pod2html</i> did.
+Use the <b>--outfile=FILENAME</b> option to write to a file.
+</dl>
+<h3 class="POD_HEAD2"><a name="xsubpp">xsubpp</a></h3>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="void_XSUBs_now_defau"><code>void</code> XSUBs now default to returning nothing</a>
+<dd>
+Due to a documentation/implementation bug in previous versions of
+Perl, XSUBs with a return type of <code>void</code> have actually been
+returning one value.  Usually that value was the GV for the XSUB,
+but sometimes it was some already freed or reused value, which would
+sometimes lead to program failure.
+<p class="POD_TEXT">
+In Perl 5.004, if an XSUB is declared as returning <code>void</code>, it
+actually returns no value, i.e. an empty list (though there is a
+backward-compatibility exception; see below).  If your XSUB really
+does return an SV, you should give it a return type of <code>SV *</code>.
+</p>
+<p class="POD_TEXT">
+For backward compatibility, <i>xsubpp</i> tries to guess whether a
+<code>void</code> XSUB is really <code>void</code> or if it wants to return an <code>SV *</code>.
+It does so by examining the text of the XSUB: if <i>xsubpp</i> finds
+what looks like an assignment to <code>ST(0)</code>, it assumes that the
+XSUB's return type is really <code>SV *</code>.
+</p>
+</dl>
+<h2 class="POD_HEAD1"><a name="C_Language_API_Chang">C Language API Changes</a></h2>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="gv_fetchmethod_and_p"><code>gv_fetchmethod</code> and <code>perl_call_sv</code></a>
+<dd>
+The <code>gv_fetchmethod</code> function finds a method for an object, just like
+in Perl 5.003.  The GV it returns may be a method cache entry.
+However, in Perl 5.004, method cache entries are not visible to users;
+therefore, they can no longer be passed directly to <code>perl_call_sv</code>.
+Instead, you should use the <code>GvCV</code> macro on the GV to extract its CV,
+and pass the CV to <code>perl_call_sv</code>.
+<p class="POD_TEXT">
+The most likely symptom of passing the result of <code>gv_fetchmethod</code> to
+<code>perl_call_sv</code> is Perl's producing an &quot;Undefined subroutine called&quot;
+error on the <i>second</i> call to a given method (since there is no cache
+on the first call).
+</p>
+<dt class="POD_ITEM"><a name="perl_eval_pv"><code>perl_eval_pv</code></a>
+<dd>
+A new function handy for eval'ing strings of Perl code inside C code.
+This function returns the value from the eval statement, which can
+be used instead of fetching globals from the symbol table.  See
+the <a class="POD_LINK" href="perlguts.html">perlguts</a> manpage, the <a class="POD_LINK" href="perlembed.html">perlembed</a> manpage and the <a class="POD_LINK" href="perlcall.html">perlcall</a> manpage for details and examples.
+<dt class="POD_ITEM"><a name="Extended_API_for_man">Extended API for manipulating hashes</a>
+<dd>
+Internal handling of hash keys has changed.  The old hashtable API is
+still fully supported, and will likely remain so.  The additions to the
+API allow passing keys as <code>SV*</code>s, so that <code><a class="POD_LINK" href="perlfunc.html#tied_VARIABLE">tied</a></code> hashes can be given
+real scalars as keys rather than plain strings (nontied hashes still
+can only use strings as keys).  New extensions must use the new hash
+access functions and macros if they wish to use <code>SV*</code> keys.  These
+additions also make it feasible to manipulate <code>HE*</code>s (hash entries),
+which can be more efficient.  See the <a class="POD_LINK" href="perlguts.html">perlguts</a> manpage for details.
+</dl>
+<h2 class="POD_HEAD1"><a name="Documentation_Change">Documentation Changes</a></h2>
+<p class="POD_TEXT">
+Many of the base and library pods were updated.  These
+new pods are included in section 1:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="the_perldelta_manpag">the <a class="POD_LINK" href="perldelta.html">perldelta</a> manpage</a>
+<dd>
+This document.
+<dt class="POD_ITEM"><a name="the_perlfaq_manpage">the <a class="POD_LINK" href="perlfaq.html">perlfaq</a> manpage</a>
+<dd>
+Frequently asked questions.
+<dt class="POD_ITEM"><a name="the_perllocale_manpa">the <a class="POD_LINK" href="perllocale.html">perllocale</a> manpage</a>
+<dd>
+Locale support (internationalization and localization).
+<dt class="POD_ITEM"><a name="the_perltoot_manpage">the <a class="POD_LINK" href="perltoot.html">perltoot</a> manpage</a>
+<dd>
+Tutorial on Perl OO programming.
+<dt class="POD_ITEM"><a name="the_perlapio_manpage">the <a class="POD_LINK" href="perlapio.html">perlapio</a> manpage</a>
+<dd>
+Perl internal IO abstraction interface.
+<dt class="POD_ITEM"><a name="the_perlmodlib_manpa">the <a class="POD_LINK" href="perlmodlib.html">perlmodlib</a> manpage</a>
+<dd>
+Perl module library and recommended practice for module creation.
+Extracted from the <a class="POD_LINK" href="perlmod.html">perlmod</a> manpage (which is much smaller as a result).
+<dt class="POD_ITEM"><a name="the_perldebug_manpag">the <a class="POD_LINK" href="perldebug.html">perldebug</a> manpage</a>
+<dd>
+Although not new, this has been massively updated.
+<dt class="POD_ITEM"><a name="the_perlsec_manpage">the <a class="POD_LINK" href="perlsec.html">perlsec</a> manpage</a>
+<dd>
+Although not new, this has been massively updated.
+</dl>
+<h2 class="POD_HEAD1"><a name="New_Diagnostics">New Diagnostics</a></h2>
+<pre class="POD_TEXT">
+Several new conditions will trigger warnings that were
+silent before.  Some only affect certain platforms.
+The following new warnings and errors outline these.
+These messages are classified as follows (listed in
+increasing order of desperation):
+
+   (W) A warning (optional).
+   (D) A deprecation (optional).
+   (S) A severe warning (mandatory).
+   (F) A fatal error (trappable).
+   (P) An internal error you should never see (trappable).
+   (X) A very fatal error (nontrappable).
+   (A) An alien error message (not generated by Perl).
+</pre>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_my_variable_s_masks">&quot;my&quot; variable %s masks earlier declaration in same scope</a>
+<dd>
+(W) A lexical variable has been redeclared in the same scope, effectively
+eliminating all access to the previous instance.  This is almost always
+a typographical error.  Note that the earlier variable will still exist
+until the end of the scope or until all closure referents to it are
+destroyed.
+<dt class="POD_ITEM"><a name="_s_argument_is_not_a">%s argument is not a HASH element or slice</a>
+<dd>
+(F) The argument to delete() must be either a hash element, such as
+<pre class="POD_VERBATIM">
+    $foo{$bar}
+    $ref-&gt;[12]-&gt;{&quot;susie&quot;}
+</pre>
+<pre class="POD_TEXT">
+or a hash slice, such as
+
+    @foo{$bar, $baz, $xyzzy}
+    @{$ref-&gt;[12]}{&quot;susie&quot;, &quot;queue&quot;}
+</pre>
+<dt class="POD_ITEM"><a name="Allocation_too_large">Allocation too large: %lx</a>
+<dd>
+(X) You can't allocate more than 64K on an MS-DOS machine.
+<dt class="POD_ITEM"><a name="Allocation_too_large1">Allocation too large</a>
+<dd>
+(F) You can't allocate more than 2^31+&quot;small amount&quot; bytes.
+<dt class="POD_ITEM"><a name="Applying_s_to_s_will">Applying %s to %s will act on scalar(%s)</a>
+<dd>
+(W) The pattern match (//), substitution (s///), and transliteration (tr///)
+operators work on scalar values.  If you apply one of them to an array
+or a hash, it will convert the array or hash to a scalar value -- the
+length of an array, or the population info of a hash -- and then work on
+that scalar value.  This is probably not what you meant to do.  See
+the <a class="POD_LINK" href="perlfunc.html#grep_BLOCK_LIST">grep</a> entry in the <a class="POD_LINK" href="perlfunc.html">perlfunc</a> manpage and the <a class="POD_LINK" href="perlfunc.html#map_EXPR_LIST">map</a> entry in the <a class="POD_LINK" href="perlfunc.html">perlfunc</a> manpage for alternatives.
+<dt class="POD_ITEM"><a name="Attempt_to_free_none">Attempt to free nonexistent shared string</a>
+<dd>
+(P) Perl maintains a reference counted internal table of strings to
+optimize the storage and access of hash keys and other strings.  This
+indicates someone tried to decrement the reference count of a string
+that can no longer be found in the table.
+<dt class="POD_ITEM"><a name="Attempt_to_use_refer">Attempt to use reference as lvalue in substr</a>
+<dd>
+(W) You supplied a reference as the first argument to substr() used
+as an lvalue, which is pretty strange.  Perhaps you forgot to
+dereference it first.  See the <a class="POD_LINK" href="perlfunc.html#substr_EXPR_OFFSET_L1">substr</a> entry in the <a class="POD_LINK" href="perlfunc.html">perlfunc</a> manpage.
+<dt class="POD_ITEM"><a name="Bareword_s_refers_to">Bareword &quot;%s&quot; refers to nonexistent package</a>
+<dd>
+(W) You used a qualified bareword of the form <code>Foo::</code>, but
+the compiler saw no other uses of that namespace before that point.
+Perhaps you need to predeclare a package?
+<dt class="POD_ITEM"><a name="Can_t_redefine_activ">Can't redefine active sort subroutine %s</a>
+<dd>
+(F) Perl optimizes the internal handling of sort subroutines and keeps
+pointers into them.  You tried to redefine one such sort subroutine when it
+was currently active, which is not allowed.  If you really want to do
+this, you should write <code>sort { &amp;func } @x</code> instead of <code>sort func @x</code>.
+<dt class="POD_ITEM"><a name="Can_t_use_bareword_s">Can't use bareword (&quot;%s&quot;) as %s ref while &quot;strict refs&quot; in use</a>
+<dd>
+(F) Only hard references are allowed by &quot;strict refs&quot;.  Symbolic references
+are disallowed.  See the <a class="POD_LINK" href="perlref.html">perlref</a> manpage.
+<dt class="POD_ITEM"><a name="Cannot_resolve_metho">Cannot resolve method `%s' overloading `%s' in package `%s'</a>
+<dd>
+(P) Internal error trying to resolve overloading specified by a method
+name (as opposed to a subroutine reference).
+<dt class="POD_ITEM"><a name="Constant_subroutine_">Constant subroutine %s redefined</a>
+<dd>
+(S) You redefined a subroutine which had previously been eligible for
+inlining.  See the section on <a class="POD_LINK" href="perlsub.html#Constant_Functions">Constant Functions</a> in the <a class="POD_LINK" href="perlsub.html">perlsub</a> manpage for commentary and
+workarounds.
+<dt class="POD_ITEM"><a name="Constant_subroutine_1">Constant subroutine %s undefined</a>
+<dd>
+(S) You undefined a subroutine which had previously been eligible for
+inlining.  See the section on <a class="POD_LINK" href="perlsub.html#Constant_Functions">Constant Functions</a> in the <a class="POD_LINK" href="perlsub.html">perlsub</a> manpage for commentary and
+workarounds.
+<dt class="POD_ITEM"><a name="Copy_method_did_not_">Copy method did not return a reference</a>
+<dd>
+(F) The method which overloads &quot;=&quot; is buggy. See the <a class="POD_LINK" href="overload.html#Copy_Constructor">Copy Constructor</a> entry in the <a class="POD_LINK" href="overload.html">overload</a> manpage.
+<dt class="POD_ITEM"><a name="Died">Died</a>
+<dd>
+(F) You passed die() an empty string (the equivalent of <code>die &quot;&quot;</code>) or
+you called it with no args and both <code><a class="POD_LINK" href="perlvar.html#_30">$@</a></code> and <code><a class="POD_LINK" href="perlvar.html#_">$_</a></code> were empty.
+<dt class="POD_ITEM"><a name="Exiting_pseudo_block">Exiting pseudo-block via %s</a>
+<dd>
+(W) You are exiting a rather special block construct (like a sort block or
+subroutine) by unconventional means, such as a goto, or a loop control
+statement.  See the <a class="POD_LINK" href="perlfunc.html#sort_BLOCK_LIST">sort</a> entry in the <a class="POD_LINK" href="perlfunc.html">perlfunc</a> manpage.
+<dt class="POD_ITEM"><a name="Identifier_too_long">Identifier too long</a>
+<dd>
+(F) Perl limits identifiers (names for variables, functions, etc.) to
+252 characters for simple names, somewhat more for compound names (like
+<code>$A::B</code>).  You've exceeded Perl's limits.  Future versions of Perl are
+likely to eliminate these arbitrary limitations.
+<dt class="POD_ITEM"><a name="Illegal_character_s_">Illegal character %s (carriage return)</a>
+<dd>
+(F) A carriage return character was found in the input.  This is an
+error, and not a warning, because carriage return characters can break
+multi-line strings, including here documents (e.g., <code>print &lt;&lt;EOF;</code>).
+<dt class="POD_ITEM"><a name="Illegal_switch_in_PE">Illegal switch in PERL5OPT: %s</a>
+<dd>
+(X) The PERL5OPT environment variable may only be used to set the
+following switches: <b>-[DIMUdmw]</b>.
+<dt class="POD_ITEM"><a name="Integer_overflow_in_">Integer overflow in hex number</a>
+<dd>
+(S) The literal hex number you have specified is too big for your
+architecture. On a 32-bit architecture the largest hex literal is
+0xFFFFFFFF.
+<dt class="POD_ITEM"><a name="Integer_overflow_in_1">Integer overflow in octal number</a>
+<dd>
+(S) The literal octal number you have specified is too big for your
+architecture. On a 32-bit architecture the largest octal literal is
+037777777777.
+<dt class="POD_ITEM"><a name="internal_error_glob_">internal error: glob failed</a>
+<dd>
+(P) Something went wrong with the external program(s) used for <code><a class="POD_LINK" href="perlfunc.html#glob">glob</a></code>
+and <code>&lt;*.c&gt;</code>.  This may mean that your csh (C shell) is
+broken.  If so, you should change all of the csh-related variables in
+config.sh:  If you have tcsh, make the variables refer to it as if it
+were csh (e.g. <code>full_csh='/usr/bin/tcsh'</code>); otherwise, make them all
+empty (except that <code>d_csh</code> should be <code>'undef'</code>) so that Perl will
+think csh is missing.  In either case, after editing config.sh, run
+<code>./Configure -S</code> and rebuild Perl.
+<dt class="POD_ITEM"><a name="Invalid_conversion_i">Invalid conversion in %s: &quot;%s&quot;</a>
+<dd>
+(W) Perl does not understand the given format conversion.
+See the <a class="POD_LINK" href="perlfunc.html#sprintf_FORMAT_LIST">sprintf</a> entry in the <a class="POD_LINK" href="perlfunc.html">perlfunc</a> manpage.
+<dt class="POD_ITEM"><a name="Invalid_type_in_pack">Invalid type in pack: '%s'</a>
+<dd>
+(F) The given character is not a valid pack type.  See the <a class="POD_LINK" href="perlfunc.html#pack_TEMPLATE_LIST">pack</a> entry in the <a class="POD_LINK" href="perlfunc.html">perlfunc</a> manpage.
+<dt class="POD_ITEM"><a name="Invalid_type_in_unpa">Invalid type in unpack: '%s'</a>
+<dd>
+(F) The given character is not a valid unpack type.  See the <a class="POD_LINK" href="perlfunc.html#unpack_TEMPLATE_EXPR">unpack</a> entry in the <a class="POD_LINK" href="perlfunc.html">perlfunc</a> manpage.
+<dt class="POD_ITEM"><a name="Name_s_s_used_only_o">Name &quot;%s::%s&quot; used only once: possible typo</a>
+<dd>
+(W) Typographical errors often show up as unique variable names.
+If you had a good reason for having a unique name, then just mention
+it again somehow to suppress the message (the <code>use vars</code> pragma is
+provided for just this purpose).
+<dt class="POD_ITEM"><a name="Null_picture_in_form">Null picture in formline</a>
+<dd>
+(F) The first argument to formline must be a valid format picture
+specification.  It was found to be empty, which probably means you
+supplied it an uninitialized value.  See the <a class="POD_LINK" href="perlform.html">perlform</a> manpage.
+<dt class="POD_ITEM"><a name="Offset_outside_strin">Offset outside string</a>
+<dd>
+(F) You tried to do a read/write/send/recv operation with an offset
+pointing outside the buffer.  This is difficult to imagine.
+The sole exception to this is that <code>sysread()</code>ing past the buffer
+will extend the buffer and zero pad the new area.
+<dt class="POD_ITEM"><a name="Out_of_memory_">Out of memory!</a>
+<dd>
+(X|F) The malloc() function returned 0, indicating there was insufficient
+remaining memory (or virtual memory) to satisfy the request.
+<p class="POD_TEXT">
+The request was judged to be small, so the possibility to trap it
+depends on the way Perl was compiled.  By default it is not trappable.
+However, if compiled for this, Perl may use the contents of <code><a class="POD_LINK" href="perlvar.html#_M">$^M</a></code> as
+an emergency pool after die()ing with this message.  In this case the
+error is trappable <i>once</i>.
+</p>
+<dt class="POD_ITEM"><a name="Out_of_memory_during">Out of memory during request for %s</a>
+<dd>
+(F) The malloc() function returned 0, indicating there was insufficient
+remaining memory (or virtual memory) to satisfy the request. However,
+the request was judged large enough (compile-time default is 64K), so
+a possibility to shut down by trapping this error is granted.
+<dt class="POD_ITEM"><a name="panic_frexp">panic: frexp</a>
+<dd>
+(P) The library function frexp() failed, making printf(&quot;%f&quot;) impossible.
+<dt class="POD_ITEM"><a name="Possible_attempt_to_">Possible attempt to put comments in qw() list</a>
+<dd>
+(W) qw() lists contain items separated by whitespace; as with literal
+strings, comment characters are not ignored, but are instead treated
+as literal data.  (You may have used different delimiters than the
+parentheses shown here; braces are also frequently used.)
+<pre class="POD_TEXT">
+You probably wrote something like this:
+
+    @list = qw(
+        a # a comment
+        b # another comment
+    );
+</pre>
+<pre class="POD_TEXT">
+when you should have written this:
+
+    @list = qw(
+        a
+        b
+    );
+</pre>
+<pre class="POD_TEXT">
+If you really want comments, build your list the
+old-fashioned way, with quotes and commas:
+
+    @list = (
+        'a',    # a comment
+        'b',    # another comment
+    );
+</pre>
+<dt class="POD_ITEM"><a name="Possible_attempt_to_1">Possible attempt to separate words with commas</a>
+<dd>
+(W) qw() lists contain items separated by whitespace; therefore commas
+aren't needed to separate the items. (You may have used different
+delimiters than the parentheses shown here; braces are also frequently
+used.)
+<pre class="POD_TEXT">
+You probably wrote something like this:
+
+    qw! a, b, c !;
+</pre>
+<pre class="POD_TEXT">
+which puts literal commas into some of the list items.  Write it without
+commas if you don't want them to appear in your data:
+
+    qw! a b c !;
+</pre>
+<dt class="POD_ITEM"><a name="Scalar_value_s_s_bet">Scalar value @%s{%s} better written as $%s{%s}</a>
+<dd>
+(W) You've used a hash slice (indicated by @) to select a single element of
+a hash.  Generally it's better to ask for a scalar value (indicated by $).
+The difference is that <code>$foo{&amp;bar}</code> always behaves like a scalar, both when
+assigning to it and when evaluating its argument, while <code>@foo{&amp;bar}</code> behaves
+like a list when you assign to it, and provides a list context to its
+subscript, which can do weird things if you're expecting only one subscript.
+<dt class="POD_ITEM"><a name="Stub_found_while_res">Stub found while resolving method `%s' overloading `%s' in %s</a>
+<dd>
+(P) Overloading resolution over @ISA tree may be broken by importing stubs.
+Stubs should never be implicitly created, but explicit calls to <code>can</code>
+may break this.
+<dt class="POD_ITEM"><a name="Too_late_for_T_optio">Too late for &quot;<b>-T</b>&quot; option</a>
+<dd>
+(X) The #! line (or local equivalent) in a Perl script contains the
+<b>-T</b> option, but Perl was not invoked with <b>-T</b> in its argument
+list.  This is an error because, by the time Perl discovers a <b>-T</b> in
+a script, it's too late to properly taint everything from the
+environment.  So Perl gives up.
+<dt class="POD_ITEM"><a name="untie_attempted_whil">untie attempted while %d inner references still exist</a>
+<dd>
+(W) A copy of the object returned from <code><a class="POD_LINK" href="perlfunc.html#tie_VARIABLE_CLASSNA">tie</a></code> (or <code><a class="POD_LINK" href="perlfunc.html#tied_VARIABLE">tied</a></code>) was still
+valid when <code><a class="POD_LINK" href="perlfunc.html#untie_VARIABLE">untie</a></code> was called.
+<dt class="POD_ITEM"><a name="Unrecognized_charact">Unrecognized character %s</a>
+<dd>
+(F) The Perl parser has no idea what to do with the specified character
+in your Perl script (or eval).  Perhaps you tried to run a compressed
+script, a binary program, or a directory as a Perl program.
+<dt class="POD_ITEM"><a name="Unsupported_function">Unsupported function fork</a>
+<dd>
+(F) Your version of executable does not support forking.
+<p class="POD_TEXT">
+Note that under some systems, like OS/2, there may be different flavors of
+Perl executables, some of which may support fork, some not. Try changing
+the name you call Perl by to <code>perl_</code>, <code>perl__</code>, and so on.
+</p>
+<dt class="POD_ITEM"><a name="Use_of_digit_to_mean">Use of &quot;$$&lt;digit&gt;&quot; to mean &quot;${$}&lt;digit&gt;&quot; is deprecated</a>
+<dd>
+(D) Perl versions before 5.004 misinterpreted any type marker followed
+by &quot;$&quot; and a digit.  For example, &quot;$$0&quot; was incorrectly taken to mean
+&quot;${$}0&quot; instead of &quot;${$0}&quot;.  This bug is (mostly) fixed in Perl 5.004.
+<p class="POD_TEXT">
+However, the developers of Perl 5.004 could not fix this bug completely,
+because at least two widely-used modules depend on the old meaning of
+&quot;$$0&quot; in a string.  So Perl 5.004 still interprets &quot;$$&lt;digit&gt;&quot; in the
+old (broken) way inside strings; but it generates this message as a
+warning.  And in Perl 5.005, this special treatment will cease.
+</p>
+<dt class="POD_ITEM"><a name="Value_of_s_can_be_0_">Value of %s can be &quot;0&quot;; test with defined()</a>
+<dd>
+(W) In a conditional expression, you used &lt;HANDLE&gt;, &lt;*&gt; (glob), <code>each()</code>,
+or <code>readdir()</code> as a boolean value.  Each of these constructs can return a
+value of &quot;0&quot;; that would make the conditional expression false, which is
+probably not what you intended.  When using these constructs in conditional
+expressions, test their values with the <code><a class="POD_LINK" href="perlfunc.html#defined">defined</a></code> operator.
+<dt class="POD_ITEM"><a name="Variable_s_may_be_un">Variable &quot;%s&quot; may be unavailable</a>
+<dd>
+(W) An inner (nested) <i>anonymous</i> subroutine is inside a <i>named</i>
+subroutine, and outside that is another subroutine; and the anonymous
+(innermost) subroutine is referencing a lexical variable defined in
+the outermost subroutine.  For example:
+<pre class="POD_VERBATIM">
+   sub outermost { my $a; sub middle { sub { $a } } }
+</pre>
+<p class="POD_TEXT">
+If the anonymous subroutine is called or referenced (directly or
+indirectly) from the outermost subroutine, it will share the variable
+as you would expect.  But if the anonymous subroutine is called or
+referenced when the outermost subroutine is not active, it will see
+the value of the shared variable as it was before and during the
+*first* call to the outermost subroutine, which is probably not what
+you want.
+</p>
+<p class="POD_TEXT">
+In these circumstances, it is usually best to make the middle
+subroutine anonymous, using the <code>sub {}</code> syntax.  Perl has specific
+support for shared variables in nested anonymous subroutines; a named
+subroutine in between interferes with this feature.
+</p>
+<dt class="POD_ITEM"><a name="Variable_s_will_not_">Variable &quot;%s&quot; will not stay shared</a>
+<dd>
+(W) An inner (nested) <i>named</i> subroutine is referencing a lexical
+variable defined in an outer subroutine.
+<p class="POD_TEXT">
+When the inner subroutine is called, it will probably see the value of
+the outer subroutine's variable as it was before and during the
+*first* call to the outer subroutine; in this case, after the first
+call to the outer subroutine is complete, the inner and outer
+subroutines will no longer share a common value for the variable.  In
+other words, the variable will no longer be shared.
+</p>
+<p class="POD_TEXT">
+Furthermore, if the outer subroutine is anonymous and references a
+lexical variable outside itself, then the outer and inner subroutines
+will <i>never</i> share the given variable.
+</p>
+<p class="POD_TEXT">
+This problem can usually be solved by making the inner subroutine
+anonymous, using the <code>sub {}</code> syntax.  When inner anonymous subs that
+reference variables in outer subroutines are called or referenced,
+they are automatically rebound to the current values of such
+variables.
+</p>
+<dt class="POD_ITEM"><a name="Warning_something_s_">Warning: something's wrong</a>
+<dd>
+(W) You passed warn() an empty string (the equivalent of <code>warn &quot;&quot;</code>) or
+you called it with no args and <code><a class="POD_LINK" href="perlvar.html#_">$_</a></code> was empty.
+<dt class="POD_ITEM"><a name="Ill_formed_logical_n">Ill-formed logical name |%s| in prime_env_iter</a>
+<dd>
+(W) A warning peculiar to VMS.  A logical name was encountered when preparing
+to iterate over %ENV which violates the syntactic rules governing logical
+names.  Since it cannot be translated normally, it is skipped, and will not
+appear in %ENV.  This may be a benign occurrence, as some software packages
+might directly modify logical name tables and introduce nonstandard names,
+or it may indicate that a logical name table has been corrupted.
+<dt class="POD_ITEM"><a name="Got_an_error_from_Do">Got an error from DosAllocMem</a>
+<dd>
+(P) An error peculiar to OS/2.  Most probably you're using an obsolete
+version of Perl, and this should not happen anyway.
+<dt class="POD_ITEM"><a name="Malformed_PERLLIB_PR">Malformed PERLLIB_PREFIX</a>
+<dd>
+(F) An error peculiar to OS/2.  PERLLIB_PREFIX should be of the form
+<pre class="POD_VERBATIM">
+    prefix1;prefix2
+</pre>
+<pre class="POD_TEXT">
+or
+
+    prefix1 prefix2
+</pre>
+<p class="POD_TEXT">
+with nonempty prefix1 and prefix2.  If <code>prefix1</code> is indeed a prefix
+of a builtin library search path, prefix2 is substituted.  The error
+may appear if components are not found, or are too long.  See
+&quot;PERLLIB_PREFIX&quot; in <code>README.os2</code>.
+</p>
+<dt class="POD_ITEM"><a name="PERL_SH_DIR_too_long">PERL_SH_DIR too long</a>
+<dd>
+(F) An error peculiar to OS/2. PERL_SH_DIR is the directory to find the
+<code>sh</code>-shell in.  See &quot;PERL_SH_DIR&quot; in <code>README.os2</code>.
+<dt class="POD_ITEM"><a name="Process_terminated_b">Process terminated by SIG%s</a>
+<dd>
+(W) This is a standard message issued by OS/2 applications, while *nix
+applications die in silence.  It is considered a feature of the OS/2
+port.  One can easily disable this by appropriate sighandlers, see
+the section on <a class="POD_LINK" href="perlipc.html#Signals">Signals</a> in the <a class="POD_LINK" href="perlipc.html">perlipc</a> manpage.  See also &quot;Process terminated by SIGTERM/SIGINT&quot;
+in <code>README.os2</code>.
+</dl>
+<h2 class="POD_HEAD1"><a name="BUGS">BUGS</a></h2>
+<p class="POD_TEXT">
+If you find what you think is a bug, you might check the headers of
+recently posted articles in the comp.lang.perl.misc newsgroup.
+There may also be information at http://www.perl.com/perl/, the Perl
+Home Page.
+</p>
+<p class="POD_TEXT">
+If you believe you have an unreported bug, please run the <b>perlbug</b>
+program included with your release.  Make sure you trim your bug down
+to a tiny but sufficient test case.  Your bug report, along with the
+output of <code>perl -V</code>, will be sent off to &lt;<code>perlbug@perl.com</code>&gt; to be
+analysed by the Perl porting team.
+</p>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+The <code>Changes</code> file for exhaustive details on what changed.
+</p>
+<p class="POD_TEXT">
+The <code>INSTALL</code> file for how to build Perl.  This file has been
+significantly updated for 5.004, so even veteran users should
+look through it.
+</p>
+<p class="POD_TEXT">
+The <code>README</code> file for general stuff.
+</p>
+<p class="POD_TEXT">
+The <code>Copying</code> file for copyright information.
+</p>
+<h2 class="POD_HEAD1"><a name="HISTORY">HISTORY</a></h2>
+<p class="POD_TEXT">
+Constructed by Tom Christiansen, grabbing material with permission
+from innumerable contributors, with kibitzing by more than a few Perl
+porters.
+</p>
+<p class="POD_TEXT">
+Last update: Wed May 14 11:14:09 EDT 1997
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:43 2001
+</body>
+</html>
+

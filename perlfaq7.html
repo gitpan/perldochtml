@@ -1,0 +1,1109 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>perlfaq7</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="perlfaq8.html">Next:<br>perlfaq8</a></td><td align="left" width="1%"><a  href="perlfaq6.html">Previous:<br>perlfaq6</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">perlfaq7</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#Can_I_get_a_BNF_yacc">Can I get a BNF/yacc/RE for the Perl language?</a>
+<li><a href="#What_are_all_these_p">What are all these $@%&amp;* punctuation signs, and how do I know when to use them?</a>
+<li><a href="#Do_I_always_never_ha">Do I always/never have to quote my strings or use semicolons and commas?</a>
+<li><a href="#How_do_I_skip_some_r">How do I skip some return values?</a>
+<li><a href="#How_do_I_temporarily">How do I temporarily block warnings?</a>
+<li><a href="#What_s_an_extension_">What's an extension?</a>
+<li><a href="#Why_do_Perl_operator">Why do Perl operators have different precedence than C operators?</a>
+<li><a href="#How_do_I_declare_cre">How do I declare/create a structure?</a>
+<li><a href="#How_do_I_create_a_mo">How do I create a module?</a>
+<li><a href="#How_do_I_create_a_cl">How do I create a class?</a>
+<li><a href="#How_can_I_tell_if_a_">How can I tell if a variable is tainted?</a>
+<li><a href="#What_s_a_closure_">What's a closure?</a>
+<li><a href="#What_is_variable_sui">What is variable suicide and how can I prevent it?</a>
+<li><a href="#How_can_I_pass_retur">How can I pass/return a {Function, FileHandle, Array, Hash, Method, Regex}?</a>
+<li><a href="#How_do_I_create_a_st">How do I create a static variable?</a>
+<li><a href="#What_s_the_differenc">What's the difference between dynamic and lexical (static) scoping?  Between local() and my()?</a>
+<li><a href="#How_can_I_access_a_d">How can I access a dynamic variable while a similarly named lexical is in scope?</a>
+<li><a href="#What_s_the_differenc1">What's the difference between deep and shallow binding?</a>
+<li><a href="#Why_doesn_t_my_foo_F">Why doesn't &quot;my($foo) = &lt;FILE&gt;;&quot; work right?</a>
+<li><a href="#How_do_I_redefine_a_">How do I redefine a builtin function, operator, or method?</a>
+<li><a href="#What_s_the_differenc2">What's the difference between calling a function as &amp;foo and foo()?</a>
+<li><a href="#How_do_I_create_a_sw">How do I create a switch or case statement?</a>
+<li><a href="#How_can_I_catch_acce">How can I catch accesses to undefined variables/functions/methods?</a>
+<li><a href="#Why_can_t_a_method_i">Why can't a method included in this same file be found?</a>
+<li><a href="#How_can_I_find_out_m">How can I find out my current package?</a>
+<li><a href="#How_can_I_comment_ou">How can I comment out a large block of perl code?</a>
+<li><a href="#How_do_I_clear_a_pac">How do I clear a package?</a>
+<li><a href="#How_can_I_use_a_vari">How can I use a variable as a variable name?</a>
+</ul>
+<li><a href="#AUTHOR_AND_COPYRIGHT">AUTHOR AND COPYRIGHT</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+perlfaq7 - Perl Language Issues ($Revision: 1.28 $, $Date: 1999/05/23 20:36:18 $)
+</p>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+This section deals with general Perl language issues that don't
+clearly fit into any of the other sections.
+</p>
+<h3 class="POD_HEAD2"><a name="Can_I_get_a_BNF_yacc">Can I get a BNF/yacc/RE for the Perl language?</a></h3>
+<p class="POD_TEXT">
+There is no BNF, but you can paw your way through the yacc grammar in
+perly.y in the source distribution if you're particularly brave.  The
+grammar relies on very smart tokenizing code, so be prepared to
+venture into toke.c as well.
+</p>
+<p class="POD_TEXT">
+In the words of Chaim Frenkel: &quot;Perl's grammar can not be reduced to BNF.
+The work of parsing perl is distributed between yacc, the lexer, smoke
+and mirrors.&quot;
+</p>
+<h3 class="POD_HEAD2"><a name="What_are_all_these_p">What are all these $@%&amp;* punctuation signs, and how do I know when to use them?</a></h3>
+<pre class="POD_TEXT">
+They are type specifiers, as detailed in the <a class="POD_LINK" href="perldata.html">perldata</a> manpage:
+
+    $ for scalar values (number, string or reference)
+    @ for arrays
+    % for hashes (associative arrays)
+    &amp; for subroutines (aka functions, procedures, methods)
+    * for all types of that symbol name.  In version 4 you used them like
+      pointers, but in modern perls you can just use references.
+</pre>
+<pre class="POD_TEXT">
+There are couple of other symbols that you're likely to encounter that aren't
+really type specifiers:
+
+    &lt;&gt; are used for inputting a record from a filehandle.
+    \  takes a reference to something.
+</pre>
+<p class="POD_TEXT">
+Note that &lt;FILE&gt; is <i>neither</i> the type specifier for files
+nor the name of the handle.  It is the <code>&lt;&gt;</code> operator applied
+to the handle FILE.  It reads one line (well, record--see
+the <a class="POD_LINK" href="perlvar.html#_14">$/</a> entry in the <a class="POD_LINK" href="perlvar.html">perlvar</a> manpage) from the handle FILE in scalar context, or <i>all</i> lines
+in list context.  When performing open, close, or any other operation
+besides <code>&lt;&gt;</code> on files, or even when talking about the handle, do
+<i>not</i> use the brackets.  These are correct: <code>eof(FH)</code>, <code>seek(FH, 0,
+2)</code> and &quot;copying from STDIN to FILE&quot;.
+</p>
+<h3 class="POD_HEAD2"><a name="Do_I_always_never_ha">Do I always/never have to quote my strings or use semicolons and commas?</a></h3>
+<pre class="POD_TEXT">
+Normally, a bareword doesn't need to be quoted, but in most cases
+probably should be (and must be under <code>use strict</code>).  But a hash key
+consisting of a simple word (that isn't the name of a defined
+subroutine) and the left-hand operand to the <code>=&gt;</code> operator both
+count as though they were quoted:
+
+    This                    is like this
+    ------------            ---------------
+    $foo{line}              $foo{&quot;line&quot;}
+    bar =&gt; stuff            &quot;bar&quot; =&gt; stuff
+</pre>
+<pre class="POD_TEXT">
+The final semicolon in a block is optional, as is the final comma in a
+list.  Good style (see the <a class="POD_LINK" href="perlstyle.html">perlstyle</a> manpage) says to put them in except for
+one-liners:
+
+    if ($whoops) { exit 1 }
+    @nums = (1, 2, 3);
+
+    if ($whoops) {
+        exit 1;
+    }
+    @lines = (
+	&quot;There Beren came from mountains cold&quot;,
+	&quot;And lost he wandered under leaves&quot;,
+    );
+</pre>
+<h3 class="POD_HEAD2"><a name="How_do_I_skip_some_r">How do I skip some return values?</a></h3>
+<pre class="POD_TEXT">
+One way is to treat the return values as a list and index into it:
+
+        $dir = (getpwnam($user))[7];
+</pre>
+<pre class="POD_TEXT">
+Another way is to use undef as an element on the left-hand-side:
+
+    ($dev, $ino, undef, undef, $uid, $gid) = stat($file);
+</pre>
+<h3 class="POD_HEAD2"><a name="How_do_I_temporarily">How do I temporarily block warnings?</a></h3>
+<pre class="POD_TEXT">
+If you are running Perl 5.6.0 or better, the <code>use warnings</code> pragma
+allows fine control of what warning are produced.
+See the <a class="POD_LINK" href="perllexwarn.html">perllexwarn</a> manpage for more details.
+
+    {
+	no warnings;          # temporarily turn off warnings
+	$a = $b + $c;         # I know these might be undef
+    }
+</pre>
+<pre class="POD_TEXT">
+If you have an older version of Perl, the <code><a class="POD_LINK" href="perlvar.html#_W">$^W</a></code> variable (documented
+in the <a class="POD_LINK" href="perlvar.html">perlvar</a> manpage) controls runtime warnings for a block:
+
+    {
+	local $^W = 0;        # temporarily turn off warnings
+	$a = $b + $c;         # I know these might be undef
+    }
+</pre>
+<p class="POD_TEXT">
+Note that like all the punctuation variables, you cannot currently
+use my() on <code><a class="POD_LINK" href="perlvar.html#_W">$^W</a></code>, only local().
+</p>
+<h3 class="POD_HEAD2"><a name="What_s_an_extension_">What's an extension?</a></h3>
+<p class="POD_TEXT">
+An extension is a way of calling compiled C code from Perl.  Reading
+the <a class="POD_LINK" href="perlxstut.html">perlxstut</a> manpage is a good place to learn more about extensions.
+</p>
+<h3 class="POD_HEAD2"><a name="Why_do_Perl_operator">Why do Perl operators have different precedence than C operators?</a></h3>
+<p class="POD_TEXT">
+Actually, they don't.  All C operators that Perl copies have the same
+precedence in Perl as they do in C.  The problem is with operators that C
+doesn't have, especially functions that give a list context to everything
+on their right, eg. print, chmod, exec, and so on.  Such functions are
+called &quot;list operators&quot; and appear as such in the precedence table in
+the <a class="POD_LINK" href="perlop.html">perlop</a> manpage.
+</p>
+<pre class="POD_TEXT">
+A common mistake is to write:
+
+    unlink $file || die &quot;snafu&quot;;
+</pre>
+<pre class="POD_TEXT">
+This gets interpreted as:
+
+    unlink ($file || die &quot;snafu&quot;);
+</pre>
+<pre class="POD_TEXT">
+To avoid this problem, either put in extra parentheses or use the
+super low precedence <code>or</code> operator:
+
+    (unlink $file) || die &quot;snafu&quot;;
+    unlink $file or die &quot;snafu&quot;;
+</pre>
+<p class="POD_TEXT">
+The &quot;English&quot; operators (<code>and</code>, <code>or</code>, <code>xor</code>, and <code>not</code>)
+deliberately have precedence lower than that of list operators for
+just such situations as the one above.
+</p>
+<p class="POD_TEXT">
+Another operator with surprising precedence is exponentiation.  It
+binds more tightly even than unary minus, making <code>-2**2</code> product a
+negative not a positive four.  It is also right-associating, meaning
+that <code>2**3**2</code> is two raised to the ninth power, not eight squared.
+</p>
+<pre class="POD_TEXT">
+Although it has the same precedence as in C, Perl's <code>?:</code> operator
+produces an lvalue.  This assigns $x to either $a or $b, depending
+on the trueness of $maybe:
+
+    ($maybe ? $a : $b) = $x;
+</pre>
+<h3 class="POD_HEAD2"><a name="How_do_I_declare_cre">How do I declare/create a structure?</a></h3>
+<pre class="POD_TEXT">
+In general, you don't &quot;declare&quot; a structure.  Just use a (probably
+anonymous) hash reference.  See the <a class="POD_LINK" href="perlref.html">perlref</a> manpage and the <a class="POD_LINK" href="perldsc.html">perldsc</a> manpage for details.
+Here's an example:
+
+    $person = {};                   # new anonymous hash
+    $person-&gt;{AGE}  = 24;           # set field AGE to 24
+    $person-&gt;{NAME} = &quot;Nat&quot;;        # set field NAME to &quot;Nat&quot;
+</pre>
+<p class="POD_TEXT">
+If you're looking for something a bit more rigorous, try the <a class="POD_LINK" href="perltoot.html">perltoot</a> manpage.
+</p>
+<h3 class="POD_HEAD2"><a name="How_do_I_create_a_mo">How do I create a module?</a></h3>
+<p class="POD_TEXT">
+A module is a package that lives in a file of the same name.  For
+example, the Hello::There module would live in Hello/There.pm.  For
+details, read the <a class="POD_LINK" href="perlmod.html">perlmod</a> manpage.  You'll also find the <a class="POD_LINK" href="Exporter.html">Exporter</a> manpage helpful.  If
+you're writing a C or mixed-language module with both C and Perl, then
+you should study the <a class="POD_LINK" href="perlxstut.html">perlxstut</a> manpage.
+</p>
+<pre class="POD_TEXT">
+Here's a convenient template you might wish you use when starting your
+own module.  Make sure to change the names appropriately.
+
+    package Some::Module;  # assumes Some/Module.pm
+
+    use strict;
+    use warnings;
+
+    BEGIN {
+	use Exporter   ();
+	our ($VERSION, @ISA, @EXPORT, @EXPORT_OK, %EXPORT_TAGS);
+
+	## set the version for version checking; uncomment to use
+	## $VERSION     = 1.00;
+
+	# if using RCS/CVS, this next line may be preferred,
+	# but beware two-digit versions.
+	$VERSION = do{my@r=q$Revision: 1.28 $=~/\d+/g;sprintf '%d.'.'%02d'x$#r,@r};
+
+	@ISA         = qw(Exporter);
+	@EXPORT      = qw(&amp;func1 &amp;func2 &amp;func3);
+	%EXPORT_TAGS = ( );  	# eg: TAG =&gt; [ qw!name1 name2! ],
+
+	# your exported package globals go here,
+	# as well as any optionally exported functions
+	@EXPORT_OK   = qw($Var1 %Hashit);
+    }
+    our @EXPORT_OK;
+
+    # exported package globals go here
+    our $Var1;
+    our %Hashit;
+
+    # non-exported package globals go here
+    our @more;
+    our $stuff;
+
+    # initialize package globals, first exported ones
+    $Var1   = '';
+    %Hashit = ();
+
+    # then the others (which are still accessible as $Some::Module::stuff)
+    $stuff  = '';
+    @more   = ();
+
+    # all file-scoped lexicals must be created before
+    # the functions below that use them.
+
+    # file-private lexicals go here
+    my $priv_var    = '';
+    my %secret_hash = ();
+
+    # here's a file-private function as a closure,
+    # callable as &amp;$priv_func;  it cannot be prototyped.
+    my $priv_func = sub {
+        # stuff goes here.
+    };
+
+    # make all your functions, whether exported or not;
+    # remember to put something interesting in the {} stubs
+    sub func1      {}	 # no prototype
+    sub func2()    {}	 # proto'd void
+    sub func3($$)  {}	 # proto'd to 2 scalars
+
+    # this one isn't exported, but could be called!
+    sub func4(\%)  {}    # proto'd to 1 hash ref
+
+    END { }       # module clean-up code here (global destructor)
+
+    1;            # modules must return true
+</pre>
+<pre class="POD_TEXT">
+The h2xs program will create stubs for all the important stuff for you:
+
+  % h2xs -XA -n My::Module
+</pre>
+<h3 class="POD_HEAD2"><a name="How_do_I_create_a_cl">How do I create a class?</a></h3>
+<p class="POD_TEXT">
+See the <a class="POD_LINK" href="perltoot.html">perltoot</a> manpage for an introduction to classes and objects, as well as
+the <a class="POD_LINK" href="perlobj.html">perlobj</a> manpage and the <a class="POD_LINK" href="perlbot.html">perlbot</a> manpage.
+</p>
+<h3 class="POD_HEAD2"><a name="How_can_I_tell_if_a_">How can I tell if a variable is tainted?</a></h3>
+<pre class="POD_TEXT">
+See the section on <a class="POD_LINK" href="perlsec.html#Laundering_and_Detec">Laundering and Detecting Tainted Data</a> in the <a class="POD_LINK" href="perlsec.html">perlsec</a> manpage.  Here's an
+example (which doesn't use any system calls, because the kill()
+is given no processes to signal):
+
+    sub is_tainted {
+	return ! eval { join('',@_), kill 0; 1; };
+    }
+</pre>
+<p class="POD_TEXT">
+This is not <code><a class="POD_LINK" href="perlrun.html#_w">-w</a></code> clean, however.  There is no <code><a class="POD_LINK" href="perlrun.html#_w">-w</a></code> clean way to
+detect taintedness--take this as a hint that you should untaint
+all possibly-tainted data.
+</p>
+<h3 class="POD_HEAD2"><a name="What_s_a_closure_">What's a closure?</a></h3>
+<p class="POD_TEXT">
+Closures are documented in the <a class="POD_LINK" href="perlref.html">perlref</a> manpage.
+</p>
+<p class="POD_TEXT">
+<i>Closure</i> is a computer science term with a precise but
+hard-to-explain meaning. Closures are implemented in Perl as anonymous
+subroutines with lasting references to lexical variables outside their
+own scopes.  These lexicals magically refer to the variables that were
+around when the subroutine was defined (deep binding).
+</p>
+<p class="POD_TEXT">
+Closures make sense in any programming language where you can have the
+return value of a function be itself a function, as you can in Perl.
+Note that some languages provide anonymous functions but are not
+capable of providing proper closures: the Python language, for
+example.  For more information on closures, check out any textbook on
+functional programming.  Scheme is a language that not only supports
+but encourages closures.
+</p>
+<pre class="POD_TEXT">
+Here's a classic function-generating function:
+
+    sub add_function_generator {
+      return sub { shift + shift };
+    }
+
+    $add_sub = add_function_generator();
+    $sum = $add_sub-&gt;(4,5);                # $sum is 9 now.
+</pre>
+<p class="POD_TEXT">
+The closure works as a <i>function template</i> with some customization
+slots left out to be filled later.  The anonymous subroutine returned
+by add_function_generator() isn't technically a closure because it
+refers to no lexicals outside its own scope.
+</p>
+<pre class="POD_TEXT">
+Contrast this with the following make_adder() function, in which the
+returned anonymous function contains a reference to a lexical variable
+outside the scope of that function itself.  Such a reference requires
+that Perl return a proper closure, thus locking in for all time the
+value that the lexical had when the function was created.
+
+    sub make_adder {
+        my $addpiece = shift;
+        return sub { shift + $addpiece };
+    }
+
+    $f1 = make_adder(20);
+    $f2 = make_adder(555);
+</pre>
+<p class="POD_TEXT">
+Now <code>&amp;$f1($n)</code> is always 20 plus whatever $n you pass in, whereas
+<code>&amp;$f2($n)</code> is always 555 plus whatever $n you pass in.  The $addpiece
+in the closure sticks around.
+</p>
+<pre class="POD_TEXT">
+Closures are often used for less esoteric purposes.  For example, when
+you want to pass in a bit of code into a function:
+
+    my $line;
+    timeout( 30, sub { $line = &lt;STDIN&gt; } );
+</pre>
+<p class="POD_TEXT">
+If the code to execute had been passed in as a string,
+<code>'$line = &lt;STDIN&gt;'</code>, there would have been no way for the
+hypothetical timeout() function to access the lexical variable
+$line back in its caller's scope.
+</p>
+<h3 class="POD_HEAD2"><a name="What_is_variable_sui">What is variable suicide and how can I prevent it?</a></h3>
+<pre class="POD_TEXT">
+Variable suicide is when you (temporarily or permanently) lose the
+value of a variable.  It is caused by scoping through my() and local()
+interacting with either closures or aliased foreach() iterator
+variables and subroutine arguments.  It used to be easy to
+inadvertently lose a variable's value this way, but now it's much
+harder.  Take this code:
+
+    my $f = &quot;foo&quot;;
+    sub T {
+      while ($i++ &lt; 3) { my $f = $f; $f .= &quot;bar&quot;; print $f, &quot;\n&quot; }
+    }
+    T;
+    print &quot;Finally $f\n&quot;;
+</pre>
+<p class="POD_TEXT">
+The $f that has &quot;bar&quot; added to it three times should be a new <code>$f</code>
+(<code>my $f</code> should create a new local variable each time through the loop).
+It isn't, however.  This was a bug, now fixed in the latest releases
+(tested against 5.004_05, 5.005_03, and 5.005_56).
+</p>
+<h3 class="POD_HEAD2"><a name="How_can_I_pass_retur">How can I pass/return a {Function, FileHandle, Array, Hash, Method, Regex}?</a></h3>
+<p class="POD_TEXT">
+With the exception of regexes, you need to pass references to these
+objects.  See the section on <a class="POD_LINK" href="perlsub.html#Pass_by_Reference">Pass by Reference</a> in the <a class="POD_LINK" href="perlsub.html">perlsub</a> manpage for this particular
+question, and the <a class="POD_LINK" href="perlref.html">perlref</a> manpage for information on references.
+</p>
+<p class="POD_TEXT">
+See ``Passing Regexes'', below, for information on passing regular
+expressions.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Passing_Variables_an">Passing Variables and Functions</a>
+<dd>
+Regular variables and functions are quite easy to pass: just pass in a
+reference to an existing or anonymous variable or function:
+<pre class="POD_VERBATIM">
+    func( \$some_scalar );
+
+    func( \@some_array  );
+    func( [ 1 .. 10 ]   );
+
+    func( \%some_hash   );
+    func( { this =&gt; 10, that =&gt; 20 }   );
+
+    func( \&amp;some_func   );
+    func( sub { $_[0] ** $_[1] }   );
+</pre>
+<dt class="POD_ITEM"><a name="Passing_Filehandles">Passing Filehandles</a>
+<dd>
+To pass filehandles to subroutines, use the <code>*FH</code> or <code>\*FH</code> notations.
+These are &quot;typeglobs&quot;--see the section on <a class="POD_LINK" href="perldata.html#Typeglobs_and_Fileha">Typeglobs and Filehandles</a> in the <a class="POD_LINK" href="perldata.html">perldata</a> manpage
+and especially the section on <a class="POD_LINK" href="perlsub.html#Pass_by_Reference">Pass by Reference</a> in the <a class="POD_LINK" href="perlsub.html">perlsub</a> manpage for more information.
+<p class="POD_TEXT">
+Here's an excerpt:
+</p>
+<pre class="POD_TEXT">
+If you're passing around filehandles, you could usually just use the bare
+typeglob, like *STDOUT, but typeglobs references would be better because
+they'll still work properly under <code>use strict 'refs'</code>.  For example:
+
+    splutter(\*STDOUT);
+    sub splutter {
+        my $fh = shift;
+        print $fh &quot;her um well a hmmm\n&quot;;
+    }
+
+    $rec = get_rec(\*STDIN);
+    sub get_rec {
+        my $fh = shift;
+        return scalar &lt;$fh&gt;;
+    }
+</pre>
+<pre class="POD_TEXT">
+If you're planning on generating new filehandles, you could do this:
+
+    sub openit {
+        my $path = shift;
+        local *FH;
+        return open (FH, $path) ? *FH : undef;
+    }
+    $fh = openit('&lt; /etc/motd');
+    print &lt;$fh&gt;;
+</pre>
+<dt class="POD_ITEM"><a name="Passing_Regexes">Passing Regexes</a>
+<dd>
+To pass regexes around, you'll need to be using a release of Perl
+sufficiently recent as to support the <code>qr//</code> construct, pass around
+strings and use an exception-trapping eval, or else be very, very clever.
+<pre class="POD_TEXT">
+Here's an example of how to pass in a string to be regex compared
+using <code>qr//</code>:
+
+    sub compare($$) {
+        my ($val1, $regex) = @_;
+        my $retval = $val1 =~ /$regex/;
+	return $retval;
+    }
+    $match = compare(&quot;old McDonald&quot;, qr/d.*D/i);
+</pre>
+<pre class="POD_TEXT">
+Notice how <code>qr//</code> allows flags at the end.  That pattern was compiled
+at compile time, although it was executed later.  The nifty <code>qr//</code>
+notation wasn't introduced until the 5.005 release.  Before that, you
+had to approach this problem much less intuitively.  For example, here
+it is again if you don't have <code>qr//</code>:
+
+    sub compare($$) {
+        my ($val1, $regex) = @_;
+        my $retval = eval { $val1 =~ /$regex/ };
+	die if $@;
+	return $retval;
+    }
+
+    $match = compare(&quot;old McDonald&quot;, q/($?i)d.*D/);
+</pre>
+<pre class="POD_TEXT">
+Make sure you never say something like this:
+
+    return eval &quot;\$val =~ /$regex/&quot;;   # WRONG
+</pre>
+<pre class="POD_TEXT">
+or someone can sneak shell escapes into the regex due to the double
+interpolation of the eval and the double-quoted string.  For example:
+
+    $pattern_of_evil = 'danger ${ system(&quot;rm -rf * &amp;&quot;) } danger';
+
+    eval &quot;\$string =~ /$pattern_of_evil/&quot;;
+</pre>
+<p class="POD_TEXT">
+Those preferring to be very, very clever might see the O'Reilly book,
+<i>Mastering Regular Expressions</i>, by Jeffrey Friedl.  Page 273's
+Build_MatchMany_Function() is particularly interesting.  A complete
+citation of this book is given in the <a class="POD_LINK" href="perlfaq2.html">perlfaq2</a> manpage.
+</p>
+<dt class="POD_ITEM"><a name="Passing_Methods">Passing Methods</a>
+<dd>
+To pass an object method into a subroutine, you can do this:
+<pre class="POD_VERBATIM">
+    call_a_lot(10, $some_obj, &quot;methname&quot;)
+    sub call_a_lot {
+        my ($count, $widget, $trick) = @_;
+        for (my $i = 0; $i &lt; $count; $i++) {
+            $widget-&gt;$trick();
+        }
+    }
+</pre>
+<pre class="POD_TEXT">
+Or, you can use a closure to bundle up the object, its
+method call, and arguments:
+
+    my $whatnot =  sub { $some_obj-&gt;obfuscate(@args) };
+    func($whatnot);
+    sub func {
+        my $code = shift;
+        &amp;$code();
+    }
+</pre>
+<p class="POD_TEXT">
+You could also investigate the can() method in the UNIVERSAL class
+(part of the standard perl distribution).
+</p>
+</dl>
+<h3 class="POD_HEAD2"><a name="How_do_I_create_a_st">How do I create a static variable?</a></h3>
+<p class="POD_TEXT">
+As with most things in Perl, TMTOWTDI.  What is a &quot;static variable&quot; in
+other languages could be either a function-private variable (visible
+only within a single function, retaining its value between calls to
+that function), or a file-private variable (visible only to functions
+within the file it was declared in) in Perl.
+</p>
+<pre class="POD_TEXT">
+Here's code to implement a function-private variable:
+
+    BEGIN {
+        my $counter = 42;
+        sub prev_counter { return --$counter }
+        sub next_counter { return $counter++ }
+    }
+</pre>
+<p class="POD_TEXT">
+Now prev_counter() and next_counter() share a private variable $counter
+that was initialized at compile time.
+</p>
+<pre class="POD_TEXT">
+To declare a file-private variable, you'll still use a my(), putting
+the declaration at the outer scope level at the top of the file.
+Assume this is in file Pax.pm:
+
+    package Pax;
+    my $started = scalar(localtime(time()));
+
+    sub begun { return $started }
+</pre>
+<p class="POD_TEXT">
+When <code>use Pax</code> or <code>require Pax</code> loads this module, the variable will
+be initialized.  It won't get garbage-collected the way most variables
+going out of scope do, because the begun() function cares about it,
+but no one else can get it.  It is not called $Pax::started because
+its scope is unrelated to the package.  It's scoped to the file.  You
+could conceivably have several packages in that same file all
+accessing the same private variable, but another file with the same
+package couldn't get to it.
+</p>
+<p class="POD_TEXT">
+See the section on <a class="POD_LINK" href="perlsub.html#Persistent_Private_V">Persistent Private Variables</a> in the <a class="POD_LINK" href="perlsub.html">perlsub</a> manpage for details.
+</p>
+<h3 class="POD_HEAD2"><a name="What_s_the_differenc">What's the difference between dynamic and lexical (static) scoping?  Between local() and my()?</a></h3>
+<p class="POD_TEXT">
+<code>local($x)</code> saves away the old value of the global variable <code>$x</code>
+and assigns a new value for the duration of the subroutine <i>which is
+visible in other functions called from that subroutine</i>.  This is done
+at run-time, so is called dynamic scoping.  local() always affects global
+variables, also called package variables or dynamic variables.
+</p>
+<p class="POD_TEXT">
+<code>my($x)</code> creates a new variable that is only visible in the current
+subroutine.  This is done at compile-time, so it is called lexical or
+static scoping.  my() always affects private variables, also called
+lexical variables or (improperly) static(ly scoped) variables.
+</p>
+<pre class="POD_TEXT">
+For instance:
+
+    sub visible {
+	print &quot;var has value $var\n&quot;;
+    }
+
+    sub dynamic {
+	local $var = 'local';	# new temporary value for the still-global
+	visible();              #   variable called $var
+    }
+
+    sub lexical {
+	my $var = 'private';    # new private variable, $var
+	visible();              # (invisible outside of sub scope)
+    }
+
+    $var = 'global';
+
+    visible();      		# prints global
+    dynamic();      		# prints local
+    lexical();      		# prints global
+</pre>
+<p class="POD_TEXT">
+Notice how at no point does the value &quot;private&quot; get printed.  That's
+because $var only has that value within the block of the lexical()
+function, and it is hidden from called subroutine.
+</p>
+<p class="POD_TEXT">
+In summary, local() doesn't make what you think of as private, local
+variables.  It gives a global variable a temporary value.  my() is
+what you're looking for if you want private variables.
+</p>
+<p class="POD_TEXT">
+See the section on <a class="POD_LINK" href="perlsub.html#Private_Variables_vi">Private Variables via my()</a> in the <a class="POD_LINK" href="perlsub.html">perlsub</a> manpage and 
+the section on <a class="POD_LINK" href="perlsub.html#Temporary_Values_via">Temporary Values via local()</a> in the <a class="POD_LINK" href="perlsub.html">perlsub</a> manpage for excruciating details.
+</p>
+<h3 class="POD_HEAD2"><a name="How_can_I_access_a_d">How can I access a dynamic variable while a similarly named lexical is in scope?</a></h3>
+<pre class="POD_TEXT">
+You can do this via symbolic references, provided you haven't set
+<code>use strict &quot;refs&quot;</code>.  So instead of $var, use <code>${'var'}</code>.
+
+    local $var = &quot;global&quot;;
+    my    $var = &quot;lexical&quot;;
+
+    print &quot;lexical is $var\n&quot;;
+
+    no strict 'refs';
+    print &quot;global  is ${'var'}\n&quot;;
+</pre>
+<p class="POD_TEXT">
+If you know your package, you can just mention it explicitly, as in
+$Some_Pack::var.  Note that the notation $::var is <i>not</i> the dynamic
+$var in the current package, but rather the one in the <code>main</code>
+package, as though you had written $main::var.  Specifying the package
+directly makes you hard-code its name, but it executes faster and
+avoids running afoul of <code>use strict &quot;refs&quot;</code>.
+</p>
+<h3 class="POD_HEAD2"><a name="What_s_the_differenc1">What's the difference between deep and shallow binding?</a></h3>
+<p class="POD_TEXT">
+In deep binding, lexical variables mentioned in anonymous subroutines
+are the same ones that were in scope when the subroutine was created.
+In shallow binding, they are whichever variables with the same names
+happen to be in scope when the subroutine is called.  Perl always uses
+deep binding of lexical variables (i.e., those created with my()).
+However, dynamic variables (aka global, local, or package variables)
+are effectively shallowly bound.  Consider this just one more reason
+not to use them.  See the answer to the section on <a class="POD_LINK" href="#What_s_a_closure_">What's a closure?</a> elsewhere in this document.
+</p>
+<h3 class="POD_HEAD2"><a name="Why_doesn_t_my_foo_F">Why doesn't &quot;my($foo) = &lt;FILE&gt;;&quot; work right?</a></h3>
+<p class="POD_TEXT">
+<code>my()</code> and <code>local()</code> give list context to the right hand side
+of <code>=</code>.  The &lt;FH&gt; read operation, like so many of Perl's
+functions and operators, can tell which context it was called in and
+behaves appropriately.  In general, the scalar() function can help.
+This function does nothing to the data itself (contrary to popular myth)
+but rather tells its argument to behave in whatever its scalar fashion is.
+If that function doesn't have a defined scalar behavior, this of course
+doesn't help you (such as with sort()).
+</p>
+<pre class="POD_TEXT">
+To enforce scalar context in this particular case, however, you need
+merely omit the parentheses:
+
+    local($foo) = &lt;FILE&gt;;	    # WRONG
+    local($foo) = scalar(&lt;FILE&gt;);   # ok
+    local $foo  = &lt;FILE&gt;;	    # right
+</pre>
+<pre class="POD_TEXT">
+You should probably be using lexical variables anyway, although the
+issue is the same here:
+
+    my($foo) = &lt;FILE&gt;;	# WRONG
+    my $foo  = &lt;FILE&gt;;	# right
+</pre>
+<h3 class="POD_HEAD2"><a name="How_do_I_redefine_a_">How do I redefine a builtin function, operator, or method?</a></h3>
+<p class="POD_TEXT">
+Why do you want to do that? :-)
+</p>
+<p class="POD_TEXT">
+If you want to override a predefined function, such as open(),
+then you'll have to import the new definition from a different
+module.  See the section on <a class="POD_LINK" href="perlsub.html#Overriding_Built_in_">Overriding Built-in Functions</a> in the <a class="POD_LINK" href="perlsub.html">perlsub</a> manpage.  There's
+also an example in the section on <a class="POD_LINK" href="perltoot.html">Class::Template</a> in the <a class="POD_LINK" href="perltoot.html">perltoot</a> manpage.
+</p>
+<p class="POD_TEXT">
+If you want to overload a Perl operator, such as <code>+</code> or <code>**</code>,
+then you'll want to use the <code>use overload</code> pragma, documented
+in the <a class="POD_LINK" href="overload.html">overload</a> manpage.
+</p>
+<p class="POD_TEXT">
+If you're talking about obscuring method calls in parent classes,
+see the section on <a class="POD_LINK" href="perltoot.html#Overridden_Methods">Overridden Methods</a> in the <a class="POD_LINK" href="perltoot.html">perltoot</a> manpage.
+</p>
+<h3 class="POD_HEAD2"><a name="What_s_the_differenc2">What's the difference between calling a function as &amp;foo and foo()?</a></h3>
+<p class="POD_TEXT">
+When you call a function as <code>&amp;foo</code>, you allow that function access to
+your current @_ values, and you bypass prototypes.
+The function doesn't get an empty @_--it gets yours!  While not
+strictly speaking a bug (it's documented that way in the <a class="POD_LINK" href="perlsub.html">perlsub</a> manpage), it
+would be hard to consider this a feature in most cases.
+</p>
+<p class="POD_TEXT">
+When you call your function as <code>&amp;foo()</code>, then you <i>do</i> get a new @_,
+but prototyping is still circumvented.
+</p>
+<p class="POD_TEXT">
+Normally, you want to call a function using <code>foo()</code>.  You may only
+omit the parentheses if the function is already known to the compiler
+because it already saw the definition (<code><a class="POD_LINK" href="perlfunc.html#use_Module_LIST">use</a></code> but not <code><a class="POD_LINK" href="perlfunc.html#require">require</a></code>),
+or via a forward reference or <code>use subs</code> declaration.  Even in this
+case, you get a clean @_ without any of the old values leaking through
+where they don't belong.
+</p>
+<h3 class="POD_HEAD2"><a name="How_do_I_create_a_sw">How do I create a switch or case statement?</a></h3>
+<p class="POD_TEXT">
+This is explained in more depth in the the <a class="POD_LINK" href="perlsyn.html">perlsyn</a> manpage.  Briefly, there's
+no official case statement, because of the variety of tests possible
+in Perl (numeric comparison, string comparison, glob comparison,
+regex matching, overloaded comparisons, ...).  Larry couldn't decide
+how best to do this, so he left it out, even though it's been on the
+wish list since perl1.
+</p>
+<pre class="POD_TEXT">
+The general answer is to write a construct like this:
+
+    for ($variable_to_test) {
+	if    (/pat1/)  { }     # do something
+	elsif (/pat2/)  { }     # do something else
+	elsif (/pat3/)  { }     # do something else
+	else            { }     # default
+    }
+</pre>
+<pre class="POD_TEXT">
+Here's a simple example of a switch based on pattern matching, this
+time lined up in a way to make it look more like a switch statement.
+We'll do a multi-way conditional based on the type of reference stored
+in $whatchamacallit:
+
+    SWITCH: for (ref $whatchamacallit) {
+
+	/^$/		&amp;&amp; die &quot;not a reference&quot;;
+
+	/SCALAR/	&amp;&amp; do {
+				print_scalar($$ref);
+				last SWITCH;
+			};
+
+	/ARRAY/		&amp;&amp; do {
+				print_array(@$ref);
+				last SWITCH;
+			};
+
+	/HASH/		&amp;&amp; do {
+				print_hash(%$ref);
+				last SWITCH;
+			};
+
+	/CODE/		&amp;&amp; do {
+				warn &quot;can't print function ref&quot;;
+				last SWITCH;
+			};
+
+	# DEFAULT
+
+	warn &quot;User defined type skipped&quot;;
+
+    }
+</pre>
+<p class="POD_TEXT">
+See <code>perlsyn/&quot;Basic BLOCKs and Switch Statements&quot;</code> for many other 
+examples in this style.
+</p>
+<pre class="POD_TEXT">
+Sometimes you should change the positions of the constant and the variable.
+For example, let's say you wanted to test which of many answers you were
+given, but in a case-insensitive way that also allows abbreviations.
+You can use the following technique if the strings all start with
+different characters or if you want to arrange the matches so that
+one takes precedence over another, as <code>&quot;SEND&quot;</code> has precedence over
+<code>&quot;STOP&quot;</code> here:
+
+    chomp($answer = &lt;&gt;);
+    if    (&quot;SEND&quot;  =~ /^\Q$answer/i) { print &quot;Action is send\n&quot;  }
+    elsif (&quot;STOP&quot;  =~ /^\Q$answer/i) { print &quot;Action is stop\n&quot;  }
+    elsif (&quot;ABORT&quot; =~ /^\Q$answer/i) { print &quot;Action is abort\n&quot; }
+    elsif (&quot;LIST&quot;  =~ /^\Q$answer/i) { print &quot;Action is list\n&quot;  }
+    elsif (&quot;EDIT&quot;  =~ /^\Q$answer/i) { print &quot;Action is edit\n&quot;  }
+</pre>
+<pre class="POD_TEXT">
+A totally different approach is to create a hash of function references.
+
+    my %commands = (
+        &quot;happy&quot; =&gt; \&amp;joy,
+        &quot;sad&quot;,  =&gt; \&amp;sullen,
+        &quot;done&quot;  =&gt; sub { die &quot;See ya!&quot; },
+        &quot;mad&quot;   =&gt; \&amp;angry,
+    );
+
+    print &quot;How are you? &quot;;
+    chomp($string = &lt;STDIN&gt;);
+    if ($commands{$string}) {
+        $commands{$string}-&gt;();
+    } else {
+        print &quot;No such command: $string\n&quot;;
+    }
+</pre>
+<h3 class="POD_HEAD2"><a name="How_can_I_catch_acce">How can I catch accesses to undefined variables/functions/methods?</a></h3>
+<p class="POD_TEXT">
+The AUTOLOAD method, discussed in the section on <a class="POD_LINK" href="perlsub.html#Autoloading">Autoloading</a> in the <a class="POD_LINK" href="perlsub.html">perlsub</a> manpage and
+the section on <a class="POD_LINK" href="perltoot.html#AUTOLOAD_Proxy_Metho">AUTOLOAD: Proxy Methods</a> in the <a class="POD_LINK" href="perltoot.html">perltoot</a> manpage, lets you capture calls to
+undefined functions and methods.
+</p>
+<pre class="POD_TEXT">
+When it comes to undefined variables that would trigger a warning
+under <code><a class="POD_LINK" href="perlrun.html#_w">-w</a></code>, you can use a handler to trap the pseudo-signal
+<code>__WARN__</code> like this:
+
+    $SIG{__WARN__} = sub {
+
+	for ( $_[0] ) {		# voici un switch statement
+
+	    /Use of uninitialized value/  &amp;&amp; do {
+		# promote warning to a fatal
+		die $_;
+	    };
+
+	    # other warning cases to catch could go here;
+
+	    warn $_;
+	}
+
+    };
+</pre>
+<h3 class="POD_HEAD2"><a name="Why_can_t_a_method_i">Why can't a method included in this same file be found?</a></h3>
+<p class="POD_TEXT">
+Some possible reasons: your inheritance is getting confused, you've
+misspelled the method name, or the object is of the wrong type.  Check
+out the <a class="POD_LINK" href="perltoot.html">perltoot</a> manpage for details about any of the above cases.  You may
+also use <code>print ref($object)</code> to find out the class <code>$object</code> was
+blessed into.
+</p>
+<p class="POD_TEXT">
+Another possible reason for problems is because you've used the
+indirect object syntax (eg, <code>find Guru &quot;Samy&quot;</code>) on a class name
+before Perl has seen that such a package exists.  It's wisest to make
+sure your packages are all defined before you start using them, which
+will be taken care of if you use the <code><a class="POD_LINK" href="perlfunc.html#use_Module_LIST">use</a></code> statement instead of
+<code><a class="POD_LINK" href="perlfunc.html#require">require</a></code>.  If not, make sure to use arrow notation (eg.,
+<code>Guru-&gt;find(&quot;Samy&quot;)</code>) instead.  Object notation is explained in
+the <a class="POD_LINK" href="perlobj.html">perlobj</a> manpage.
+</p>
+<p class="POD_TEXT">
+Make sure to read about creating modules in the <a class="POD_LINK" href="perlmod.html">perlmod</a> manpage and
+the perils of indirect objects in the section on <a class="POD_LINK" href="perlobj.html#WARNING">WARNING</a> in the <a class="POD_LINK" href="perlobj.html">perlobj</a> manpage.
+</p>
+<h3 class="POD_HEAD2"><a name="How_can_I_find_out_m">How can I find out my current package?</a></h3>
+<pre class="POD_TEXT">
+If you're just a random program, you can do this to find
+out what the currently compiled package is:
+
+    my $packname = __PACKAGE__;
+</pre>
+<pre class="POD_TEXT">
+But, if you're a method and you want to print an error message
+that includes the kind of object you were called on (which is
+not necessarily the same as the one in which you were compiled):
+
+    sub amethod {
+	my $self  = shift;
+	my $class = ref($self) || $self;
+	warn &quot;called me from a $class object&quot;;
+    }
+</pre>
+<h3 class="POD_HEAD2"><a name="How_can_I_comment_ou">How can I comment out a large block of perl code?</a></h3>
+<pre class="POD_TEXT">
+Use embedded POD to discard it:
+
+    # program is here
+
+    =for nobody
+    This paragraph is commented out
+
+    # program continues
+
+    =begin comment text
+
+    all of this stuff
+
+    here will be ignored
+    by everyone
+
+    =end comment text
+
+    =cut
+</pre>
+<p class="POD_TEXT">
+This can't go just anywhere.  You have to put a pod directive where
+the parser is expecting a new statement, not just in the middle
+of an expression or some other arbitrary yacc grammar production.
+</p>
+<h3 class="POD_HEAD2"><a name="How_do_I_clear_a_pac">How do I clear a package?</a></h3>
+<pre class="POD_TEXT">
+Use this code, provided by Mark-Jason Dominus:
+
+    sub scrub_package {
+	no strict 'refs';
+	my $pack = shift;
+	die &quot;Shouldn't delete main package&quot; 
+	    if $pack eq &quot;&quot; || $pack eq &quot;main&quot;;
+	my $stash = *{$pack . '::'}{HASH};
+	my $name;
+	foreach $name (keys %$stash) {
+	    my $fullname = $pack . '::' . $name;
+	    # Get rid of everything with that name.
+	    undef $$fullname;
+	    undef @$fullname;
+	    undef %$fullname;
+	    undef &amp;$fullname;
+	    undef *$fullname;
+	}
+    }
+</pre>
+<p class="POD_TEXT">
+Or, if you're using a recent release of Perl, you can 
+just use the Symbol::delete_package() function instead.
+</p>
+<h3 class="POD_HEAD2"><a name="How_can_I_use_a_vari">How can I use a variable as a variable name?</a></h3>
+<pre class="POD_TEXT">
+Beginners often think they want to have a variable contain the name
+of a variable.
+
+    $fred    = 23;
+    $varname = &quot;fred&quot;;
+    ++$$varname;         # $fred now 24
+</pre>
+<p class="POD_TEXT">
+This works <i>sometimes</i>, but it is a very bad idea for two reasons.
+</p>
+<p class="POD_TEXT">
+The first reason is that this technique <i>only works on global
+variables</i>.  That means that if $fred is a lexical variable created
+with my() in the above example, the code wouldn't work at all: you'd
+accidentally access the global and skip right over the private lexical
+altogether.  Global variables are bad because they can easily collide
+accidentally and in general make for non-scalable and confusing code.
+</p>
+<p class="POD_TEXT">
+Symbolic references are forbidden under the <code>use strict</code> pragma.
+They are not true references and consequently are not reference counted
+or garbage collected.
+</p>
+<pre class="POD_TEXT">
+The other reason why using a variable to hold the name of another
+variable is a bad idea is that the question often stems from a lack of
+understanding of Perl data structures, particularly hashes.  By using
+symbolic references, you are just using the package's symbol-table hash
+(like <code>%main::</code>) instead of a user-defined hash.  The solution is to
+use your own hash or a real reference instead.
+
+    $fred    = 23;
+    $varname = &quot;fred&quot;;
+    $USER_VARS{$varname}++;  # not $$varname++
+</pre>
+<pre class="POD_TEXT">
+There we're using the %USER_VARS hash instead of symbolic references.
+Sometimes this comes up in reading strings from the user with variable
+references and wanting to expand them to the values of your perl
+program's variables.  This is also a bad idea because it conflates the
+program-addressable namespace and the user-addressable one.  Instead of
+reading a string and expanding it to the actual contents of your program's
+own variables:
+
+    $str = 'this has a $fred and $barney in it';
+    $str =~ s/(\$\w+)/$1/eeg;		  # need double eval
+</pre>
+<pre class="POD_TEXT">
+it would be better to keep a hash around like %USER_VARS and have
+variable references actually refer to entries in that hash:
+
+    $str =~ s/\$(\w+)/$USER_VARS{$1}/g;   # no /e here at all
+</pre>
+<pre class="POD_TEXT">
+That's faster, cleaner, and safer than the previous approach.  Of course,
+you don't need to use a dollar sign.  You could use your own scheme to
+make it less confusing, like bracketed percent symbols, etc.
+
+    $str = 'this has a %fred% and %barney% in it';
+    $str =~ s/%(\w+)%/$USER_VARS{$1}/g;   # no /e here at all
+</pre>
+<pre class="POD_TEXT">
+Another reason that folks sometimes think they want a variable to
+contain the name of a variable is because they don't know how to build
+proper data structures using hashes.  For example, let's say they
+wanted two hashes in their program: %fred and %barney, and that they
+wanted to use another scalar variable to refer to those by name.
+
+    $name = &quot;fred&quot;;
+    $$name{WIFE} = &quot;wilma&quot;;     # set %fred
+
+    $name = &quot;barney&quot;;           
+    $$name{WIFE} = &quot;betty&quot;;	# set %barney
+</pre>
+<pre class="POD_TEXT">
+This is still a symbolic reference, and is still saddled with the
+problems enumerated above.  It would be far better to write:
+
+    $folks{&quot;fred&quot;}{WIFE}   = &quot;wilma&quot;;
+    $folks{&quot;barney&quot;}{WIFE} = &quot;betty&quot;;
+</pre>
+<p class="POD_TEXT">
+And just use a multilevel hash to start with.
+</p>
+<p class="POD_TEXT">
+The only times that you absolutely <i>must</i> use symbolic references are
+when you really must refer to the symbol table.  This may be because it's
+something that can't take a real reference to, such as a format name.
+Doing so may also be important for method calls, since these always go
+through the symbol table for resolution.
+</p>
+<pre class="POD_TEXT">
+In those cases, you would turn off <code>strict 'refs'</code> temporarily so you
+can play around with the symbol table.  For example:
+
+    @colors = qw(red blue green yellow orange purple violet);
+    for my $name (@colors) {
+        no strict 'refs';  # renege for the block
+        *$name = sub { &quot;&lt;FONT COLOR='$name'&gt;@_&lt;/FONT&gt;&quot; };
+    }
+</pre>
+<p class="POD_TEXT">
+All those functions (red(), blue(), green(), etc.) appear to be separate,
+but the real code in the closure actually was compiled only once.
+</p>
+<p class="POD_TEXT">
+So, sometimes you might want to use symbolic references to directly
+manipulate the symbol table.  This doesn't matter for formats, handles, and
+subroutines, because they are always global--you can't use my() on them.
+For scalars, arrays, and hashes, though--and usually for subroutines--
+you probably only want to use hard references.
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHOR_AND_COPYRIGHT">AUTHOR AND COPYRIGHT</a></h2>
+<p class="POD_TEXT">
+Copyright (c) 1997-1999 Tom Christiansen and Nathan Torkington.
+All rights reserved.
+</p>
+<p class="POD_TEXT">
+When included as part of the Standard Version of Perl, or as part of
+its complete documentation whether printed or otherwise, this work
+may be distributed only under the terms of Perl's Artistic License.
+Any distribution of this file or derivatives thereof <i>outside</i>
+of that package require that special arrangements be made with
+copyright holder.
+</p>
+<p class="POD_TEXT">
+Irrespective of its distribution, all code examples in this file
+are hereby placed into the public domain.  You are permitted and
+encouraged to use this code in your own programs for fun
+or for profit as you see fit.  A simple comment in the code giving
+credit would be courteous but is not required.
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:35:23 2001
+</body>
+</html>
+

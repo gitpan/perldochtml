@@ -1,0 +1,1368 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>overload</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="patching.html">Next:<br>patching</a></td><td align="left" width="1%"><a href="open.html">Previous:<br>open</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">overload</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#Declaration_of_overl">Declaration of overloaded functions</a>
+<li><a href="#Calling_Conventions_">Calling Conventions for Binary Operations</a>
+<li><a href="#Calling_Conventions_1">Calling Conventions for Unary Operations</a>
+<li><a href="#Calling_Conventions_2">Calling Conventions for Mutators</a>
+<li><a href="#Overloadable_Operati">Overloadable Operations</a>
+<li><a href="#Inheritance_and_over">Inheritance and overloading</a>
+</ul>
+<li><a href="#SPECIAL_SYMBOLS_FOR_">SPECIAL SYMBOLS FOR <code>use overload</code></a>
+<ul>
+<li><a href="#Last_Resort">Last Resort</a>
+<li><a href="#Fallback">Fallback</a>
+<li><a href="#Copy_Constructor">Copy Constructor</a>
+</ul>
+<li><a href="#MAGIC_AUTOGENERATION">MAGIC AUTOGENERATION</a>
+<li><a href="#Losing_overloading">Losing overloading</a>
+<li><a href="#Run_time_Overloading">Run-time Overloading</a>
+<li><a href="#Public_functions">Public functions</a>
+<li><a href="#Overloading_constant">Overloading constants</a>
+<li><a href="#IMPLEMENTATION">IMPLEMENTATION</a>
+<li><a href="#Metaphor_clash">Metaphor clash</a>
+<li><a href="#Cookbook">Cookbook</a>
+<ul>
+<li><a href="#Two_face_scalars">Two-face scalars</a>
+<li><a href="#Two_face_references">Two-face references</a>
+<li><a href="#Symbolic_calculator">Symbolic calculator</a>
+<li><a href="#Really_symbolic_calc"><i>Really</i> symbolic calculator</a>
+</ul>
+<li><a href="#AUTHOR">AUTHOR</a>
+<li><a href="#DIAGNOSTICS">DIAGNOSTICS</a>
+<li><a href="#BUGS">BUGS</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+overload - Package for overloading perl operations
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+    package SomeThing;
+
+    use overload
+	'+' =&gt; \&amp;myadd,
+	'-' =&gt; \&amp;mysub;
+	# etc
+    ...
+
+    package main;
+    $a = new SomeThing 57;
+    $b=5+$a;
+    ...
+    if (overload::Overloaded $b) {...}
+    ...
+    $strval = overload::StrVal $b;
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<h3 class="POD_HEAD2"><a name="Declaration_of_overl">Declaration of overloaded functions</a></h3>
+<pre class="POD_TEXT">
+The compilation directive
+
+    package Number;
+    use overload
+	&quot;+&quot; =&gt; \&amp;add,
+	&quot;*=&quot; =&gt; &quot;muas&quot;;
+</pre>
+<p class="POD_TEXT">
+declares function Number::add() for addition, and method muas() in
+the &quot;class&quot; <code>Number</code> (or one of its base classes)
+for the assignment form <code>*=</code> of multiplication.
+</p>
+<p class="POD_TEXT">
+Arguments of this directive come in (key, value) pairs.  Legal values
+are values legal inside a <code>&amp;{ ... }</code> call, so the name of a
+subroutine, a reference to a subroutine, or an anonymous subroutine
+will all work.  Note that values specified as strings are
+interpreted as methods, not subroutines.  Legal keys are listed below.
+</p>
+<p class="POD_TEXT">
+The subroutine <code>add</code> will be called to execute <code>$a+$b</code> if $a
+is a reference to an object blessed into the package <code>Number</code>, or if $a is
+not an object from a package with defined mathemagic addition, but $b is a
+reference to a <code>Number</code>.  It can also be called in other situations, like
+<code>$a+=7</code>, or <code>$a++</code>.  See the <a class="POD_LINK" href="#MAGIC_AUTOGENERATION">MAGIC AUTOGENERATION</a> entry elsewhere in this document.  (Mathemagical
+methods refer to methods triggered by an overloaded mathematical
+operator.)
+</p>
+<p class="POD_TEXT">
+Since overloading respects inheritance via the @ISA hierarchy, the
+above declaration would also trigger overloading of <code>+</code> and <code>*=</code> in
+all the packages which inherit from <code>Number</code>.
+</p>
+<h3 class="POD_HEAD2"><a name="Calling_Conventions_">Calling Conventions for Binary Operations</a></h3>
+<p class="POD_TEXT">
+The functions specified in the <code>use overload ...</code> directive are called
+with three (in one particular case with four, see the <a class="POD_LINK" href="#Last_Resort">Last Resort</a> entry elsewhere in this document)
+arguments.  If the corresponding operation is binary, then the first
+two arguments are the two arguments of the operation.  However, due to
+general object calling conventions, the first argument should always be
+an object in the package, so in the situation of <code>7+$a</code>, the
+order of the arguments is interchanged.  It probably does not matter
+when implementing the addition method, but whether the arguments
+are reversed is vital to the subtraction method.  The method can
+query this information by examining the third argument, which can take
+three different values:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="FALSE">FALSE</a>
+<dd>
+the order of arguments is as in the current operation.
+<dt class="POD_ITEM"><a name="TRUE">TRUE</a>
+<dd>
+the arguments are reversed.
+<dt class="POD_ITEM"><a name="undef"><code><a class="POD_LINK" href="perlfunc.html#undef">undef</a></code></a>
+<dd>
+the current operation is an assignment variant (as in
+<code>$a+=7</code>), but the usual function is called instead.  This additional
+information can be used to generate some optimizations.  Compare
+the <a class="POD_LINK" href="#Calling_Conventions_2">Calling Conventions for Mutators</a> entry elsewhere in this document.
+</dl>
+<h3 class="POD_HEAD2"><a name="Calling_Conventions_1">Calling Conventions for Unary Operations</a></h3>
+<p class="POD_TEXT">
+Unary operation are considered binary operations with the second
+argument being <code><a class="POD_LINK" href="perlfunc.html#undef">undef</a></code>.  Thus the functions that overloads <code>{&quot;++&quot;}</code>
+is called with arguments <code>($a,undef,'')</code> when $a++ is executed.
+</p>
+<h3 class="POD_HEAD2"><a name="Calling_Conventions_2">Calling Conventions for Mutators</a></h3>
+<p class="POD_TEXT">
+Two types of mutators have different calling conventions:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_and_"><code>++</code> and <code>--</code></a>
+<dd>
+The routines which implement these operators are expected to actually
+<i>mutate</i> their arguments.  So, assuming that $obj is a reference to a
+number,
+<pre class="POD_VERBATIM">
+  sub incr { my $n = $ {$_[0]}; ++$n; $_[0] = bless \$n}
+</pre>
+<pre class="POD_TEXT">
+is an appropriate implementation of overloaded <code>++</code>.  Note that
+
+  sub incr { ++$ {$_[0]} ; shift }
+</pre>
+<p class="POD_TEXT">
+is OK if used with preincrement and with postincrement. (In the case
+of postincrement a copying will be performed, see the <a class="POD_LINK" href="#Copy_Constructor">Copy Constructor</a> entry elsewhere in this document.)
+</p>
+<dt class="POD_ITEM"><a name="x_and_other_assignme"><code>x=</code> and other assignment versions</a>
+<dd>
+There is nothing special about these methods.  They may change the
+value of their arguments, and may leave it as is.  The result is going
+to be assigned to the value in the left-hand-side if different from
+this value.
+<p class="POD_TEXT">
+This allows for the same method to be used as overloaded <code>+=</code> and
+<code>+</code>.  Note that this is <i>allowed</i>, but not recommended, since by the
+semantic of the section on <a class="POD_LINK" href="#Fallback">Fallback</a> elsewhere in this document Perl will call the method for <code>+</code> anyway,
+if <code>+=</code> is not overloaded.
+</p>
+</dl>
+<p class="POD_TEXT">
+<b>Warning.</b>  Due to the presense of assignment versions of operations,
+routines which may be called in assignment context may create
+self-referential structures.  Currently Perl will not free self-referential
+structures until cycles are <code>explicitly</code> broken.  You may get problems
+when traversing your structures too.
+</p>
+<pre class="POD_TEXT">
+Say,
+
+  use overload '+' =&gt; sub { bless [ \$_[0], \$_[1] ] };
+</pre>
+<p class="POD_TEXT">
+is asking for trouble, since for code <code>$obj += $foo</code> the subroutine
+is called as <code>$obj = add($obj, $foo, undef)</code>, or <code>$obj = [\$obj,
+\$foo]</code>.  If using such a subroutine is an important optimization, one
+can overload <code>+=</code> explicitly by a non-&quot;optimized&quot; version, or switch
+to non-optimized version if <code>not defined $_[2]</code> (see
+the <a class="POD_LINK" href="#Calling_Conventions_">Calling Conventions for Binary Operations</a> entry elsewhere in this document).
+</p>
+<pre class="POD_TEXT">
+Even if no <i>explicit</i> assignment-variants of operators are present in
+the script, they may be generated by the optimizer.  Say, <code>&quot;,$obj,&quot;</code> or
+<code>',' . $obj . ','</code> may be both optimized to
+
+  my $tmp = ',' . $obj;    $tmp .= ',';
+</pre>
+<h3 class="POD_HEAD2"><a name="Overloadable_Operati">Overloadable Operations</a></h3>
+<p class="POD_TEXT">
+The following symbols can be specified in <code>use overload</code> directive:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="Arithmetic_operation"><i>Arithmetic operations</i></a>
+<pre class="POD_VERBATIM">
+    &quot;+&quot;, &quot;+=&quot;, &quot;-&quot;, &quot;-=&quot;, &quot;*&quot;, &quot;*=&quot;, &quot;/&quot;, &quot;/=&quot;, &quot;%&quot;, &quot;%=&quot;,
+    &quot;**&quot;, &quot;**=&quot;, &quot;&lt;&lt;&quot;, &quot;&lt;&lt;=&quot;, &quot;&gt;&gt;&quot;, &quot;&gt;&gt;=&quot;, &quot;x&quot;, &quot;x=&quot;, &quot;.&quot;, &quot;.=&quot;,
+</pre>
+
+For these operations a substituted non-assignment variant can be called if
+the assignment variant is not available.  Methods for operations &quot;<code>+</code>&quot;,
+&quot;<code>-</code>&quot;, &quot;<code>+=</code>&quot;, and &quot;<code>-=</code>&quot; can be called to automatically generate
+increment and decrement methods.  The operation &quot;<code>-</code>&quot; can be used to
+autogenerate missing methods for unary minus or <code><a class="POD_LINK" href="perlfunc.html#abs">abs</a></code>.
+<p class="POD_TEXT">
+See the section on <a class="POD_LINK" href="#MAGIC_AUTOGENERATION">MAGIC AUTOGENERATION</a> elsewhere in this document, the section on <a class="POD_LINK" href="#Calling_Conventions_2">Calling Conventions for Mutators</a> elsewhere in this document and
+the section on <a class="POD_LINK" href="#Calling_Conventions_">Calling Conventions for Binary Operations</a> elsewhere in this document) for details of these
+substitutions.
+</p>
+<li class="POD_ITEM"><a name="Comparison_operation"><i>Comparison operations</i></a>
+<pre class="POD_VERBATIM">
+    &quot;&lt;&quot;,  &quot;&lt;=&quot;, &quot;&gt;&quot;,  &quot;&gt;=&quot;, &quot;==&quot;, &quot;!=&quot;, &quot;&lt;=&gt;&quot;,
+    &quot;lt&quot;, &quot;le&quot;, &quot;gt&quot;, &quot;ge&quot;, &quot;eq&quot;, &quot;ne&quot;, &quot;cmp&quot;,
+</pre>
+
+If the corresponding &quot;spaceship&quot; variant is available, it can be
+used to substitute for the missing operation.  During <code><a class="POD_LINK" href="perlfunc.html#sort_BLOCK_LIST">sort</a></code>ing
+arrays, <code>cmp</code> is used to compare values subject to <code>use overload</code>.
+<li class="POD_ITEM"><a name="Bit_operations"><i>Bit operations</i></a>
+<pre class="POD_VERBATIM">
+    &quot;&amp;&quot;, &quot;^&quot;, &quot;|&quot;, &quot;neg&quot;, &quot;!&quot;, &quot;~&quot;,
+</pre>
+
+&quot;<code>neg</code>&quot; stands for unary minus.  If the method for <code>neg</code> is not
+specified, it can be autogenerated using the method for
+subtraction. If the method for &quot;<code>!</code>&quot; is not specified, it can be
+autogenerated using the methods for &quot;<code>bool</code>&quot;, or &quot;<code>\&quot;\&quot;</code>&quot;, or &quot;<code>0+</code>&quot;.
+<li class="POD_ITEM"><a name="Increment_and_decrem"><i>Increment and decrement</i></a>
+<pre class="POD_VERBATIM">
+    &quot;++&quot;, &quot;--&quot;,
+</pre>
+
+If undefined, addition and subtraction methods can be
+used instead.  These operations are called both in prefix and
+postfix form.
+<li class="POD_ITEM"><a name="Transcendental_funct"><i>Transcendental functions</i></a>
+<pre class="POD_VERBATIM">
+    &quot;atan2&quot;, &quot;cos&quot;, &quot;sin&quot;, &quot;exp&quot;, &quot;abs&quot;, &quot;log&quot;, &quot;sqrt&quot;,
+</pre>
+
+If <code><a class="POD_LINK" href="perlfunc.html#abs">abs</a></code> is unavailable, it can be autogenerated using methods
+for &quot;&lt;&quot; or &quot;&lt;=&gt;&quot; combined with either unary minus or subtraction.
+<li class="POD_ITEM"><a name="Boolean_string_and_n"><i>Boolean, string and numeric conversion</i></a>
+<pre class="POD_VERBATIM">
+    &quot;bool&quot;, &quot;\&quot;\&quot;&quot;, &quot;0+&quot;,
+</pre>
+
+If one or two of these operations are not overloaded, the remaining ones can
+be used instead.  <code>bool</code> is used in the flow control operators
+(like <code>while</code>) and for the ternary &quot;<code>?:</code>&quot; operation.  These functions can
+return any arbitrary Perl value.  If the corresponding operation for this value
+is overloaded too, that operation will be called again with this value.
+<p class="POD_TEXT">
+As a special case if the overload returns the object itself then it will
+be used directly. An overloaded conversion returning the object is
+probably a bug, because you're likely to get something that looks like
+<code>YourPackage=HASH(0x8172b34)</code>.
+</p>
+<li class="POD_ITEM"><a name="Iteration"><i>Iteration</i></a>
+<pre class="POD_VERBATIM">
+    &quot;&lt;&gt;&quot;
+</pre>
+
+If not overloaded, the argument will be converted to a filehandle or
+glob (which may require a stringification).  The same overloading
+happens both for the <i>read-filehandle</i> syntax <code>&lt;$var&gt;</code> and
+<i>globbing</i> syntax <code>&lt;${var}&gt;</code>.
+<li class="POD_ITEM"><a name="Dereferencing"><i>Dereferencing</i></a>
+<pre class="POD_VERBATIM">
+    '${}', '@{}', '%{}', '&amp;{}', '*{}'.
+</pre>
+
+If not overloaded, the argument will be dereferenced <i>as is</i>, thus
+should be of correct type.  These functions should return a reference
+of correct type, or another object with overloaded dereferencing.
+<p class="POD_TEXT">
+As a special case if the overload returns the object itself then it
+will be used directly (provided it is the correct type).
+</p>
+<p class="POD_TEXT">
+The dereference operators must be specified explicitly they will not be passed to
+&quot;nomethod&quot;.
+</p>
+<li class="POD_ITEM"><a name="Special"><i>Special</i></a>
+<pre class="POD_VERBATIM">
+    &quot;nomethod&quot;, &quot;fallback&quot;, &quot;=&quot;,
+</pre>
+
+see the <a class="POD_LINK" href="#SPECIAL_SYMBOLS_FOR_">SPECIAL SYMBOLS FOR <code>use overload</code></a> entry elsewhere in this document.
+</ul>
+<p class="POD_TEXT">
+See the section on <a class="POD_LINK" href="#Fallback">Fallback</a> elsewhere in this document for an explanation of when a missing method can be
+autogenerated.
+</p>
+<pre class="POD_TEXT">
+A computer-readable form of the above table is available in the hash
+%overload::ops, with values being space-separated lists of names:
+
+ with_assign	  =&gt; '+ - * / % ** &lt;&lt; &gt;&gt; x .',
+ assign		  =&gt; '+= -= *= /= %= **= &lt;&lt;= &gt;&gt;= x= .=',
+ num_comparison	  =&gt; '&lt; &lt;= &gt; &gt;= == !=',
+ '3way_comparison'=&gt; '&lt;=&gt; cmp',
+ str_comparison	  =&gt; 'lt le gt ge eq ne',
+ binary		  =&gt; '&amp; | ^',
+ unary		  =&gt; 'neg ! ~',
+ mutators	  =&gt; '++ --',
+ func		  =&gt; 'atan2 cos sin exp abs log sqrt',
+ conversion	  =&gt; 'bool &quot;&quot; 0+',
+ iterators	  =&gt; '&lt;&gt;',
+ dereferencing	  =&gt; '${} @{} %{} &amp;{} *{}',
+ special	  =&gt; 'nomethod fallback ='
+</pre>
+<h3 class="POD_HEAD2"><a name="Inheritance_and_over">Inheritance and overloading</a></h3>
+<p class="POD_TEXT">
+Inheritance interacts with overloading in two ways.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Strings_as_values_of">Strings as values of <code>use overload</code> directive</a>
+<dd>
+If <code>value</code> in
+<pre class="POD_VERBATIM">
+  use overload key =&gt; value;
+</pre>
+<p class="POD_TEXT">
+is a string, it is interpreted as a method name.
+</p>
+<dt class="POD_ITEM"><a name="Overloading_of_an_op">Overloading of an operation is inherited by derived classes</a>
+<dd>
+Any class derived from an overloaded class is also overloaded.  The
+set of overloaded methods is the union of overloaded methods of all
+the ancestors. If some method is overloaded in several ancestor, then
+which description will be used is decided by the usual inheritance
+rules:
+<p class="POD_TEXT">
+If <code>A</code> inherits from <code>B</code> and <code>C</code> (in this order), <code>B</code> overloads
+<code>+</code> with <code>\&amp;D::plus_sub</code>, and <code>C</code> overloads <code>+</code> by <code>&quot;plus_meth&quot;</code>,
+then the subroutine <code>D::plus_sub</code> will be called to implement
+operation <code>+</code> for an object in package <code>A</code>.
+</p>
+</dl>
+<p class="POD_TEXT">
+Note that since the value of the <code>fallback</code> key is not a subroutine,
+its inheritance is not governed by the above rules.  In the current
+implementation, the value of <code>fallback</code> in the first overloaded
+ancestor is used, but this is accidental and subject to change.
+</p>
+<h2 class="POD_HEAD1"><a name="SPECIAL_SYMBOLS_FOR_">SPECIAL SYMBOLS FOR <code>use overload</code></a></h2>
+<p class="POD_TEXT">
+Three keys are recognized by Perl that are not covered by the above
+description.
+</p>
+<h3 class="POD_HEAD2"><a name="Last_Resort">Last Resort</a></h3>
+<pre class="POD_TEXT">
+<code>&quot;nomethod&quot;</code> should be followed by a reference to a function of four
+parameters.  If defined, it is called when the overloading mechanism
+cannot find a method for some operation.  The first three arguments of
+this function coincide with the arguments for the corresponding method if
+it were found, the fourth argument is the symbol
+corresponding to the missing method.  If several methods are tried,
+the last one is used.  Say, <code>1-$a</code> can be equivalent to
+
+	&amp;nomethodMethod($a,1,1,&quot;-&quot;)
+</pre>
+<p class="POD_TEXT">
+if the pair <code>&quot;nomethod&quot; =&gt; &quot;nomethodMethod&quot;</code> was specified in the
+<code>use overload</code> directive.
+</p>
+<p class="POD_TEXT">
+The <code>&quot;nomethod&quot;</code> mechanism is <i>not</i> used for the dereference operators
+( ${} @{} %{} &amp;{} *{} ).
+</p>
+<p></p>
+<p class="POD_TEXT">
+If some operation cannot be resolved, and there is no function
+assigned to <code>&quot;nomethod&quot;</code>, then an exception will be raised via die()--
+unless <code>&quot;fallback&quot;</code> was specified as a key in <code>use overload</code> directive.
+</p>
+<p></p>
+<h3 class="POD_HEAD2"><a name="Fallback">Fallback</a></h3>
+<p class="POD_TEXT">
+The key <code>&quot;fallback&quot;</code> governs what to do if a method for a particular
+operation is not found.  Three different cases are possible depending on
+the value of <code>&quot;fallback&quot;</code>:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="undef1"><code><a class="POD_LINK" href="perlfunc.html#undef">undef</a></code></a>
+
+Perl tries to use a
+substituted method (see the <a class="POD_LINK" href="#MAGIC_AUTOGENERATION">MAGIC AUTOGENERATION</a> entry elsewhere in this document).  If this fails, it
+then tries to calls <code>&quot;nomethod&quot;</code> value; if missing, an exception
+will be raised.
+<li class="POD_ITEM"><a name="TRUE1">TRUE</a>
+
+The same as for the <code><a class="POD_LINK" href="perlfunc.html#undef">undef</a></code> value, but no exception is raised.  Instead,
+it silently reverts to what it would have done were there no <code>use overload</code>
+present.
+<li class="POD_ITEM"><a name="defined_but_FALSE">defined, but FALSE</a>
+
+No autogeneration is tried.  Perl tries to call
+<code>&quot;nomethod&quot;</code> value, and if this is missing, raises an exception.
+</ul>
+<p class="POD_TEXT">
+<b>Note.</b> <code>&quot;fallback&quot;</code> inheritance via @ISA is not carved in stone
+yet, see the section on <a class="POD_LINK" href="#Inheritance_and_over">Inheritance and overloading</a> elsewhere in this document.
+</p>
+<h3 class="POD_HEAD2"><a name="Copy_Constructor">Copy Constructor</a></h3>
+<p class="POD_TEXT">
+The value for <code>&quot;=&quot;</code> is a reference to a function with three
+arguments, i.e., it looks like the other values in <code>use
+overload</code>. However, it does not overload the Perl assignment
+operator. This would go against Camel hair.
+</p>
+<pre class="POD_TEXT">
+This operation is called in the situations when a mutator is applied
+to a reference that shares its object with some other reference, such
+as
+
+	$a=$b;
+	++$a;
+</pre>
+<pre class="POD_TEXT">
+To make this change $a and not change $b, a copy of <code>$$a</code> is made,
+and $a is assigned a reference to this new object.  This operation is
+done during execution of the <code>++$a</code>, and not during the assignment,
+(so before the increment <code>$$a</code> coincides with <code>$$b</code>).  This is only
+done if <code>++</code> is expressed via a method for <code>'++'</code> or <code>'+='</code> (or
+<code>nomethod</code>).  Note that if this operation is expressed via <code>'+'</code>
+a nonmutator, i.e., as in
+
+	$a=$b;
+	$a=$a+1;
+</pre>
+<p class="POD_TEXT">
+then <code>$a</code> does not reference a new copy of <code>$$a</code>, since $$a does not
+appear as lvalue when the above code is executed.
+</p>
+<p class="POD_TEXT">
+If the copy constructor is required during the execution of some mutator,
+but a method for <code>'='</code> was not specified, it can be autogenerated as a
+string copy if the object is a plain scalar.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Example"><b>Example</b></a>
+<dd>
+The actually executed code for
+<pre class="POD_VERBATIM">
+	$a=$b;
+        Something else which does not modify $a or $b....
+	++$a;
+</pre>
+<pre class="POD_TEXT">
+may be
+
+	$a=$b;
+        Something else which does not modify $a or $b....
+	$a = $a-&gt;clone(undef,&quot;&quot;);
+        $a-&gt;incr(undef,&quot;&quot;);
+</pre>
+<p class="POD_TEXT">
+if $b was mathemagical, and <code>'++'</code> was overloaded with <code>\&amp;incr</code>,
+<code>'='</code> was overloaded with <code>\&amp;clone</code>.
+</p>
+</dl>
+<p class="POD_TEXT">
+Same behaviour is triggered by <code>$b = $a++</code>, which is consider a synonym for
+<code>$b = $a; ++$a</code>.
+</p>
+<h2 class="POD_HEAD1"><a name="MAGIC_AUTOGENERATION">MAGIC AUTOGENERATION</a></h2>
+<p class="POD_TEXT">
+If a method for an operation is not found, and the value for  <code>&quot;fallback&quot;</code> is
+TRUE or undefined, Perl tries to autogenerate a substitute method for
+the missing operation based on the defined operations.  Autogenerated method
+substitutions are possible for the following operations:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Assignment_forms_of_"><i>Assignment forms of arithmetic operations</i></a>
+<dd>
+<code>$a+=$b</code> can use the method for <code>&quot;+&quot;</code> if the method for <code>&quot;+=&quot;</code>
+is not defined.
+<dt class="POD_ITEM"><a name="Conversion_operation"><i>Conversion operations</i></a>
+<dd>
+String, numeric, and boolean conversion are calculated in terms of one
+another if not all of them are defined.
+<dt class="POD_ITEM"><a name="Increment_and_decrem1"><i>Increment and decrement</i></a>
+<dd>
+The <code>++$a</code> operation can be expressed in terms of <code>$a+=1</code> or <code>$a+1</code>,
+and <code>$a--</code> in terms of <code>$a-=1</code> and <code>$a-1</code>.
+<dt class="POD_ITEM"><a name="abs_a_"><code>abs($a)</code></a>
+<dd>
+can be expressed in terms of <code>$a&lt;</code> and <code>-$a</code> (or <code>0-$a</code>).
+<dt class="POD_ITEM"><a name="Unary_minus"><i>Unary minus</i></a>
+<dd>
+can be expressed in terms of subtraction.
+<dt class="POD_ITEM"><a name="Negation"><i>Negation</i></a>
+<dd>
+<code>!</code> and <code>not</code> can be expressed in terms of boolean conversion, or
+string or numerical conversion.
+<dt class="POD_ITEM"><a name="Concatenation"><i>Concatenation</i></a>
+<dd>
+can be expressed in terms of string conversion.
+<dt class="POD_ITEM"><a name="Comparison_operation1"><i>Comparison operations</i></a>
+<dd>
+can be expressed in terms of its &quot;spaceship&quot; counterpart: either
+<code>&lt;=&gt;</code> or <code>cmp</code>:
+<pre class="POD_VERBATIM">
+    &lt;, &gt;, &lt;=, &gt;=, ==, != 	in terms of &lt;=&gt;
+    lt, gt, le, ge, eq, ne 	in terms of cmp
+</pre>
+<dt class="POD_ITEM"><a name="Iterator"><i>Iterator</i></a>
+<dd><pre class="POD_VERBATIM">
+    &lt;&gt;				in terms of builtin operations
+</pre>
+<dt class="POD_ITEM"><a name="Dereferencing1"><i>Dereferencing</i></a>
+<dd><pre class="POD_VERBATIM">
+    ${} @{} %{} &amp;{} *{}		in terms of builtin operations
+</pre>
+<dt class="POD_ITEM"><a name="Copy_operator"><i>Copy operator</i></a>
+<dd>
+can be expressed in terms of an assignment to the dereferenced value, if this
+value is a scalar and not a reference.
+</dl>
+<h2 class="POD_HEAD1"><a name="Losing_overloading">Losing overloading</a></h2>
+<p class="POD_TEXT">
+The restriction for the comparison operation is that even if, for example,
+`<code>cmp</code>' should return a blessed reference, the autogenerated `<code>lt</code>'
+function will produce only a standard logical value based on the
+numerical value of the result of `<code>cmp</code>'.  In particular, a working
+numeric conversion is needed in this case (possibly expressed in terms of
+other conversions).
+</p>
+<p class="POD_TEXT">
+Similarly, <code>.=</code>  and <code>x=</code> operators lose their mathemagical properties
+if the string conversion substitution is applied.
+</p>
+<p class="POD_TEXT">
+When you chop() a mathemagical object it is promoted to a string and its
+mathemagical properties are lost.  The same can happen with other
+operations as well.
+</p>
+<h2 class="POD_HEAD1"><a name="Run_time_Overloading">Run-time Overloading</a></h2>
+<pre class="POD_TEXT">
+Since all <code><a class="POD_LINK" href="perlfunc.html#use_Module_LIST">use</a></code> directives are executed at compile-time, the only way to
+change overloading during run-time is to
+
+    eval 'use overload &quot;+&quot; =&gt; \&amp;addmethod';
+</pre>
+<pre class="POD_TEXT">
+You can also use
+
+    eval 'no overload &quot;+&quot;, &quot;--&quot;, &quot;&lt;=&quot;';
+</pre>
+<p class="POD_TEXT">
+though the use of these constructs during run-time is questionable.
+</p>
+<h2 class="POD_HEAD1"><a name="Public_functions">Public functions</a></h2>
+<p class="POD_TEXT">
+Package <code>overload.pm</code> provides the following public functions:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="overload_StrVal_arg_">overload::StrVal(arg)</a>
+<dd>
+Gives string value of <code>arg</code> as in absence of stringify overloading.
+<dt class="POD_ITEM"><a name="overload_Overloaded_">overload::Overloaded(arg)</a>
+<dd>
+Returns true if <code>arg</code> is subject to overloading of some operations.
+<dt class="POD_ITEM"><a name="overload_Method_obj_">overload::Method(obj,op)</a>
+<dd>
+Returns <code><a class="POD_LINK" href="perlfunc.html#undef">undef</a></code> or a reference to the method that implements <code>op</code>.
+</dl>
+<h2 class="POD_HEAD1"><a name="Overloading_constant">Overloading constants</a></h2>
+<p class="POD_TEXT">
+For some application Perl parser mangles constants too much.  It is possible
+to hook into this process via overload::constant() and overload::remove_constant()
+functions.
+</p>
+<p class="POD_TEXT">
+These functions take a hash as an argument.  The recognized keys of this hash
+are
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="integer">integer</a>
+<dd>
+to overload integer constants,
+<dt class="POD_ITEM"><a name="float">float</a>
+<dd>
+to overload floating point constants,
+<dt class="POD_ITEM"><a name="binary">binary</a>
+<dd>
+to overload octal and hexadecimal constants,
+<dt class="POD_ITEM"><a name="q">q</a>
+<dd>
+to overload <code>q</code>-quoted strings, constant pieces of <code>qq</code>- and <code>qx</code>-quoted
+strings and here-documents,
+<dt class="POD_ITEM"><a name="qr">qr</a>
+<dd>
+to overload constant pieces of regular expressions.
+</dl>
+<p class="POD_TEXT">
+The corresponding values are references to functions which take three arguments:
+the first one is the <i>initial</i> string form of the constant, the second one
+is how Perl interprets this constant, the third one is how the constant is used.
+Note that the initial string form does not
+contain string delimiters, and has backslashes in backslash-delimiter
+combinations stripped (thus the value of delimiter is not relevant for
+processing of this string).  The return value of this function is how this
+constant is going to be interpreted by Perl.  The third argument is undefined
+unless for overloaded <code>q</code>- and <code>qr</code>- constants, it is <code>q</code> in single-quote
+context (comes from strings, regular expressions, and single-quote HERE
+documents), it is <code>tr</code> for arguments of <code>tr</code>/<code>y</code> operators,
+it is <code>s</code> for right-hand side of <code>s</code>-operator, and it is <code>qq</code> otherwise.
+</p>
+<p class="POD_TEXT">
+Since an expression <code>&quot;ab$cd,,&quot;</code> is just a shortcut for <code>'ab' . $cd . ',,'</code>,
+it is expected that overloaded constant strings are equipped with reasonable
+overloaded catenation operator, otherwise absurd results will result.
+Similarly, negative numbers are considered as negations of positive constants.
+</p>
+<pre class="POD_TEXT">
+Note that it is probably meaningless to call the functions overload::constant()
+and overload::remove_constant() from anywhere but import() and unimport() methods.
+From these methods they may be called as
+
+	sub import {
+	  shift;
+	  return unless @_;
+	  die &quot;unknown import: @_&quot; unless @_ == 1 and $_[0] eq ':constant';
+	  overload::constant integer =&gt; sub {Math::BigInt-&gt;new(shift)};
+	}
+</pre>
+<p class="POD_TEXT">
+<b>BUGS</b> Currently overloaded-ness of constants does not propagate
+into <code>eval '...'</code>.
+</p>
+<h2 class="POD_HEAD1"><a name="IMPLEMENTATION">IMPLEMENTATION</a></h2>
+<p class="POD_TEXT">
+What follows is subject to change RSN.
+</p>
+<p class="POD_TEXT">
+The table of methods for all operations is cached in magic for the
+symbol table hash for the package.  The cache is invalidated during
+processing of <code>use overload</code>, <code>no overload</code>, new function
+definitions, and changes in @ISA. However, this invalidation remains
+unprocessed until the next <code><a class="POD_LINK" href="perlfunc.html#bless_REF_CLASSNAME">bless</a></code>ing into the package. Hence if you
+want to change overloading structure dynamically, you'll need an
+additional (fake) <code><a class="POD_LINK" href="perlfunc.html#bless_REF_CLASSNAME">bless</a></code>ing to update the table.
+</p>
+<p class="POD_TEXT">
+(Every SVish thing has a magic queue, and magic is an entry in that
+queue.  This is how a single variable may participate in multiple
+forms of magic simultaneously.  For instance, environment variables
+regularly have two forms at once: their %ENV magic and their taint
+magic. However, the magic which implements overloading is applied to
+the stashes, which are rarely used directly, thus should not slow down
+Perl.)
+</p>
+<p class="POD_TEXT">
+If an object belongs to a package using overload, it carries a special
+flag.  Thus the only speed penalty during arithmetic operations without
+overloading is the checking of this flag.
+</p>
+<p class="POD_TEXT">
+In fact, if <code>use overload</code> is not present, there is almost no overhead
+for overloadable operations, so most programs should not suffer
+measurable performance penalties.  A considerable effort was made to
+minimize the overhead when overload is used in some package, but the
+arguments in question do not belong to packages using overload.  When
+in doubt, test your speed with <code>use overload</code> and without it.  So far
+there have been no reports of substantial speed degradation if Perl is
+compiled with optimization turned on.
+</p>
+<p class="POD_TEXT">
+There is no size penalty for data if overload is not used. The only
+size penalty if overload is used in some package is that <i>all</i> the
+packages acquire a magic during the next <code><a class="POD_LINK" href="perlfunc.html#bless_REF_CLASSNAME">bless</a></code>ing into the
+package. This magic is three-words-long for packages without
+overloading, and carries the cache table if the package is overloaded.
+</p>
+<p class="POD_TEXT">
+Copying (<code>$a=$b</code>) is shallow; however, a one-level-deep copying is
+carried out before any operation that can imply an assignment to the
+object $a (or $b) refers to, like <code>$a++</code>.  You can override this
+behavior by defining your own copy constructor (see the section on <a class="POD_LINK" href="#Copy_Constructor">Copy Constructor</a> elsewhere in this document).
+</p>
+<p class="POD_TEXT">
+It is expected that arguments to methods that are not explicitly supposed
+to be changed are constant (but this is not enforced).
+</p>
+<h2 class="POD_HEAD1"><a name="Metaphor_clash">Metaphor clash</a></h2>
+<p class="POD_TEXT">
+One may wonder why the semantic of overloaded <code>=</code> is so counter intuitive.
+If it <i>looks</i> counter intuitive to you, you are subject to a metaphor
+clash.
+</p>
+<p class="POD_TEXT">
+Here is a Perl object metaphor:
+</p>
+<p class="POD_TEXT">
+<i>  object is a reference to blessed data</i>
+</p>
+<p class="POD_TEXT">
+and an arithmetic metaphor:
+</p>
+<p class="POD_TEXT">
+<i>  object is a thing by itself</i>.
+</p>
+<p class="POD_TEXT">
+The <i>main</i> problem of overloading <code>=</code> is the fact that these metaphors
+imply different actions on the assignment <code>$a = $b</code> if $a and $b are
+objects.  Perl-think implies that $a becomes a reference to whatever
+$b was referencing.  Arithmetic-think implies that the value of &quot;object&quot;
+$a is changed to become the value of the object $b, preserving the fact
+that $a and $b are separate entities.
+</p>
+<p class="POD_TEXT">
+The difference is not relevant in the absence of mutators.  After
+a Perl-way assignment an operation which mutates the data referenced by $a
+would change the data referenced by $b too.  Effectively, after
+<code>$a = $b</code> values of $a and $b become <i>indistinguishable</i>.
+</p>
+<p class="POD_TEXT">
+On the other hand, anyone who has used algebraic notation knows the
+expressive power of the arithmetic metaphor.  Overloading works hard
+to enable this metaphor while preserving the Perlian way as far as
+possible.  Since it is not not possible to freely mix two contradicting
+metaphors, overloading allows the arithmetic way to write things <i>as
+far as all the mutators are called via overloaded access only</i>.  The
+way it is done is described in the <a class="POD_LINK" href="#Copy_Constructor">Copy Constructor</a> entry elsewhere in this document.
+</p>
+<pre class="POD_TEXT">
+If some mutator methods are directly applied to the overloaded values,
+one may need to <i>explicitly unlink</i> other values which references the
+same value:
+
+    $a = new Data 23;
+    ...
+    $b = $a;		# $b is &quot;linked&quot; to $a
+    ...
+    $a = $a-&gt;clone;	# Unlink $b from $a
+    $a-&gt;increment_by(4);
+</pre>
+<pre class="POD_TEXT">
+Note that overloaded access makes this transparent:
+
+    $a = new Data 23;
+    $b = $a;		# $b is &quot;linked&quot; to $a
+    $a += 4;		# would unlink $b automagically
+</pre>
+<pre class="POD_TEXT">
+However, it would not make
+
+    $a = new Data 23;
+    $a = 4;		# Now $a is a plain 4, not 'Data'
+</pre>
+<p class="POD_TEXT">
+preserve &quot;objectness&quot; of $a.  But Perl <i>has</i> a way to make assignments
+to an object do whatever you want.  It is just not the overload, but
+tie()ing interface (see the <a class="POD_LINK" href="perlfunc.html#tie_VARIABLE_CLASSNA">tie</a> entry in the <a class="POD_LINK" href="perlfunc.html">perlfunc</a> manpage).  Adding a FETCH() method
+which returns the object itself, and STORE() method which changes the
+value of the object, one can reproduce the arithmetic metaphor in its
+completeness, at least for variables which were tie()d from the start.
+</p>
+<p class="POD_TEXT">
+(Note that a workaround for a bug may be needed, see the section on <a class="POD_LINK" href="#BUGS">BUGS</a> elsewhere in this document.)
+</p>
+<h2 class="POD_HEAD1"><a name="Cookbook">Cookbook</a></h2>
+<p class="POD_TEXT">
+Please add examples to what follows!
+</p>
+<h3 class="POD_HEAD2"><a name="Two_face_scalars">Two-face scalars</a></h3>
+<pre class="POD_TEXT">
+Put this in <code>two_face.pm</code> in your Perl library directory:
+
+  package two_face;		# Scalars with separate string and
+                                # numeric values.
+  sub new { my $p = shift; bless [@_], $p }
+  use overload '&quot;&quot;' =&gt; \&amp;str, '0+' =&gt; \&amp;num, fallback =&gt; 1;
+  sub num {shift-&gt;[1]}
+  sub str {shift-&gt;[0]}
+</pre>
+<pre class="POD_TEXT">
+Use it as follows:
+
+  require two_face;
+  my $seven = new two_face (&quot;vii&quot;, 7);
+  printf &quot;seven=$seven, seven=%d, eight=%d\n&quot;, $seven, $seven+1;
+  print &quot;seven contains `i'\n&quot; if $seven =~ /i/;
+</pre>
+<pre class="POD_TEXT">
+(The second line creates a scalar which has both a string value, and a
+numeric value.)  This prints:
+
+  seven=vii, seven=7, eight=8
+  seven contains `i'
+</pre>
+<h3 class="POD_HEAD2"><a name="Two_face_references">Two-face references</a></h3>
+<pre class="POD_TEXT">
+Suppose you want to create an object which is accessible as both an
+array reference and a hash reference, similar to the
+<a class="POD_LINK" href="perlref.html#Pseudo_hashes_Using_">pseudo-hash</a>
+builtin Perl type.  Let's make it better than a pseudo-hash by
+allowing index 0 to be treated as a normal element.
+
+  package two_refs;
+  use overload '%{}' =&gt; \&amp;gethash, '@{}' =&gt; sub { $ {shift()} };
+  sub new {
+    my $p = shift;
+    bless \ [@_], $p;
+  }
+  sub gethash {
+    my %h;
+    my $self = shift;
+    tie %h, ref $self, $self;
+    \%h;
+  }
+
+  sub TIEHASH { my $p = shift; bless \ shift, $p }
+  my %fields;
+  my $i = 0;
+  $fields{$_} = $i++ foreach qw{zero one two three};
+  sub STORE {
+    my $self = ${shift()};
+    my $key = $fields{shift()};
+    defined $key or die &quot;Out of band access&quot;;
+    $$self-&gt;[$key] = shift;
+  }
+  sub FETCH {
+    my $self = ${shift()};
+    my $key = $fields{shift()};
+    defined $key or die &quot;Out of band access&quot;;
+    $$self-&gt;[$key];
+  }
+</pre>
+<pre class="POD_TEXT">
+Now one can access an object using both the array and hash syntax:
+
+  my $bar = new two_refs 3,4,5,6;
+  $bar-&gt;[2] = 11;
+  $bar-&gt;{two} == 11 or die 'bad hash fetch';
+</pre>
+<p class="POD_TEXT">
+Note several important features of this example.  First of all, the
+<i>actual</i> type of $bar is a scalar reference, and we do not overload
+the scalar dereference.  Thus we can get the <i>actual</i> non-overloaded
+contents of $bar by just using <code>$$bar</code> (what we do in functions which
+overload dereference).  Similarly, the object returned by the
+TIEHASH() method is a scalar reference.
+</p>
+<p class="POD_TEXT">
+Second, we create a new tied hash each time the hash syntax is used.
+This allows us not to worry about a possibility of a reference loop,
+would would lead to a memory leak.
+</p>
+<pre class="POD_TEXT">
+Both these problems can be cured.  Say, if we want to overload hash
+dereference on a reference to an object which is <i>implemented</i> as a
+hash itself, the only problem one has to circumvent is how to access
+this <i>actual</i> hash (as opposed to the <i>virtual</i> hash exhibited by the
+overloaded dereference operator).  Here is one possible fetching routine:
+
+  sub access_hash {
+    my ($self, $key) = (shift, shift);
+    my $class = ref $self;
+    bless $self, 'overload::dummy'; # Disable overloading of %{}
+    my $out = $self-&gt;{$key};
+    bless $self, $class;	# Restore overloading
+    $out;
+  }
+</pre>
+<pre class="POD_TEXT">
+To remove creation of the tied hash on each access, one may an extra
+level of indirection which allows a non-circular structure of references:
+
+  package two_refs1;
+  use overload '%{}' =&gt; sub { ${shift()}-&gt;[1] },
+               '@{}' =&gt; sub { ${shift()}-&gt;[0] };
+  sub new {
+    my $p = shift;
+    my $a = [@_];
+    my %h;
+    tie %h, $p, $a;
+    bless \ [$a, \%h], $p;
+  }
+  sub gethash {
+    my %h;
+    my $self = shift;
+    tie %h, ref $self, $self;
+    \%h;
+  }
+
+  sub TIEHASH { my $p = shift; bless \ shift, $p }
+  my %fields;
+  my $i = 0;
+  $fields{$_} = $i++ foreach qw{zero one two three};
+  sub STORE {
+    my $a = ${shift()};
+    my $key = $fields{shift()};
+    defined $key or die &quot;Out of band access&quot;;
+    $a-&gt;[$key] = shift;
+  }
+  sub FETCH {
+    my $a = ${shift()};
+    my $key = $fields{shift()};
+    defined $key or die &quot;Out of band access&quot;;
+    $a-&gt;[$key];
+  }
+</pre>
+<p class="POD_TEXT">
+Now if $baz is overloaded like this, then <code>$baz</code> is a reference to a
+reference to the intermediate array, which keeps a reference to an
+actual array, and the access hash.  The tie()ing object for the access
+hash is a reference to a reference to the actual array, so
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_"></a>
+
+There are no loops of references.
+<li class="POD_ITEM"><a name="_1"></a>
+
+Both &quot;objects&quot; which are blessed into the class <code>two_refs1</code> are
+references to a reference to an array, thus references to a <i>scalar</i>.
+Thus the accessor expression <code>$$foo-&gt;[$ind]</code> involves no
+overloaded operations.
+</ul>
+<h3 class="POD_HEAD2"><a name="Symbolic_calculator">Symbolic calculator</a></h3>
+<pre class="POD_TEXT">
+Put this in <code>symbolic.pm</code> in your Perl library directory:
+
+  package symbolic;		# Primitive symbolic calculator
+  use overload nomethod =&gt; \&amp;wrap;
+
+  sub new { shift; bless ['n', @_] }
+  sub wrap {
+    my ($obj, $other, $inv, $meth) = @_;
+    ($obj, $other) = ($other, $obj) if $inv;
+    bless [$meth, $obj, $other];
+  }
+</pre>
+<p class="POD_TEXT">
+This module is very unusual as overloaded modules go: it does not
+provide any usual overloaded operators, instead it provides the the <a class="POD_LINK" href="#Last_Resort">Last Resort</a> entry elsewhere in this document operator <code>nomethod</code>.  In this example the corresponding
+subroutine returns an object which encapsulates operations done over
+the objects: <code>new symbolic 3</code> contains <code>['n', 3]</code>, <code>2 + new
+symbolic 3</code> contains <code>['+', 2, ['n', 3]]</code>.
+</p>
+<pre class="POD_TEXT">
+Here is an example of the script which &quot;calculates&quot; the side of
+circumscribed octagon using the above package:
+
+  require symbolic;
+  my $iter = 1;			# 2**($iter+2) = 8
+  my $side = new symbolic 1;
+  my $cnt = $iter;
+
+  while ($cnt--) {
+    $side = (sqrt(1 + $side**2) - 1)/$side;
+  }
+  print &quot;OK\n&quot;;
+</pre>
+<pre class="POD_TEXT">
+The value of $side is
+
+  ['/', ['-', ['sqrt', ['+', 1, ['**', ['n', 1], 2]],
+	               undef], 1], ['n', 1]]
+</pre>
+<p class="POD_TEXT">
+Note that while we obtained this value using a nice little script,
+there is no simple way to <i>use</i> this value.  In fact this value may
+be inspected in debugger (see the <a class="POD_LINK" href="perldebug.html">perldebug</a> manpage), but ony if
+<code>bareStringify</code> <b>O</b>ption is set, and not via <code>p</code> command.
+</p>
+<p class="POD_TEXT">
+If one attempts to print this value, then the overloaded operator
+<code>&quot;&quot;</code> will be called, which will call <code>nomethod</code> operator.  The
+result of this operator will be stringified again, but this result is
+again of type <code>symbolic</code>, which will lead to an infinite loop.
+</p>
+<pre class="POD_TEXT">
+Add a pretty-printer method to the module <code>symbolic.pm</code>:
+
+  sub pretty {
+    my ($meth, $a, $b) = @{+shift};
+    $a = 'u' unless defined $a;
+    $b = 'u' unless defined $b;
+    $a = $a-&gt;pretty if ref $a;
+    $b = $b-&gt;pretty if ref $b;
+    &quot;[$meth $a $b]&quot;;
+  }
+</pre>
+<pre class="POD_TEXT">
+Now one can finish the script by
+
+  print &quot;side = &quot;, $side-&gt;pretty, &quot;\n&quot;;
+</pre>
+<pre class="POD_TEXT">
+The method <code>pretty</code> is doing object-to-string conversion, so it
+is natural to overload the operator <code>&quot;&quot;</code> using this method.  However,
+inside such a method it is not necessary to pretty-print the
+<i>components</i> $a and $b of an object.  In the above subroutine
+<code>&quot;[$meth $a $b]&quot;</code> is a catenation of some strings and components $a
+and $b.  If these components use overloading, the catenation operator
+will look for an overloaded operator <code>.</code>; if not present, it will
+look for an overloaded operator <code>&quot;&quot;</code>.  Thus it is enough to use
+
+  use overload nomethod =&gt; \&amp;wrap, '&quot;&quot;' =&gt; \&amp;str;
+  sub str {
+    my ($meth, $a, $b) = @{+shift};
+    $a = 'u' unless defined $a;
+    $b = 'u' unless defined $b;
+    &quot;[$meth $a $b]&quot;;
+  }
+</pre>
+<pre class="POD_TEXT">
+Now one can change the last line of the script to
+
+  print &quot;side = $side\n&quot;;
+</pre>
+<pre class="POD_TEXT">
+which outputs
+
+  side = [/ [- [sqrt [+ 1 [** [n 1 u] 2]] u] 1] [n 1 u]]
+</pre>
+<p class="POD_TEXT">
+and one can inspect the value in debugger using all the possible
+methods.
+</p>
+<p class="POD_TEXT">
+Something is is still amiss: consider the loop variable $cnt of the
+script.  It was a number, not an object.  We cannot make this value of
+type <code>symbolic</code>, since then the loop will not terminate.
+</p>
+<p class="POD_TEXT">
+Indeed, to terminate the cycle, the $cnt should become false.
+However, the operator <code>bool</code> for checking falsity is overloaded (this
+time via overloaded <code>&quot;&quot;</code>), and returns a long string, thus any object
+of type <code>symbolic</code> is true.  To overcome this, we need a way to
+compare an object to 0.  In fact, it is easier to write a numeric
+conversion routine.
+</p>
+<pre class="POD_TEXT">
+Here is the text of <code>symbolic.pm</code> with such a routine added (and
+slightly modified str()):
+
+  package symbolic;		# Primitive symbolic calculator
+  use overload
+    nomethod =&gt; \&amp;wrap, '&quot;&quot;' =&gt; \&amp;str, '0+' =&gt; \&amp;num;
+
+  sub new { shift; bless ['n', @_] }
+  sub wrap {
+    my ($obj, $other, $inv, $meth) = @_;
+    ($obj, $other) = ($other, $obj) if $inv;
+    bless [$meth, $obj, $other];
+  }
+  sub str {
+    my ($meth, $a, $b) = @{+shift};
+    $a = 'u' unless defined $a;
+    if (defined $b) {
+      &quot;[$meth $a $b]&quot;;
+    } else {
+      &quot;[$meth $a]&quot;;
+    }
+  }
+  my %subr = ( n =&gt; sub {$_[0]},
+	       sqrt =&gt; sub {sqrt $_[0]},
+	       '-' =&gt; sub {shift() - shift()},
+	       '+' =&gt; sub {shift() + shift()},
+	       '/' =&gt; sub {shift() / shift()},
+	       '*' =&gt; sub {shift() * shift()},
+	       '**' =&gt; sub {shift() ** shift()},
+	     );
+  sub num {
+    my ($meth, $a, $b) = @{+shift};
+    my $subr = $subr{$meth}
+      or die &quot;Do not know how to ($meth) in symbolic&quot;;
+    $a = $a-&gt;num if ref $a eq __PACKAGE__;
+    $b = $b-&gt;num if ref $b eq __PACKAGE__;
+    $subr-&gt;($a,$b);
+  }
+</pre>
+<p class="POD_TEXT">
+All the work of numeric conversion is done in %subr and num().  Of
+course, %subr is not complete, it contains only operators used in the
+example below.  Here is the extra-credit question: why do we need an
+explicit recursion in num()?  (Answer is at the end of this section.)
+</p>
+<pre class="POD_TEXT">
+Use this module like this:
+
+  require symbolic;
+  my $iter = new symbolic 2;	# 16-gon
+  my $side = new symbolic 1;
+  my $cnt = $iter;
+
+  while ($cnt) {
+    $cnt = $cnt - 1;		# Mutator `--' not implemented
+    $side = (sqrt(1 + $side**2) - 1)/$side;
+  }
+  printf &quot;%s=%f\n&quot;, $side, $side;
+  printf &quot;pi=%f\n&quot;, $side*(2**($iter+2));
+</pre>
+<pre class="POD_TEXT">
+It prints (without so many line breaks)
+
+  [/ [- [sqrt [+ 1 [** [/ [- [sqrt [+ 1 [** [n 1] 2]]] 1]
+			  [n 1]] 2]]] 1]
+     [/ [- [sqrt [+ 1 [** [n 1] 2]]] 1] [n 1]]]=0.198912
+  pi=3.182598
+</pre>
+<p class="POD_TEXT">
+The above module is very primitive.  It does not implement
+mutator methods (<code>++</code>, <code>-=</code> and so on), does not do deep copying
+(not required without mutators!), and implements only those arithmetic
+operations which are used in the example.
+</p>
+<pre class="POD_TEXT">
+To implement most arithmetic operations is easy; one should just use
+the tables of operations, and change the code which fills %subr to
+
+  my %subr = ( 'n' =&gt; sub {$_[0]} );
+  foreach my $op (split &quot; &quot;, $overload::ops{with_assign}) {
+    $subr{$op} = $subr{&quot;$op=&quot;} = eval &quot;sub {shift() $op shift()}&quot;;
+  }
+  my @bins = qw(binary 3way_comparison num_comparison str_comparison);
+  foreach my $op (split &quot; &quot;, &quot;@overload::ops{ @bins }&quot;) {
+    $subr{$op} = eval &quot;sub {shift() $op shift()}&quot;;
+  }
+  foreach my $op (split &quot; &quot;, &quot;@overload::ops{qw(unary func)}&quot;) {
+    print &quot;defining `$op'\n&quot;;
+    $subr{$op} = eval &quot;sub {$op shift()}&quot;;
+  }
+</pre>
+<p class="POD_TEXT">
+Due to the <a class="POD_LINK" href="#Calling_Conventions_2">Calling Conventions for Mutators</a> entry elsewhere in this document, we do not need anything
+special to make <code>+=</code> and friends work, except filling <code>+=</code> entry of
+%subr, and defining a copy constructor (needed since Perl has no
+way to know that the implementation of <code>'+='</code> does not mutate
+the argument, compare the <a class="POD_LINK" href="#Copy_Constructor">Copy Constructor</a> entry elsewhere in this document).
+</p>
+<pre class="POD_TEXT">
+To implement a copy constructor, add <code>'=' =&gt; \&amp;cpy</code> to <code>use overload</code>
+line, and code (this code assumes that mutators change things one level
+deep only, so recursive copying is not needed):
+
+  sub cpy {
+    my $self = shift;
+    bless [@$self], ref $self;
+  }
+</pre>
+<pre class="POD_TEXT">
+To make <code>++</code> and <code>--</code> work, we need to implement actual mutators,
+either directly, or in <code>nomethod</code>.  We continue to do things inside
+<code>nomethod</code>, thus add
+
+    if ($meth eq '++' or $meth eq '--') {
+      @$obj = ($meth, (bless [@$obj]), 1); # Avoid circular reference
+      return $obj;
+    }
+</pre>
+<pre class="POD_TEXT">
+after the first line of wrap().  This is not a most effective
+implementation, one may consider
+
+  sub inc { $_[0] = bless ['++', shift, 1]; }
+</pre>
+<p class="POD_TEXT">
+instead.
+</p>
+<pre class="POD_TEXT">
+As a final remark, note that one can fill %subr by
+
+  my %subr = ( 'n' =&gt; sub {$_[0]} );
+  foreach my $op (split &quot; &quot;, $overload::ops{with_assign}) {
+    $subr{$op} = $subr{&quot;$op=&quot;} = eval &quot;sub {shift() $op shift()}&quot;;
+  }
+  my @bins = qw(binary 3way_comparison num_comparison str_comparison);
+  foreach my $op (split &quot; &quot;, &quot;@overload::ops{ @bins }&quot;) {
+    $subr{$op} = eval &quot;sub {shift() $op shift()}&quot;;
+  }
+  foreach my $op (split &quot; &quot;, &quot;@overload::ops{qw(unary func)}&quot;) {
+    $subr{$op} = eval &quot;sub {$op shift()}&quot;;
+  }
+  $subr{'++'} = $subr{'+'};
+  $subr{'--'} = $subr{'-'};
+</pre>
+<p class="POD_TEXT">
+This finishes implementation of a primitive symbolic calculator in
+50 lines of Perl code.  Since the numeric values of subexpressions
+are not cached, the calculator is very slow.
+</p>
+<p class="POD_TEXT">
+Here is the answer for the exercise: In the case of str(), we need no
+explicit recursion since the overloaded <code>.</code>-operator will fall back
+to an existing overloaded operator <code>&quot;&quot;</code>.  Overloaded arithmetic
+operators <i>do not</i> fall back to numeric conversion if <code>fallback</code> is
+not explicitly requested.  Thus without an explicit recursion num()
+would convert <code>['+', $a, $b]</code> to <code>$a + $b</code>, which would just rebuild
+the argument of num().
+</p>
+<p class="POD_TEXT">
+If you wonder why defaults for conversion are different for str() and
+num(), note how easy it was to write the symbolic calculator.  This
+simplicity is due to an appropriate choice of defaults.  One extra
+note: due to the explicit recursion num() is more fragile than sym():
+we need to explicitly check for the type of $a and $b.  If components
+$a and $b happen to be of some related type, this may lead to problems.
+</p>
+<h3 class="POD_HEAD2"><a name="Really_symbolic_calc"><i>Really</i> symbolic calculator</a></h3>
+<p class="POD_TEXT">
+One may wonder why we call the above calculator symbolic.  The reason
+is that the actual calculation of the value of expression is postponed
+until the value is <i>used</i>.
+</p>
+<pre class="POD_TEXT">
+To see it in action, add a method
+
+  sub STORE {
+    my $obj = shift;
+    $#$obj = 1;
+    @$obj-&gt;[0,1] = ('=', shift);
+  }
+</pre>
+<pre class="POD_TEXT">
+to the package <code>symbolic</code>.  After this change one can do
+
+  my $a = new symbolic 3;
+  my $b = new symbolic 4;
+  my $c = sqrt($a**2 + $b**2);
+</pre>
+<pre class="POD_TEXT">
+and the numeric value of $c becomes 5.  However, after calling
+
+  $a-&gt;STORE(12);  $b-&gt;STORE(5);
+</pre>
+<p class="POD_TEXT">
+the numeric value of $c becomes 13.  There is no doubt now that the module
+symbolic provides a <i>symbolic</i> calculator indeed.
+</p>
+<pre class="POD_TEXT">
+To hide the rough edges under the hood, provide a tie()d interface to the
+package <code>symbolic</code> (compare with the <a class="POD_LINK" href="#Metaphor_clash">Metaphor clash</a> entry elsewhere in this document).  Add methods
+
+  sub TIESCALAR { my $pack = shift; $pack-&gt;new(@_) }
+  sub FETCH { shift }
+  sub nop {  }		# Around a bug
+</pre>
+<pre class="POD_TEXT">
+(the bug is described in the section on <a class="POD_LINK" href="#BUGS">BUGS</a> elsewhere in this document).  One can use this new interface as
+
+  tie $a, 'symbolic', 3;
+  tie $b, 'symbolic', 4;
+  $a-&gt;nop;  $b-&gt;nop;	# Around a bug
+
+  my $c = sqrt($a**2 + $b**2);
+</pre>
+<pre class="POD_TEXT">
+Now numeric value of $c is 5.  After <code>$a = 12; $b = 5</code> the numeric value
+of $c becomes 13.  To insulate the user of the module add a method
+
+  sub vars { my $p = shift; tie($_, $p), $_-&gt;nop foreach @_; }
+</pre>
+<pre class="POD_TEXT">
+Now
+
+  my ($a, $b);
+  symbolic-&gt;vars($a, $b);
+  my $c = sqrt($a**2 + $b**2);
+
+  $a = 3; $b = 4;
+  printf &quot;c5  %s=%f\n&quot;, $c, $c;
+
+  $a = 12; $b = 5;
+  printf &quot;c13  %s=%f\n&quot;, $c, $c;
+</pre>
+<p class="POD_TEXT">
+shows that the numeric value of $c follows changes to the values of $a
+and $b.
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHOR">AUTHOR</a></h2>
+<p class="POD_TEXT">
+Ilya Zakharevich &lt;<code>ilya@math.mps.ohio-state.edu</code>&gt;.
+</p>
+<h2 class="POD_HEAD1"><a name="DIAGNOSTICS">DIAGNOSTICS</a></h2>
+<p class="POD_TEXT">
+When Perl is run with the <b>-Do</b> switch or its equivalent, overloading
+induces diagnostic messages.
+</p>
+<p class="POD_TEXT">
+Using the <code>m</code> command of Perl debugger (see the <a class="POD_LINK" href="perldebug.html">perldebug</a> manpage) one can
+deduce which operations are overloaded (and which ancestor triggers
+this overloading). Say, if <code>eq</code> is overloaded, then the method <code>(eq</code>
+is shown by debugger. The method <code>()</code> corresponds to the <code>fallback</code>
+key (in fact a presence of this method shows that this package has
+overloading enabled, and it is what is used by the <code>Overloaded</code>
+function of module <code>overload</code>).
+</p>
+<p class="POD_TEXT">
+The module might issue the following warnings:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Odd_number_of_argume">Odd number of arguments for overload::constant</a>
+<dd>
+(W) The call to overload::constant contained an odd number of arguments.
+The arguments should come in pairs.
+<dt class="POD_ITEM"><a name="_s_is_not_an_overloa">`%s' is not an overloadable type</a>
+<dd>
+(W) You tried to overload a constant type the overload package is unaware of.
+<dt class="POD_ITEM"><a name="_s_is_not_a_code_ref">`%s' is not a code reference</a>
+<dd>
+(W) The second (fourth, sixth, ...) argument of overload::constant needs
+to be a code reference. Either an anonymous subroutine, or a reference
+to a subroutine.
+</dl>
+<h2 class="POD_HEAD1"><a name="BUGS">BUGS</a></h2>
+<p class="POD_TEXT">
+Because it is used for overloading, the per-package hash %OVERLOAD now
+has a special meaning in Perl. The symbol table is filled with names
+looking like line-noise.
+</p>
+<p class="POD_TEXT">
+For the purpose of inheritance every overloaded package behaves as if
+<code>fallback</code> is present (possibly undefined). This may create
+interesting effects if some package is not overloaded, but inherits
+from two overloaded packages.
+</p>
+<p class="POD_TEXT">
+Relation between overloading and tie()ing is broken.  Overloading is
+triggered or not basing on the <i>previous</i> class of tie()d value.
+</p>
+<p class="POD_TEXT">
+This happens because the presence of overloading is checked too early,
+before any tie()d access is attempted.  If the FETCH()ed class of the
+tie()d value does not change, a simple workaround is to access the value
+immediately after tie()ing, so that after this call the <i>previous</i> class
+coincides with the current one.
+</p>
+<p class="POD_TEXT">
+<b>Needed:</b> a way to fix this without a speed penalty.
+</p>
+<p class="POD_TEXT">
+Barewords are not covered by overloaded string constants.
+</p>
+<p class="POD_TEXT">
+This document is confusing.  There are grammos and misleading language
+used in places.  It would seem a total rewrite is needed.
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:39 2001
+</body>
+</html>
+

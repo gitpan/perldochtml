@@ -1,0 +1,268 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>perlapio</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="perlbook.html">Next:<br>perlbook</a></td><td align="left" width="1%"><a href="perlapi.html">Previous:<br>perlapi</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">perlapio</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#Co_existence_with_st">Co-existence with stdio</a>
+</ul>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+perlapio - perl's IO abstraction interface.
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+    PerlIO *PerlIO_stdin(void);
+    PerlIO *PerlIO_stdout(void);
+    PerlIO *PerlIO_stderr(void);
+
+    PerlIO *PerlIO_open(const char *,const char *);
+    int     PerlIO_close(PerlIO *);
+
+    int     PerlIO_stdoutf(const char *,...)
+    int     PerlIO_puts(PerlIO *,const char *);
+    int     PerlIO_putc(PerlIO *,int);
+    int     PerlIO_write(PerlIO *,const void *,size_t);
+    int     PerlIO_printf(PerlIO *, const char *,...);
+    int     PerlIO_vprintf(PerlIO *, const char *, va_list);
+    int     PerlIO_flush(PerlIO *);
+
+    int     PerlIO_eof(PerlIO *);
+    int     PerlIO_error(PerlIO *);
+    void    PerlIO_clearerr(PerlIO *);
+
+    int     PerlIO_getc(PerlIO *);
+    int     PerlIO_ungetc(PerlIO *,int);
+    int     PerlIO_read(PerlIO *,void *,size_t);
+
+    int     PerlIO_fileno(PerlIO *);
+    PerlIO *PerlIO_fdopen(int, const char *);
+    PerlIO *PerlIO_importFILE(FILE *, int flags);
+    FILE   *PerlIO_exportFILE(PerlIO *, int flags);
+    FILE   *PerlIO_findFILE(PerlIO *);
+    void    PerlIO_releaseFILE(PerlIO *,FILE *);
+
+    void    PerlIO_setlinebuf(PerlIO *);
+
+    long    PerlIO_tell(PerlIO *);
+    int     PerlIO_seek(PerlIO *,off_t,int);
+    int     PerlIO_getpos(PerlIO *,Fpos_t *)
+    int     PerlIO_setpos(PerlIO *,Fpos_t *)
+    void    PerlIO_rewind(PerlIO *);
+
+    int     PerlIO_has_base(PerlIO *);
+    int     PerlIO_has_cntptr(PerlIO *);
+    int     PerlIO_fast_gets(PerlIO *);
+    int     PerlIO_canset_cnt(PerlIO *);
+
+    char   *PerlIO_get_ptr(PerlIO *);
+    int     PerlIO_get_cnt(PerlIO *);
+    void    PerlIO_set_cnt(PerlIO *,int);
+    void    PerlIO_set_ptrcnt(PerlIO *,char *,int);
+    char   *PerlIO_get_base(PerlIO *);
+    int     PerlIO_get_bufsiz(PerlIO *);
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+Perl's source code should use the above functions instead of those
+defined in ANSI C's <i>stdio.h</i>.  The perl headers will <code>#define</code> them to
+the I/O mechanism selected at Configure time.
+</p>
+<p class="POD_TEXT">
+The functions are modeled on those in <i>stdio.h</i>, but parameter order
+has been &quot;tidied up a little&quot;.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="PerlIO_"><b>PerlIO *</b></a>
+<dd>
+This takes the place of FILE *. Like FILE * it should be treated as
+opaque (it is probably safe to assume it is a pointer to something).
+<dt class="POD_ITEM"><a name="PerlIO_stdin_PerlIO_"><b>PerlIO_stdin()</b>, <b>PerlIO_stdout()</b>, <b>PerlIO_stderr()</b></a>
+<dd>
+Use these rather than <code>stdin</code>, <code>stdout</code>, <code>stderr</code>. They are written
+to look like &quot;function calls&quot; rather than variables because this makes
+it easier to <i>make them</i> function calls if platform cannot export data
+to loaded modules, or if (say) different &quot;threads&quot; might have different
+values.
+<dt class="POD_ITEM"><a name="PerlIO_open_path_mod"><b>PerlIO_open(path, mode)</b>, <b>PerlIO_fdopen(fd,mode)</b></a>
+<dd>
+These correspond to fopen()/fdopen() arguments are the same.
+<dt class="POD_ITEM"><a name="PerlIO_printf_f_fmt_"><b>PerlIO_printf(f,fmt,...)</b>, <b>PerlIO_vprintf(f,fmt,a)</b></a>
+<dd>
+These are fprintf()/vfprintf() equivalents.
+<dt class="POD_ITEM"><a name="PerlIO_stdoutf_fmt_"><b>PerlIO_stdoutf(fmt,...)</b></a>
+<dd>
+This is printf() equivalent. printf is #defined to this function,
+so it is (currently) legal to use <code>printf(fmt,...)</code> in perl sources.
+<dt class="POD_ITEM"><a name="PerlIO_read_f_buf_co"><b>PerlIO_read(f,buf,count)</b>, <b>PerlIO_write(f,buf,count)</b></a>
+<dd>
+These correspond to fread() and fwrite(). Note that arguments
+are different, there is only one &quot;count&quot; and order has
+&quot;file&quot; first.
+<dt class="POD_ITEM"><a name="PerlIO_close_f_"><b>PerlIO_close(f)</b></a>
+<dt><a name="PerlIO_puts_f_s_Perl"><b>PerlIO_puts(f,s)</b>, <b>PerlIO_putc(f,c)</b></a>
+<dd>
+These correspond to fputs() and fputc().
+Note that arguments have been revised to have &quot;file&quot; first.
+<dt class="POD_ITEM"><a name="PerlIO_ungetc_f_c_"><b>PerlIO_ungetc(f,c)</b></a>
+<dd>
+This corresponds to ungetc().
+Note that arguments have been revised to have &quot;file&quot; first.
+<dt class="POD_ITEM"><a name="PerlIO_getc_f_"><b>PerlIO_getc(f)</b></a>
+<dd>
+This corresponds to getc().
+<dt class="POD_ITEM"><a name="PerlIO_eof_f_"><b>PerlIO_eof(f)</b></a>
+<dd>
+This corresponds to feof().
+<dt class="POD_ITEM"><a name="PerlIO_error_f_"><b>PerlIO_error(f)</b></a>
+<dd>
+This corresponds to ferror().
+<dt class="POD_ITEM"><a name="PerlIO_fileno_f_"><b>PerlIO_fileno(f)</b></a>
+<dd>
+This corresponds to fileno(), note that on some platforms,
+the meaning of &quot;fileno&quot; may not match Unix.
+<dt class="POD_ITEM"><a name="PerlIO_clearerr_f_"><b>PerlIO_clearerr(f)</b></a>
+<dd>
+This corresponds to clearerr(), i.e., clears 'eof' and 'error'
+flags for the &quot;stream&quot;.
+<dt class="POD_ITEM"><a name="PerlIO_flush_f_"><b>PerlIO_flush(f)</b></a>
+<dd>
+This corresponds to fflush().
+<dt class="POD_ITEM"><a name="PerlIO_tell_f_"><b>PerlIO_tell(f)</b></a>
+<dd>
+This corresponds to ftell().
+<dt class="POD_ITEM"><a name="PerlIO_seek_f_o_w_"><b>PerlIO_seek(f,o,w)</b></a>
+<dd>
+This corresponds to fseek().
+<dt class="POD_ITEM"><a name="PerlIO_getpos_f_p_Pe"><b>PerlIO_getpos(f,p)</b>, <b>PerlIO_setpos(f,p)</b></a>
+<dd>
+These correspond to fgetpos() and fsetpos(). If platform does not
+have the stdio calls then they are implemented in terms of PerlIO_tell()
+and PerlIO_seek().
+<dt class="POD_ITEM"><a name="PerlIO_rewind_f_"><b>PerlIO_rewind(f)</b></a>
+<dd>
+This corresponds to rewind(). Note may be redefined
+in terms of PerlIO_seek() at some point.
+<dt class="POD_ITEM"><a name="PerlIO_tmpfile_"><b>PerlIO_tmpfile()</b></a>
+<dd>
+This corresponds to tmpfile(), i.e., returns an anonymous
+PerlIO which will automatically be deleted when closed.
+</dl>
+<h3 class="POD_HEAD2"><a name="Co_existence_with_st">Co-existence with stdio</a></h3>
+<p class="POD_TEXT">
+There is outline support for co-existence of PerlIO with stdio.
+Obviously if PerlIO is implemented in terms of stdio there is
+no problem. However if perlio is implemented on top of (say) sfio
+then mechanisms must exist to create a FILE * which can be passed
+to library code which is going to use stdio calls.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="PerlIO_importFILE_f_"><b>PerlIO_importFILE(f,flags)</b></a>
+<dd>
+Used to get a PerlIO * from a FILE *.
+May need additional arguments, interface under review.
+<dt class="POD_ITEM"><a name="PerlIO_exportFILE_f_"><b>PerlIO_exportFILE(f,flags)</b></a>
+<dd>
+Given an PerlIO * return a 'native' FILE * suitable for
+passing to code expecting to be compiled and linked with
+ANSI C <i>stdio.h</i>.
+<p class="POD_TEXT">
+The fact that such a FILE * has been 'exported' is recorded,
+and may affect future PerlIO operations on the original
+PerlIO *.
+</p>
+<dt class="POD_ITEM"><a name="PerlIO_findFILE_f_"><b>PerlIO_findFILE(f)</b></a>
+<dd>
+Returns previously 'exported' FILE * (if any).
+Place holder until interface is fully defined.
+<dt class="POD_ITEM"><a name="PerlIO_releaseFILE_p"><b>PerlIO_releaseFILE(p,f)</b></a>
+<dd>
+Calling PerlIO_releaseFILE informs PerlIO that all use
+of FILE * is complete. It is removed from list of 'exported'
+FILE *s, and associated PerlIO * should revert to original
+behaviour.
+<dt class="POD_ITEM"><a name="PerlIO_setlinebuf_f_"><b>PerlIO_setlinebuf(f)</b></a>
+<dd>
+This corresponds to setlinebuf(). Use is deprecated pending
+further discussion. (Perl core uses it <i>only</i> when &quot;dumping&quot;;
+it has nothing to do with $| auto-flush.)
+</dl>
+<p class="POD_TEXT">
+In addition to user API above there is an &quot;implementation&quot; interface
+which allows perl to get at internals of PerlIO.
+The following calls correspond to the various FILE_xxx macros determined
+by Configure. This section is really of interest to only those
+concerned with detailed perl-core behaviour or implementing a
+PerlIO mapping.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="PerlIO_has_cntptr_f_"><b>PerlIO_has_cntptr(f)</b></a>
+<dd>
+Implementation can return pointer to current position in the &quot;buffer&quot; and
+a count of bytes available in the buffer.
+<dt class="POD_ITEM"><a name="PerlIO_get_ptr_f_"><b>PerlIO_get_ptr(f)</b></a>
+<dd>
+Return pointer to next readable byte in buffer.
+<dt class="POD_ITEM"><a name="PerlIO_get_cnt_f_"><b>PerlIO_get_cnt(f)</b></a>
+<dd>
+Return count of readable bytes in the buffer.
+<dt class="POD_ITEM"><a name="PerlIO_canset_cnt_f_"><b>PerlIO_canset_cnt(f)</b></a>
+<dd>
+Implementation can adjust its idea of number of
+bytes in the buffer.
+<dt class="POD_ITEM"><a name="PerlIO_fast_gets_f_"><b>PerlIO_fast_gets(f)</b></a>
+<dd>
+Implementation has all the interfaces required to
+allow perl's fast code to handle &lt;FILE&gt; mechanism.
+<pre class="POD_VERBATIM">
+  PerlIO_fast_gets(f) = PerlIO_has_cntptr(f) &amp;&amp; \
+                        PerlIO_canset_cnt(f) &amp;&amp; \
+                        `Can set pointer into buffer'
+</pre>
+<dt class="POD_ITEM"><a name="PerlIO_set_ptrcnt_f_"><b>PerlIO_set_ptrcnt(f,p,c)</b></a>
+<dd>
+Set pointer into buffer, and a count of bytes still in the
+buffer. Should be used only to set
+pointer to within range implied by previous calls
+to <code>PerlIO_get_ptr</code> and <code>PerlIO_get_cnt</code>.
+<dt class="POD_ITEM"><a name="PerlIO_set_cnt_f_c_"><b>PerlIO_set_cnt(f,c)</b></a>
+<dd>
+Obscure - set count of bytes in the buffer. Deprecated.
+Currently used in only doio.c to force count &lt; -1 to -1.
+Perhaps should be PerlIO_set_empty or similar.
+This call may actually do nothing if &quot;count&quot; is deduced from pointer
+and a &quot;limit&quot;.
+<dt class="POD_ITEM"><a name="PerlIO_has_base_f_"><b>PerlIO_has_base(f)</b></a>
+<dd>
+Implementation has a buffer, and can return pointer
+to whole buffer and its size. Used by perl for <b>-T</b> / <b>-B</b> tests.
+Other uses would be very obscure...
+<dt class="POD_ITEM"><a name="PerlIO_get_base_f_"><b>PerlIO_get_base(f)</b></a>
+<dd>
+Return <i>start</i> of buffer.
+<dt class="POD_ITEM"><a name="PerlIO_get_bufsiz_f_"><b>PerlIO_get_bufsiz(f)</b></a>
+<dd>
+Return <i>total size</i> of buffer.
+</dl>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:51 2001
+</body>
+</html>
+

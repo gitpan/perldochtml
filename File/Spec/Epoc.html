@@ -1,0 +1,174 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>File::Spec::Epoc</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="../../File/Spec/Functions.html">Next:<br>File::Spec::Functions</a></td><td align="left" width="1%"><a  href="../../File/Spec.html">Previous:<br>File::Spec</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="../../podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="../../podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">File::Spec::Epoc</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+File::Spec::Epoc - methods for Epoc file specs
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+ require File::Spec::Epoc; # Done internally by File::Spec if needed
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+See File::Spec::Unix for a documentation of the methods provided
+there. This package overrides the implementation of these methods, not
+the semantics.
+</p>
+<p class="POD_TEXT">
+This package is still work in progress ;-)
+o.flebbe@gmx.de
+</p>
+<p></p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="devnull">devnull</a>
+<dd>
+Returns a string representation of the null device.
+<dt class="POD_ITEM"><a name="tmpdir">tmpdir</a>
+<dd>
+Returns a string representation of a temporay directory:
+<dt class="POD_ITEM"><a name="path">path</a>
+<dd>
+Takes no argument, returns the environment variable PATH as an array. Since
+there is no search path supported, it returns undef, sorry.
+<dt class="POD_ITEM"><a name="canonpath">canonpath</a>
+<dd>
+No physical check on the filesystem, but a logical cleanup of a
+path. On UNIX eliminated successive slashes and successive &quot;/.&quot;.
+<dt class="POD_ITEM"><a name="splitpath">splitpath</a>
+<dd><pre class="POD_VERBATIM">
+    ($volume,$directories,$file) = File::Spec-&gt;splitpath( $path );
+    ($volume,$directories,$file) = File::Spec-&gt;splitpath( $path, $no_file );
+</pre>
+
+Splits a path in to volume, directory, and filename portions. Assumes that 
+the last file is a path unless the path ends in '\\', '\\.', '\\..'
+or $no_file is true.  On Win32 this means that $no_file true makes this return 
+( $volume, $path, undef ).
+<p class="POD_TEXT">
+Separators accepted are \ and /.
+</p>
+<p class="POD_TEXT">
+The results can be passed to the <a class="POD_LINK" href="#catpath">catpath</a> entry elsewhere in this document to get back a path equivalent to
+(usually identical to) the original path.
+</p>
+<dt class="POD_ITEM"><a name="splitdir">splitdir</a>
+<dd>
+The opposite of the <u>catdir()</u> entry elsewhere in this document.
+<pre class="POD_VERBATIM">
+    @dirs = File::Spec-&gt;splitdir( $directories );
+</pre>
+<p class="POD_TEXT">
+$directories must be only the directory portion of the path on systems 
+that have the concept of a volume or that have path syntax that differentiates
+files from directories.
+</p>
+<pre class="POD_TEXT">
+Unlike just splitting the directories on the separator, leading empty and 
+trailing directory entries can be returned, because these are significant
+on some OSs. So,
+
+    File::Spec-&gt;splitdir( &quot;/a/b/c&quot; );
+</pre>
+<pre class="POD_TEXT">
+Yields:
+
+    ( '', 'a', 'b', '', 'c', '' )
+</pre>
+<dt class="POD_ITEM"><a name="catpath">catpath</a>
+<dd>
+Takes volume, directory and file portions and returns an entire path. Under
+Unix, $volume is ignored, and this is just like catfile(). On other OSs,
+the $volume become significant.
+<dt class="POD_ITEM"><a name="abs2rel">abs2rel</a>
+<dd>
+Takes a destination path and an optional base path returns a relative path
+from the base path to the destination path:
+<pre class="POD_VERBATIM">
+    $rel_path = File::Spec-&gt;abs2rel( $destination ) ;
+    $rel_path = File::Spec-&gt;abs2rel( $destination, $base ) ;
+</pre>
+<p class="POD_TEXT">
+If $base is not present or '', then the <u>cwd()</u> entry elsewhere in this document is used. If $base is relative, 
+then it is converted to absolute form using the <u>rel2abs()</u> entry elsewhere in this document. This means that it
+is taken to be relative to the <u>cwd</u>() manpage.
+</p>
+<p class="POD_TEXT">
+On systems with the concept of a volume, this assumes that both paths 
+are on the $destination volume, and ignores the $base volume.
+</p>
+<p class="POD_TEXT">
+On systems that have a grammar that indicates filenames, this ignores the 
+$base filename as well. Otherwise all path components are assumed to be
+directories.
+</p>
+<p class="POD_TEXT">
+If $path is relative, it is converted to absolute form using the <u>rel2abs()</u> entry elsewhere in this document.
+This means that it is taken to be relative to the <u>cwd()</u> entry elsewhere in this document.
+</p>
+<p class="POD_TEXT">
+Based on code written by Shigio Yamaguchi.
+</p>
+<p class="POD_TEXT">
+No checks against the filesystem are made.
+</p>
+<dt class="POD_ITEM"><a name="rel2abs">rel2abs</a>
+<dd>
+Converts a relative path to an absolute path.
+<pre class="POD_VERBATIM">
+    $abs_path = File::Spec-&gt;rel2abs( $destination ) ;
+    $abs_path = File::Spec-&gt;rel2abs( $destination, $base ) ;
+</pre>
+<p class="POD_TEXT">
+If $base is not present or '', then the <u>cwd</u>() manpage is used. If $base is relative, 
+then it is converted to absolute form using the <u>rel2abs()</u> entry elsewhere in this document. This means that it
+is taken to be relative to the <u>cwd()</u> entry elsewhere in this document.
+</p>
+<p class="POD_TEXT">
+Assumes that both paths are on the $base volume, and ignores the 
+$destination volume.
+</p>
+<p class="POD_TEXT">
+On systems that have a grammar that indicates filenames, this ignores the 
+$base filename as well. Otherwise all path components are assumed to be
+directories.
+</p>
+<p class="POD_TEXT">
+If $path is absolute, it is cleaned up and returned using the <u>canonpath()</u> entry elsewhere in this document.
+</p>
+<p class="POD_TEXT">
+Based on code written by Shigio Yamaguchi.
+</p>
+<p class="POD_TEXT">
+No checks against the filesystem are made.
+</p>
+</dl>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+the <a class="POD_LINK" href="../../File/Spec.html">File::Spec</a> manpage
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:29 2001
+</body>
+</html>
+

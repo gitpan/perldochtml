@@ -1,0 +1,418 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>perl</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="perl5004delta.html">Next:<br>perl5004delta</a></td><td align="left" width="1%"><a href="patching.html">Previous:<br>patching</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">perl</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#AVAILABILITY">AVAILABILITY</a>
+<li><a href="#ENVIRONMENT">ENVIRONMENT</a>
+<li><a href="#AUTHOR">AUTHOR</a>
+<li><a href="#FILES">FILES</a>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+<li><a href="#DIAGNOSTICS">DIAGNOSTICS</a>
+<li><a href="#BUGS">BUGS</a>
+<li><a href="#NOTES">NOTES</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+perl - Practical Extraction and Report Language
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<p class="POD_TEXT">
+<b>perl</b>	[&nbsp;<b>-sTuU</b>&nbsp;] [&nbsp;<b>-hv</b>&nbsp;]&nbsp;[&nbsp;<b>-V</b>[:<i>configvar</i>]&nbsp;]<br>&nbsp;&nbsp;&nbsp;&nbsp;[&nbsp;<b>-cw</b>&nbsp;]&nbsp;[&nbsp;<b>-d</b>[:<i>debugger</i>]&nbsp;]&nbsp;[&nbsp;<b>-D</b>[<i>number/list</i>]&nbsp;]<br>&nbsp;&nbsp;&nbsp;&nbsp;[&nbsp;<b>-pna</b>&nbsp;]&nbsp;[&nbsp;<b>-F</b><i>pattern</i>&nbsp;]&nbsp;[&nbsp;<b>-l</b>[<i>octal</i>]&nbsp;]&nbsp;[&nbsp;<b>-0</b>[<i>octal</i>]&nbsp;]<br>&nbsp;&nbsp;&nbsp;&nbsp;[&nbsp;<b>-I</b><i>dir</i>&nbsp;]&nbsp;[&nbsp;<b>-m</b>[<b>-</b>]<i>module</i>&nbsp;]&nbsp;[&nbsp;<b>-M</b>[<b>-</b>]<i>'module...'</i>&nbsp;]<br>&nbsp;&nbsp;&nbsp;&nbsp;[&nbsp;<b>-P</b>&nbsp;] [&nbsp;<b>-S</b>&nbsp;] [&nbsp;<b>-x</b>[<i>dir</i>]&nbsp;]<br>&nbsp;&nbsp;&nbsp;&nbsp;[&nbsp;<b>-i</b>[<i>extension</i>]&nbsp;] [&nbsp;<b>-e</b>&nbsp;<i>'command'</i>&nbsp;]&nbsp;<br>&nbsp;&nbsp;&nbsp;&nbsp;[&nbsp;<b>--</b>&nbsp;]&nbsp;[&nbsp;<i>programfile</i>&nbsp;]&nbsp;[&nbsp;<i>argument</i>&nbsp;]...
+</p>
+<pre class="POD_TEXT">
+For ease of access, the Perl manual has been split up into several sections:
+
+    <a class="POD_LINK" href="perl.html">perl</a>		Perl overview (this section)
+    <a class="POD_LINK" href="perlfaq.html">perlfaq</a>		Perl frequently asked questions
+    <a class="POD_LINK" href="perltoc.html">perltoc</a>		Perl documentation table of contents
+    <a class="POD_LINK" href="perlbook.html">perlbook</a>		Perl book information
+
+    <a class="POD_LINK" href="perlsyn.html">perlsyn</a>		Perl syntax
+    <a class="POD_LINK" href="perldata.html">perldata</a>		Perl data structures
+    <a class="POD_LINK" href="perlop.html">perlop</a>		Perl operators and precedence
+    <a class="POD_LINK" href="perlsub.html">perlsub</a>		Perl subroutines
+    <a class="POD_LINK" href="perlfunc.html">perlfunc</a>		Perl builtin functions
+    <a class="POD_LINK" href="perlreftut.html">perlreftut</a>		Perl references short introduction
+    <a class="POD_LINK" href="perldsc.html">perldsc</a>		Perl data structures intro
+    <a class="POD_LINK" href="perlrequick.html">perlrequick</a>		Perl regular expressions quick start
+    <a class="POD_LINK" href="perlpod.html">perlpod</a>		Perl plain old documentation
+    <a class="POD_LINK" href="perlstyle.html">perlstyle</a>		Perl style guide
+    <a class="POD_LINK" href="perltrap.html">perltrap</a>		Perl traps for the unwary
+
+    <a class="POD_LINK" href="perlrun.html">perlrun</a>		Perl execution and options
+    <a class="POD_LINK" href="perldiag.html">perldiag</a>		Perl diagnostic messages
+    <a class="POD_LINK" href="perllexwarn.html">perllexwarn</a>		Perl warnings and their control
+    <a class="POD_LINK" href="perldebtut.html">perldebtut</a>		Perl debugging tutorial
+    <a class="POD_LINK" href="perldebug.html">perldebug</a>		Perl debugging
+
+    <a class="POD_LINK" href="perlvar.html">perlvar</a>		Perl predefined variables
+    <a class="POD_LINK" href="perllol.html">perllol</a>		Perl data structures: arrays of arrays
+    <a class="POD_LINK" href="perlopentut.html">perlopentut</a>		Perl open() tutorial
+    <a class="POD_LINK" href="perlretut.html">perlretut</a>		Perl regular expressions tutorial
+
+    <a class="POD_LINK" href="perlre.html">perlre</a>		Perl regular expressions, the rest of the story
+    <a class="POD_LINK" href="perlref.html">perlref</a>		Perl references, the rest of the story
+
+    <a class="POD_LINK" href="perlform.html">perlform</a>		Perl formats
+
+    <a class="POD_LINK" href="perlboot.html">perlboot</a>		Perl OO tutorial for beginners
+    <a class="POD_LINK" href="perltoot.html">perltoot</a>		Perl OO tutorial, part 1
+    <a class="POD_LINK" href="perltootc.html">perltootc</a>		Perl OO tutorial, part 2
+    <a class="POD_LINK" href="perlobj.html">perlobj</a>		Perl objects
+    <a class="POD_LINK" href="perlbot.html">perlbot</a>		Perl OO tricks and examples
+    <a class="POD_LINK" href="perltie.html">perltie</a>		Perl objects hidden behind simple variables
+
+    <a class="POD_LINK" href="perlipc.html">perlipc</a>		Perl interprocess communication
+    <a class="POD_LINK" href="perlfork.html">perlfork</a>		Perl fork() information
+    <a class="POD_LINK" href="perlnumber.html">perlnumber</a>		Perl number semantics
+    <a class="POD_LINK" href="perlthrtut.html">perlthrtut</a>		Perl threads tutorial
+
+    <a class="POD_LINK" href="perlport.html">perlport</a>		Perl portability guide
+    <a class="POD_LINK" href="perllocale.html">perllocale</a>		Perl locale support
+    <a class="POD_LINK" href="perlunicode.html">perlunicode</a>		Perl unicode support
+    <a class="POD_LINK" href="perlebcdic.html">perlebcdic</a>		Considerations for running Perl on EBCDIC platforms
+
+    <a class="POD_LINK" href="perlsec.html">perlsec</a>		Perl security
+
+    <a class="POD_LINK" href="perlmod.html">perlmod</a>		Perl modules: how they work
+    <a class="POD_LINK" href="perlmodlib.html">perlmodlib</a>		Perl modules: how to write and use
+    <a class="POD_LINK" href="perlmodinstall.html">perlmodinstall</a>	Perl modules: how to install from CPAN
+    <a class="POD_LINK" href="perlnewmod.html">perlnewmod</a>		Perl modules: preparing a new module for distribution
+
+    <a class="POD_LINK" href="perlfaq1.html">perlfaq1</a>		General Questions About Perl
+    <a class="POD_LINK" href="perlfaq2.html">perlfaq2</a>		Obtaining and Learning about Perl
+    <a class="POD_LINK" href="perlfaq3.html">perlfaq3</a>		Programming Tools
+    <a class="POD_LINK" href="perlfaq4.html">perlfaq4</a>		Data Manipulation
+    <a class="POD_LINK" href="perlfaq5.html">perlfaq5</a>		Files and Formats
+    <a class="POD_LINK" href="perlfaq6.html">perlfaq6</a>		Regexes
+    <a class="POD_LINK" href="perlfaq7.html">perlfaq7</a>		Perl Language Issues
+    <a class="POD_LINK" href="perlfaq8.html">perlfaq8</a>		System Interaction
+    <a class="POD_LINK" href="perlfaq9.html">perlfaq9</a>		Networking
+
+    <a class="POD_LINK" href="perlcompile.html">perlcompile</a>		Perl compiler suite intro
+
+    <a class="POD_LINK" href="perlembed.html">perlembed</a>		Perl ways to embed perl in your C or C++ application
+    <a class="POD_LINK" href="perldebguts.html">perldebguts</a>		Perl debugging guts and tips
+    <a class="POD_LINK" href="perlxstut.html">perlxstut</a>		Perl XS tutorial
+    <a class="POD_LINK" href="perlxs.html">perlxs</a>		Perl XS application programming interface
+    <a class="POD_LINK" href="perlclib.html">perlclib</a>		Internal replacements for standard C library functions
+    <a class="POD_LINK" href="perlguts.html">perlguts</a>		Perl internal functions for those doing extensions
+    <a class="POD_LINK" href="perlcall.html">perlcall</a>		Perl calling conventions from C
+    <a class="POD_LINK" href="perlutil.html">perlutil</a>		utilities packaged with the Perl distribution
+    <a class="POD_LINK" href="perlfilter.html">perlfilter</a>		Perl source filters
+    <a class="POD_LINK" href="perldbmfilter.html">perldbmfilter</a>	Perl DBM filters
+    <a class="POD_LINK" href="perlapi.html">perlapi</a>		Perl API listing (autogenerated)
+    <a class="POD_LINK" href="perlintern.html">perlintern</a>		Perl internal functions (autogenerated)
+    <a class="POD_LINK" href="perlapio.html">perlapio</a>		Perl internal IO abstraction interface
+    <a class="POD_LINK" href="perltodo.html">perltodo</a>		Perl things to do
+    <a class="POD_LINK" href="perlhack.html">perlhack</a>		Perl hackers guide
+
+    <a class="POD_LINK" href="perlhist.html">perlhist</a>		Perl history records
+    <a class="POD_LINK" href="perldelta.html">perldelta</a>		Perl changes since previous version
+    <a class="POD_LINK" href="perl5005delta.html">perl5005delta</a>	Perl changes in version 5.005
+    <a class="POD_LINK" href="perl5004delta.html">perl5004delta</a>	Perl changes in version 5.004
+
+    perlaix		Perl notes for AIX
+    perlamiga		Perl notes for Amiga
+    perlbs2000		Perl notes for POSIX-BC BS2000
+    perlcygwin		Perl notes for Cygwin
+    perldos		Perl notes for DOS
+    perlepoc		Perl notes for EPOC
+    perlhpux		Perl notes for HP-UX
+    perlmachten		Perl notes for Power MachTen
+    perlmpeix		Perl notes for MPE/iX
+    perlos2		Perl notes for OS/2
+    perlos390		Perl notes for OS/390
+    perlsolaris 	Perl notes for Solaris
+    perlvmesa		Perl notes for VM/ESA
+    perlvms		Perl notes for VMS
+    perlvos		Perl notes for Stratus VOS
+    perlwin32		Perl notes for Windows
+</pre>
+<p class="POD_TEXT">
+(If you're intending to read these straight through for the first time,
+the suggested order will tend to reduce the number of forward references.)
+</p>
+<p class="POD_TEXT">
+By default, the manpages listed above are installed in the 
+<code>/usr/local/man/</code> directory.
+</p>
+<p class="POD_TEXT">
+Extensive additional documentation for Perl modules is available.  The
+default configuration for perl will place this additional documentation
+in the <code>/usr/local/lib/perl5/man</code> directory (or else in the <code>man</code>
+subdirectory of the Perl library directory).  Some of this additional
+documentation is distributed standard with Perl, but you'll also find
+documentation for third-party modules there.
+</p>
+<pre class="POD_TEXT">
+You should be able to view Perl's documentation with your man(1)
+program by including the proper directories in the appropriate start-up
+files, or in the MANPATH environment variable.  To find out where the
+configuration has installed the manpages, type:
+
+    perl -V:man.dir
+</pre>
+<p class="POD_TEXT">
+If the directories have a common stem, such as <code>/usr/local/man/man1</code>
+and <code>/usr/local/man/man3</code>, you need only to add that stem
+(<code>/usr/local/man</code>) to your man(1) configuration files or your MANPATH
+environment variable.  If they do not share a stem, you'll have to add
+both stems.
+</p>
+<p class="POD_TEXT">
+If that doesn't work for some reason, you can still use the
+supplied <code>perldoc</code> script to view module information.  You might
+also look into getting a replacement man program.
+</p>
+<p class="POD_TEXT">
+If something strange has gone wrong with your program and you're not
+sure where you should look for help, try the <b>-w</b> switch first.  It
+will often point out exactly where the trouble is.
+</p>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+Perl is a language optimized for scanning arbitrary
+text files, extracting information from those text files, and printing
+reports based on that information.  It's also a good language for many
+system management tasks.  The language is intended to be practical
+(easy to use, efficient, complete) rather than beautiful (tiny,
+elegant, minimal).
+</p>
+<p class="POD_TEXT">
+Perl combines (in the author's opinion, anyway) some of the best
+features of C, <b>sed</b>, <b>awk</b>, and <b>sh</b>, so people familiar with
+those languages should have little difficulty with it.  (Language
+historians will also note some vestiges of <b>csh</b>, Pascal, and even
+BASIC-PLUS.)  Expression syntax corresponds closely to C
+expression syntax.  Unlike most Unix utilities, Perl does not
+arbitrarily limit the size of your data--if you've got the memory,
+Perl can slurp in your whole file as a single string.  Recursion is of
+unlimited depth.  And the tables used by hashes (sometimes called
+&quot;associative arrays&quot;) grow as necessary to prevent degraded
+performance.  Perl can use sophisticated pattern matching techniques to
+scan large amounts of data quickly.  Although optimized for
+scanning text, Perl can also deal with binary data, and can make dbm
+files look like hashes.  Setuid Perl scripts are safer than C programs
+through a dataflow tracing mechanism that prevents many stupid
+security holes.
+</p>
+<p class="POD_TEXT">
+If you have a problem that would ordinarily use <b>sed</b> or <b>awk</b> or
+<b>sh</b>, but it exceeds their capabilities or must run a little faster,
+and you don't want to write the silly thing in C, then Perl may be for
+you.  There are also translators to turn your <b>sed</b> and <b>awk</b>
+scripts into Perl scripts.
+</p>
+<p class="POD_TEXT">
+But wait, there's more...
+</p>
+<p class="POD_TEXT">
+Begun in 1993 (see the <a class="POD_LINK" href="perlhist.html">perlhist</a> manpage), Perl version 5 is nearly a complete
+rewrite that provides the following additional benefits:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_"></a>
+
+modularity and reusability using innumerable modules
+<p class="POD_TEXT">
+Described in the <a class="POD_LINK" href="perlmod.html">perlmod</a> manpage, the <a class="POD_LINK" href="perlmodlib.html">perlmodlib</a> manpage, and the <a class="POD_LINK" href="perlmodinstall.html">perlmodinstall</a> manpage.
+</p>
+<li class="POD_ITEM"><a name="_1"></a>
+
+embeddable and extensible
+<p class="POD_TEXT">
+Described in the <a class="POD_LINK" href="perlembed.html">perlembed</a> manpage, the <a class="POD_LINK" href="perlxstut.html">perlxstut</a> manpage, the <a class="POD_LINK" href="perlxs.html">perlxs</a> manpage, the <a class="POD_LINK" href="perlcall.html">perlcall</a> manpage,
+the <a class="POD_LINK" href="perlguts.html">perlguts</a> manpage, and the <u>xsubpp</u> manpage.
+</p>
+<li class="POD_ITEM"><a name="_2"></a>
+
+roll-your-own magic variables (including multiple simultaneous DBM implementations)
+<p class="POD_TEXT">
+Described in the <a class="POD_LINK" href="perltie.html">perltie</a> manpage and the <a class="POD_LINK" href="AnyDBM_File.html">AnyDBM_File</a> manpage.
+</p>
+<li class="POD_ITEM"><a name="_3"></a>
+
+subroutines can now be overridden, autoloaded, and prototyped
+<p class="POD_TEXT">
+Described in the <a class="POD_LINK" href="perlsub.html">perlsub</a> manpage.
+</p>
+<li class="POD_ITEM"><a name="_4"></a>
+
+arbitrarily nested data structures and anonymous functions
+<p class="POD_TEXT">
+Described in the <a class="POD_LINK" href="perlreftut.html">perlreftut</a> manpage, the <a class="POD_LINK" href="perlref.html">perlref</a> manpage, the <a class="POD_LINK" href="perldsc.html">perldsc</a> manpage, and the <a class="POD_LINK" href="perllol.html">perllol</a> manpage.
+</p>
+<li class="POD_ITEM"><a name="_5"></a>
+
+object-oriented programming
+<p class="POD_TEXT">
+Described in the <a class="POD_LINK" href="perlobj.html">perlobj</a> manpage, the <a class="POD_LINK" href="perltoot.html">perltoot</a> manpage, and the <a class="POD_LINK" href="perlbot.html">perlbot</a> manpage.
+</p>
+<li class="POD_ITEM"><a name="_6"></a>
+
+compilability into C code or Perl bytecode
+<p class="POD_TEXT">
+Described in the <u>B</u> manpage and the <u>B::Bytecode</u> manpage.
+</p>
+<li class="POD_ITEM"><a name="_7"></a>
+
+support for light-weight processes (threads)
+<p class="POD_TEXT">
+Described in the <a class="POD_LINK" href="perlthrtut.html">perlthrtut</a> manpage and the <u>Thread</u> manpage.
+</p>
+<li class="POD_ITEM"><a name="_8"></a>
+
+support for internationalization, localization, and Unicode
+<p class="POD_TEXT">
+Described in the <a class="POD_LINK" href="perllocale.html">perllocale</a> manpage and the <a class="POD_LINK" href="utf8.html">utf8</a> manpage.
+</p>
+<li class="POD_ITEM"><a name="_9"></a>
+
+lexical scoping
+<p class="POD_TEXT">
+Described in the <a class="POD_LINK" href="perlsub.html">perlsub</a> manpage.
+</p>
+<li class="POD_ITEM"><a name="_10"></a>
+
+regular expression enhancements
+<p class="POD_TEXT">
+Described in the <a class="POD_LINK" href="perlre.html">perlre</a> manpage, with additional examples in the <a class="POD_LINK" href="perlop.html">perlop</a> manpage.
+</p>
+<li class="POD_ITEM"><a name="_11"></a>
+
+enhanced debugger and interactive Perl environment,
+with integrated editor support
+<p class="POD_TEXT">
+Described in the <a class="POD_LINK" href="perldebug.html">perldebug</a> manpage.
+</p>
+<li class="POD_ITEM"><a name="_12"></a>
+
+POSIX 1003.1 compliant library
+<p class="POD_TEXT">
+Described in the <u>POSIX</u> manpage.
+</p>
+</ul>
+<p class="POD_TEXT">
+Okay, that's <i>definitely</i> enough hype.
+</p>
+<h2 class="POD_HEAD1"><a name="AVAILABILITY">AVAILABILITY</a></h2>
+<p class="POD_TEXT">
+Perl is available for most operating systems, including virtually
+all Unix-like platforms.  See the section on <a class="POD_LINK" href="perlport.html#Supported_Platforms">Supported Platforms</a> in the <a class="POD_LINK" href="perlport.html">perlport</a> manpage
+for a listing.
+</p>
+<h2 class="POD_HEAD1"><a name="ENVIRONMENT">ENVIRONMENT</a></h2>
+<p class="POD_TEXT">
+See the <a class="POD_LINK" href="perlrun.html">perlrun</a> manpage.
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHOR">AUTHOR</a></h2>
+<p class="POD_TEXT">
+Larry Wall &lt;larry@wall.org&gt;, with the help of oodles of other folks.
+</p>
+<p class="POD_TEXT">
+If your Perl success stories and testimonials may be of help to others 
+who wish to advocate the use of Perl in their applications, 
+or if you wish to simply express your gratitude to Larry and the 
+Perl developers, please write to perl-thanks@perl.org .
+</p>
+<h2 class="POD_HEAD1"><a name="FILES">FILES</a></h2>
+<pre class="POD_VERBATIM">
+ &quot;@INC&quot;			locations of perl libraries
+</pre>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<pre class="POD_VERBATIM">
+ a2p	awk to perl translator
+ s2p	sed to perl translator
+
+ http://www.perl.com/	    the Perl Home Page
+ http://www.perl.com/CPAN   the Comprehensive Perl Archive
+</pre>
+<h2 class="POD_HEAD1"><a name="DIAGNOSTICS">DIAGNOSTICS</a></h2>
+<p class="POD_TEXT">
+The <code>use warnings</code> pragma (and the <b>-w</b> switch) produces some 
+lovely diagnostics.
+</p>
+<p class="POD_TEXT">
+See the <a class="POD_LINK" href="perldiag.html">perldiag</a> manpage for explanations of all Perl's diagnostics.  The <code>use
+diagnostics</code> pragma automatically turns Perl's normally terse warnings
+and errors into these longer forms.
+</p>
+<p class="POD_TEXT">
+Compilation errors will tell you the line number of the error, with an
+indication of the next token or token type that was to be examined.
+(In a script passed to Perl via <b>-e</b> switches, each
+<b>-e</b> is counted as one line.)
+</p>
+<p class="POD_TEXT">
+Setuid scripts have additional constraints that can produce error
+messages such as &quot;Insecure dependency&quot;.  See the <a class="POD_LINK" href="perlsec.html">perlsec</a> manpage.
+</p>
+<p class="POD_TEXT">
+Did we mention that you should definitely consider using the <b>-w</b>
+switch?
+</p>
+<h2 class="POD_HEAD1"><a name="BUGS">BUGS</a></h2>
+<p class="POD_TEXT">
+The <b>-w</b> switch is not mandatory.
+</p>
+<p class="POD_TEXT">
+Perl is at the mercy of your machine's definitions of various
+operations such as type casting, atof(), and floating-point
+output with sprintf().
+</p>
+<p class="POD_TEXT">
+If your stdio requires a seek or eof between reads and writes on a
+particular stream, so does Perl.  (This doesn't apply to sysread()
+and syswrite().)
+</p>
+<p class="POD_TEXT">
+While none of the built-in data types have any arbitrary size limits
+(apart from memory size), there are still a few arbitrary limits:  a
+given variable name may not be longer than 251 characters.  Line numbers
+displayed by diagnostics are internally stored as short integers,
+so they are limited to a maximum of 65535 (higher numbers usually being
+affected by wraparound).
+</p>
+<p class="POD_TEXT">
+You may mail your bug reports (be sure to include full configuration
+information as output by the myconfig program in the perl source
+tree, or by <code>perl -V</code>) to perlbug@perl.org .  If you've succeeded
+in compiling perl, the <b>perlbug</b> script in the <code>utils/</code> subdirectory
+can be used to help mail in a bug report.
+</p>
+<p class="POD_TEXT">
+Perl actually stands for Pathologically Eclectic Rubbish Lister, but
+don't tell anyone I said that.
+</p>
+<h2 class="POD_HEAD1"><a name="NOTES">NOTES</a></h2>
+<p class="POD_TEXT">
+The Perl motto is &quot;There's more than one way to do it.&quot;  Divining
+how many more is left as an exercise to the reader.
+</p>
+<p class="POD_TEXT">
+The three principal virtues of a programmer are Laziness,
+Impatience, and Hubris.  See the Camel Book for why.
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:41 2001
+</body>
+</html>
+

@@ -1,0 +1,201 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>File::Find</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="../File/Path.html">Next:<br>File::Path</a></td><td align="left" width="1%"><a  href="../File/DosGlob.html">Previous:<br>File::DosGlob</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="../podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="../podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">File::Find</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#CAVEAT">CAVEAT</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+find - traverse a file tree
+</p>
+<p class="POD_TEXT">
+finddepth - traverse a directory structure depth-first
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+    use File::Find;
+    find(\&amp;wanted, '/foo', '/bar');
+    sub wanted { ... }
+
+    use File::Find;
+    finddepth(\&amp;wanted, '/foo', '/bar');
+    sub wanted { ... }
+
+    use File::Find;
+    find({ wanted =&gt; \&amp;process, follow =&gt; 1 }, '.');
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+The first argument to find() is either a hash reference describing the
+operations to be performed for each file, or a code reference.
+</p>
+<p class="POD_TEXT">
+Here are the possible keys for the hash:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="wanted"><code>wanted</code></a>
+<dd>
+The value should be a code reference.  This code reference is called
+<i>the wanted() function</i> below.
+<dt class="POD_ITEM"><a name="bydepth"><code>bydepth</code></a>
+<dd>
+Reports the name of a directory only AFTER all its entries
+have been reported.  Entry point finddepth() is a shortcut for
+specifying <code>{ bydepth =</code> 1 }&gt; in the first argument of find().
+<dt class="POD_ITEM"><a name="preprocess"><code>preprocess</code></a>
+<dd>
+The value should be a code reference.  This code reference is used to
+preprocess a directory; it is called after readdir() but before the loop that
+calls the wanted() function.  It is called with a list of strings and is
+expected to return a list of strings.  The code can be used to sort the
+strings alphabetically, numerically, or to filter out directory entries based
+on their name alone.
+<dt class="POD_ITEM"><a name="postprocess"><code>postprocess</code></a>
+<dd>
+The value should be a code reference.  It is invoked just before leaving the
+current directory.  It is called in void context with no arguments.  The name
+of the current directory is in $File::Find::dir.  This hook is handy for
+summarizing a directory, such as calculating its disk usage.
+<dt class="POD_ITEM"><a name="follow"><code>follow</code></a>
+<dd>
+Causes symbolic links to be followed. Since directory trees with symbolic
+links (followed) may contain files more than once and may even have
+cycles, a hash has to be built up with an entry for each file.
+This might be expensive both in space and time for a large
+directory tree. See <i>follow_fast</i> and <i>follow_skip</i> below.
+If either <i>follow</i> or <i>follow_fast</i> is in effect:
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_"></a>
+
+It is guaranteed that an <i>lstat</i> has been called before the user's
+<i>wanted()</i> function is called. This enables fast file checks involving &nbsp;_.
+<li class="POD_ITEM"><a name="_1"></a>
+
+There is a variable <code>$File::Find::fullname</code> which holds the absolute
+pathname of the file with all symbolic links resolved
+</ul>
+<dt class="POD_ITEM"><a name="follow_fast"><code>follow_fast</code></a>
+<dd>
+This is similar to <i>follow</i> except that it may report some files more
+than once.  It does detect cycles, however.  Since only symbolic links
+have to be hashed, this is much cheaper both in space and time.  If
+processing a file more than once (by the user's <i>wanted()</i> function)
+is worse than just taking time, the option <i>follow</i> should be used.
+<dt class="POD_ITEM"><a name="follow_skip"><code>follow_skip</code></a>
+<dd>
+<code>follow_skip==1</code>, which is the default, causes all files which are
+neither directories nor symbolic links to be ignored if they are about
+to be processed a second time. If a directory or a symbolic link 
+are about to be processed a second time, File::Find dies.
+<code>follow_skip==0</code> causes File::Find to die if any file is about to be
+processed a second time.
+<code>follow_skip==2</code> causes File::Find to ignore any duplicate files and
+dirctories but to proceed normally otherwise.
+<p></p>
+<dt class="POD_ITEM"><a name="no_chdir"><code>no_chdir</code></a>
+<dd>
+Does not <code>chdir()</code> to each directory as it recurses. The wanted()
+function will need to be aware of this, of course. In this case,
+<code><a class="POD_LINK" href="../perlvar.html#_">$_</a></code> will be the same as <code>$File::Find::name</code>.
+<dt class="POD_ITEM"><a name="untaint"><code>untaint</code></a>
+<dd>
+If find is used in taint-mode (-T command line switch or if EUID != UID
+or if EGID != GID) then internally directory names have to be untainted
+before they can be cd'ed to. Therefore they are checked against a regular
+expression <i>untaint_pattern</i>.  Note that all names passed to the
+user's <i>wanted()</i> function are still tainted.
+<dt class="POD_ITEM"><a name="untaint_pattern"><code>untaint_pattern</code></a>
+<dd>
+See above. This should be set using the <code>qr</code> quoting operator.
+The default is set to  <code>qr|^([-+@\w./]+)$|</code>. 
+Note that the parantheses are vital.
+<dt class="POD_ITEM"><a name="untaint_skip"><code>untaint_skip</code></a>
+<dd>
+If set, directories (subtrees) which fail the <i>untaint_pattern</i>
+are skipped. The default is to 'die' in such a case.
+</dl>
+<p class="POD_TEXT">
+The wanted() function does whatever verifications you want.
+<code>$File::Find::dir</code> contains the current directory name, and <code><a class="POD_LINK" href="../perlvar.html#_">$_</a></code> the
+current filename within that directory.  <code>$File::Find::name</code> contains
+the complete pathname to the file. You are chdir()'d to
+<code>$File::Find::dir</code> when the function is called, unless <code>no_chdir</code>
+was specified.  When &lt;follow&gt; or &lt;follow_fast&gt; are in effect, there is
+also a <code>$File::Find::fullname</code>.  The function may set
+<code>$File::Find::prune</code> to prune the tree unless <code>bydepth</code> was
+specified.  Unless <code>follow</code> or <code>follow_fast</code> is specified, for
+compatibility reasons (find.pl, find2perl) there are in addition the
+following globals available: <code>$File::Find::topdir</code>,
+<code>$File::Find::topdev</code>, <code>$File::Find::topino</code>,
+<code>$File::Find::topmode</code> and <code>$File::Find::topnlink</code>.
+</p>
+<pre class="POD_TEXT">
+This library is useful for the <code>find2perl</code> tool, which when fed,
+
+    find2perl / -name .nfs\* -mtime +7 \
+        -exec rm -f {} \; -o -fstype nfs -prune
+</pre>
+<pre class="POD_TEXT">
+produces something like:
+
+    sub wanted {
+        /^\.nfs.*\z/s &amp;&amp;
+        (($dev, $ino, $mode, $nlink, $uid, $gid) = lstat($_)) &amp;&amp;
+        int(-M _) &gt; 7 &amp;&amp;
+        unlink($_)
+        ||
+        ($nlink || (($dev, $ino, $mode, $nlink, $uid, $gid) = lstat($_))) &amp;&amp;
+        $dev &lt; 0 &amp;&amp;
+        ($File::Find::prune = 1);
+    }
+</pre>
+<p class="POD_TEXT">
+Set the variable <code>$File::Find::dont_use_nlink</code> if you're using AFS,
+since AFS cheats.
+</p>
+<p></p>
+<pre class="POD_TEXT">
+Here's another interesting wanted function.  It will find all symlinks
+that don't resolve:
+
+    sub wanted {
+         -l &amp;&amp; !-e &amp;&amp; print &quot;bogus link: $File::Find::name\n&quot;;
+    }
+</pre>
+<p class="POD_TEXT">
+See also the script <code>pfind</code> on CPAN for a nice application of this
+module.
+</p>
+<h2 class="POD_HEAD1"><a name="CAVEAT">CAVEAT</a></h2>
+<p class="POD_TEXT">
+Be aware that the option to follow symbolic links can be dangerous.
+Depending on the structure of the directory tree (including symbolic
+links to directories) you might traverse a given (physical) directory
+more than once (only if <code>follow_fast</code> is in effect). 
+Furthermore, deleting or changing files in a symbolically linked directory
+might cause very unpleasant surprises, since you delete or change files
+in an unknown directory.
+</p>
+<p></p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:28 2001
+</body>
+</html>
+

@@ -1,0 +1,142 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>Test</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="Test/Harness.html">Next:<br>Test::Harness</a></td><td align="left" width="1%"><a href="Term/ReadLine.html">Previous:<br>Term::ReadLine</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">Test</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#TEST_TYPES">TEST TYPES</a>
+<li><a href="#RETURN_VALUE">RETURN VALUE</a>
+<li><a href="#ONFAIL">ONFAIL</a>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+<li><a href="#AUTHOR">AUTHOR</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<pre class="POD_VERBATIM">
+  Test - provides a simple framework for writing test scripts
+</pre>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+  use strict;
+  use Test;
+
+  # use a BEGIN block so we print our plan before MyModule is loaded
+  BEGIN { plan tests =&gt; 14, todo =&gt; [3,4] }
+
+  # load your module...
+  use MyModule;
+
+  ok(0); # failure
+  ok(1); # success
+
+  ok(0); # ok, expected failure (see todo list, above)
+  ok(1); # surprise success!
+
+  ok(0,1);             # failure: '0' ne '1'
+  ok('broke','fixed'); # failure: 'broke' ne 'fixed'
+  ok('fixed','fixed'); # success: 'fixed' eq 'fixed'
+  ok('fixed',qr/x/);   # success: 'fixed' =~ qr/x/
+
+  ok(sub { 1+1 }, 2);  # success: '2' eq '2'
+  ok(sub { 1+1 }, 3);  # failure: '2' ne '3'
+  ok(0, int(rand(2));  # (just kidding :-)
+
+  my @list = (0,0);
+  ok @list, 3, &quot;\@list=&quot;.join(',',@list);      #extra diagnostics
+  ok 'segmentation fault', '/(?i)success/';    #regex match
+
+  skip($feature_is_missing, ...);    #do platform specific test
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+<a class="POD_LINK" href="Test/Harness.html">Test::Harness</a> expects to see particular output when it
+executes tests.  This module aims to make writing proper test scripts just
+a little bit easier (and less error prone :-).
+</p>
+<h2 class="POD_HEAD1"><a name="TEST_TYPES">TEST TYPES</a></h2>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="NORMAL_TESTS">NORMAL TESTS</a>
+
+These tests are expected to succeed.  If they don't something's
+screwed up!
+<li class="POD_ITEM"><a name="SKIPPED_TESTS">SKIPPED TESTS</a>
+
+Skip is for tests that might or might not be possible to run depending
+on the availability of platform specific features.  The first argument
+should evaluate to true (think &quot;yes, please skip&quot;) if the required
+feature is not available.  After the first argument, skip works
+exactly the same way as do normal tests.
+<li class="POD_ITEM"><a name="TODO_TESTS">TODO TESTS</a>
+
+TODO tests are designed for maintaining an <b>executable TODO list</b>.
+These tests are expected NOT to succeed.  If a TODO test does succeed,
+the feature in question should not be on the TODO list, now should it?
+<p class="POD_TEXT">
+Packages should NOT be released with succeeding TODO tests.  As soon
+as a TODO test starts working, it should be promoted to a normal test
+and the newly working feature should be documented in the release
+notes or change log.
+</p>
+</ul>
+<h2 class="POD_HEAD1"><a name="RETURN_VALUE">RETURN VALUE</a></h2>
+<p class="POD_TEXT">
+Both <code>ok</code> and <code>skip</code> return true if their test succeeds and false
+otherwise in a scalar context.
+</p>
+<h2 class="POD_HEAD1"><a name="ONFAIL">ONFAIL</a></h2>
+<pre class="POD_VERBATIM">
+  BEGIN { plan test =&gt; 4, onfail =&gt; sub { warn &quot;CALL 911!&quot; } }
+</pre>
+<p class="POD_TEXT">
+While test failures should be enough, extra diagnostics can be
+triggered at the end of a test run.  <code>onfail</code> is passed an array ref
+of hash refs that describe each test failure.  Each hash will contain
+at least the following fields: <code><a class="POD_LINK" href="perlfunc.html#package">package</a></code>, <code>repetition</code>, and
+<code>result</code>.  (The file, line, and test number are not included because
+their correspondence to a particular test is tenuous.)  If the test
+had an expected value or a diagnostic string, these will also be
+included.
+</p>
+<p class="POD_TEXT">
+The <b>optional</b> <code>onfail</code> hook might be used simply to print out the
+version of your package and/or how to report problems.  It might also
+be used to generate extremely sophisticated diagnostics for a
+particularly bizarre test failure.  However it's not a panacea.  Core
+dumps or other unrecoverable errors prevent the <code>onfail</code> hook from
+running.  (It is run inside an <code>END</code> block.)  Besides, <code>onfail</code> is
+probably over-kill in most cases.  (Your test code should be simpler
+than the code it is testing, yes?)
+</p>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+the <a class="POD_LINK" href="Test/Harness.html">Test::Harness</a> manpage and, perhaps, test coverage analysis tools.
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHOR">AUTHOR</a></h2>
+<p class="POD_TEXT">
+Copyright (c) 1998-1999 Joshua Nathaniel Pritikin.  All rights reserved.
+</p>
+<p class="POD_TEXT">
+This package is free software and is provided &quot;as is&quot; without express
+or implied warranty.  It may be used, redistributed and/or modified
+under the terms of the Perl Artistic License (see
+http://www.perl.com/perl/misc/Artistic.html)
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:37:00 2001
+</body>
+</html>
+

@@ -1,0 +1,352 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>perlpod</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="perlport.html">Next:<br>perlport</a></td><td align="left" width="1%"><a  href="perlopentut.html">Previous:<br>perlopentut</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">perlpod</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#Verbatim_Paragraph">Verbatim Paragraph</a>
+<li><a href="#Command_Paragraph">Command Paragraph</a>
+<li><a href="#Ordinary_Block_of_Te">Ordinary Block of Text</a>
+<li><a href="#The_Intent">The Intent</a>
+<li><a href="#Embedding_Pods_in_Pe">Embedding Pods in Perl Modules</a>
+<li><a href="#Common_Pod_Pitfalls">Common Pod Pitfalls</a>
+</ul>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+<li><a href="#AUTHOR">AUTHOR</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+perlpod - plain old documentation
+</p>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+A pod-to-whatever translator reads a pod file paragraph by paragraph,
+and translates it to the appropriate output format.  There are
+three kinds of paragraphs:
+<a class="POD_LINK" href="#Verbatim_Paragraph">verbatim</a>,
+<a class="POD_LINK" href="#Command_Paragraph">command</a>, and
+<a class="POD_LINK" href="#Ordinary_Block_of_Te">ordinary text</a>.
+</p>
+<h3 class="POD_HEAD2"><a name="Verbatim_Paragraph">Verbatim Paragraph</a></h3>
+<p class="POD_TEXT">
+A verbatim paragraph, distinguished by being indented (that is,
+it starts with space or tab).  It should be reproduced exactly,
+with tabs assumed to be on 8-column boundaries.  There are no
+special formatting escapes, so you can't italicize or anything
+like that.  A \ means \, and nothing else.
+</p>
+<h3 class="POD_HEAD2"><a name="Command_Paragraph">Command Paragraph</a></h3>
+<pre class="POD_TEXT">
+All command paragraphs start with &quot;=&quot;, followed by an
+identifier, followed by arbitrary text that the command can
+use however it pleases.  Currently recognized commands are
+
+    =head1 heading
+    =head2 heading
+    =item text
+    =over N
+    =back
+    =cut
+    =pod
+    =for X
+    =begin X
+    =end X
+</pre>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_pod">=pod</a>
+<dt><a name="_cut">=cut</a>
+<dd>
+The &quot;=pod&quot; directive does nothing beyond telling the compiler to lay
+off parsing code through the next &quot;=cut&quot;.  It's useful for adding
+another paragraph to the doc if you're mixing up code and pod a lot.
+<dt class="POD_ITEM"><a name="_head1">=head1</a>
+<dt><a name="_head2">=head2</a>
+<dd>
+Head1 and head2 produce first and second level headings, with the text in
+the same paragraph as the &quot;=headn&quot; directive forming the heading description.
+<dt class="POD_ITEM"><a name="_over">=over</a>
+<dt><a name="_back">=back</a>
+<dt><a name="_item">=item</a>
+<dd>
+Item, over, and back require a little more explanation: &quot;=over&quot; starts a
+section specifically for the generation of a list using &quot;=item&quot; commands. At
+the end of your list, use &quot;=back&quot; to end it. You will probably want to give
+&quot;4&quot; as the number to &quot;=over&quot;, as some formatters will use this for indentation.
+The unit of indentation is optional. If the unit is not given the natural
+indentation of the formatting system applied will be used. Note also that
+there are some basic rules to using =item: don't use them outside of 
+an =over/=back block, use at least one inside an =over/=back block, you don't
+_have_ to include the =back if the list just runs off the document, and
+perhaps most importantly, keep the items consistent: either use &quot;=item *&quot; for
+all of them, to produce bullets, or use &quot;=item 1.&quot;, &quot;=item 2.&quot;, etc., to
+produce numbered lists, or use &quot;=item foo&quot;, &quot;=item bar&quot;, etc., i.e., things
+that looks nothing like bullets or numbers. If you start with bullets or
+numbers, stick with them, as many formatters use the first &quot;=item&quot; type to
+decide how to format the list.
+<dt class="POD_ITEM"><a name="_for">=for</a>
+<dt><a name="_begin">=begin</a>
+<dt><a name="_end">=end</a>
+<dd>
+For, begin, and end let you include sections that are not interpreted
+as pod text, but passed directly to particular formatters. A formatter
+that can utilize that format will use the section, otherwise it will be
+completely ignored.  The directive &quot;=for&quot; specifies that the entire next
+paragraph is in the format indicated by the first word after
+&quot;=for&quot;, like this:
+<pre class="POD_VERBATIM">
+ =for html &lt;br&gt;
+  &lt;p&gt; This is a raw HTML paragraph &lt;/p&gt;
+</pre>
+<p class="POD_TEXT">
+The paired commands &quot;=begin&quot; and &quot;=end&quot; work very similarly to &quot;=for&quot;, but
+instead of only accepting a single paragraph, all text from &quot;=begin&quot; to a
+paragraph with a matching &quot;=end&quot; are treated as a particular format.
+</p>
+<pre class="POD_TEXT">
+Here are some examples of how to use these:
+
+ =begin html
+
+ &lt;br&gt;Figure 1.&lt;IMG SRC=&quot;figure1.png&quot;&gt;&lt;br&gt;
+
+ =end html
+
+ =begin text
+
+   ---------------
+   |  foo        |
+   |        bar  |
+   ---------------
+
+ ^^^^ Figure 1. ^^^^
+
+ =end text
+</pre>
+<p class="POD_TEXT">
+Some format names that formatters currently are known to accept include
+&quot;roff&quot;, &quot;man&quot;, &quot;latex&quot;, &quot;tex&quot;, &quot;text&quot;, and &quot;html&quot;. (Some formatters will
+treat some of these as synonyms.)
+</p>
+<p class="POD_TEXT">
+And don't forget, when using any command, that the command lasts up until
+the end of the <b>paragraph</b>, not the line. Hence in the examples below, you
+can see the empty lines after each command to end its paragraph.
+</p>
+<pre class="POD_TEXT">
+Some examples of lists include:
+
+ =over 4
+
+ =item *
+
+ First item
+
+ =item *
+
+ Second item
+
+ =back
+
+ =over 4
+
+ =item Foo()
+
+ Description of Foo function
+
+ =item Bar()
+
+ Description of Bar function
+
+ =back
+</pre>
+</dl>
+<h3 class="POD_HEAD2"><a name="Ordinary_Block_of_Te">Ordinary Block of Text</a></h3>
+<pre class="POD_TEXT">
+It will be filled, and maybe even
+justified.  Certain interior sequences are recognized both
+here and in commands:
+
+    I&lt;text&gt;     Italicize text, used for emphasis or variables
+    B&lt;text&gt;     Embolden text, used for switches and programs
+    S&lt;text&gt;     Text contains non-breaking spaces
+    C&lt;code&gt;     Render code in a typewriter font, or give some other
+                indication that this represents program text
+    L&lt;name&gt;     A link (cross reference) to name
+		    L&lt;name&gt;		manual page
+		    L&lt;name/ident&gt;	item in manual page
+		    L&lt;name/&quot;sec&quot;&gt;	section in other manual page
+		    L&lt;&quot;sec&quot;&gt;		section in this manual page
+					(the quotes are optional)
+		    L&lt;/&quot;sec&quot;&gt;		ditto
+		same as above but only 'text' is used for output.
+		(Text can not contain the characters '/' and '|', 
+		and should contain matched '&lt;' or '&gt;')
+		    L&lt;text|name&gt;
+		    L&lt;text|name/ident&gt;
+		    L&lt;text|name/&quot;sec&quot;&gt;
+		    L&lt;text|&quot;sec&quot;&gt;
+		    L&lt;text|/&quot;sec&quot;&gt;
+
+    F&lt;file&gt;	Used for filenames
+    X&lt;index&gt;	An index entry
+    Z&lt;&gt;		A zero-width character
+    E&lt;escape&gt;   A named character (very similar to HTML escapes)
+		    E&lt;lt&gt;		A literal &lt;
+		    E&lt;gt&gt;		A literal &gt;
+		    E&lt;sol&gt;		A literal /
+		    E&lt;verbar&gt;		A literal |
+		    (these are optional except in other interior
+		     sequences and when preceded by a capital letter)
+		    E&lt;n&gt;		Character number n (probably in ASCII)
+    	    	    E&lt;html&gt;		Some non-numeric HTML entity, such
+					as E&lt;Agrave&gt;
+</pre>
+<pre class="POD_TEXT">
+Most of the time, you will only need a single set of angle brackets to
+delimit the beginning and end of interior sequences.  However, sometimes
+you will want to put a right angle bracket (or greater-than sign '&gt;')
+inside of a sequence.  This is particularly common when using a sequence
+to provide a different font-type for a snippet of code.  As with all
+things in Perl, there is more than one way to do it.  One way is to
+simply escape the closing bracket using an <code>E</code> sequence:
+
+    C&lt;$a E&lt;lt&gt;=E&lt;gt&gt; $b&gt;
+</pre>
+<p class="POD_TEXT">
+This will produce: &quot;<code>$a &lt;=&gt; $b</code>&quot;
+</p>
+<pre class="POD_TEXT">
+A more readable, and perhaps more &quot;plain&quot; way is to use an alternate set of
+delimiters that doesn't require a &quot;&gt;&quot; to be escaped.  As of perl5.5.660,
+doubled angle brackets (&quot;&lt;&lt;&quot; and &quot;&gt;&gt;&quot;) may be used <i>if and only if there
+is whitespace immediately following the opening delimiter and immediately
+preceding the closing delimiter!</i> For example, the following will do the
+trick:
+
+    C&lt;&lt; $a &lt;=&gt; $b &gt;&gt;
+</pre>
+<pre class="POD_TEXT">
+In fact, you can use as many repeated angle-brackets as you like so
+long as you have the same number of them in the opening and closing
+delimiters, and make sure that whitespace immediately follows the last
+'&lt;' of the opening delimiter, and immediately precedes the first '&gt;' of
+the closing delimiter.  So the following will also work:
+
+    C&lt;&lt;&lt; $a &lt;=&gt; $b &gt;&gt;&gt;
+    C&lt;&lt;&lt;&lt; $a &lt;=&gt; $b &gt;&gt;&gt;&gt;
+</pre>
+<p class="POD_TEXT">
+This is currently supported by pod2text (Pod::Text), pod2man (Pod::Man),
+and any other pod2xxx and Pod::Xxxx translator that uses Pod::Parser
+1.093 or later.
+</p>
+<p></p>
+<h3 class="POD_HEAD2"><a name="The_Intent">The Intent</a></h3>
+<p class="POD_TEXT">
+That's it.  The intent is simplicity, not power.  I wanted paragraphs
+to look like paragraphs (block format), so that they stand out
+visually, and so that I could run them through fmt easily to reformat
+them (that's F7 in my version of <b>vi</b>).  I wanted the translator (and not
+me) to worry about whether &quot; or ' is a left quote or a right quote
+within filled text, and I wanted it to leave the quotes alone, dammit, in
+verbatim mode, so I could slurp in a working program, shift it over 4
+spaces, and have it print out, er, verbatim.  And presumably in a
+constant width font.
+</p>
+<pre class="POD_TEXT">
+In particular, you can leave things like this verbatim in your text:
+
+    Perl
+    FILEHANDLE
+    $variable
+    function()
+    manpage(3r)
+</pre>
+<p class="POD_TEXT">
+Doubtless a few other commands or sequences will need to be added along
+the way, but I've gotten along surprisingly well with just these.
+</p>
+<p class="POD_TEXT">
+Note that I'm not at all claiming this to be sufficient for producing a
+book.  I'm just trying to make an idiot-proof common source for nroff,
+TeX, and other markup languages, as used for online documentation.
+Translators exist for <b>pod2man</b>  (that's for nroff(1) and troff(1)),
+<b>pod2text</b>, <b>pod2html</b>, <b>pod2latex</b>, and <b>pod2fm</b>.
+</p>
+<h3 class="POD_HEAD2"><a name="Embedding_Pods_in_Pe">Embedding Pods in Perl Modules</a></h3>
+<pre class="POD_TEXT">
+You can embed pod documentation in your Perl scripts.  Start your
+documentation with a &quot;=head1&quot; command at the beginning, and end it
+with a &quot;=cut&quot; command.  Perl will ignore the pod text.  See any of the
+supplied library modules for examples.  If you're going to put your
+pods at the end of the file, and you're using an __END__ or __DATA__
+cut mark, make sure to put an empty line there before the first pod
+directive.
+
+    __END__
+
+    =head1 NAME
+
+    modern - I am a modern module
+</pre>
+<p class="POD_TEXT">
+If you had not had that empty line there, then the translators wouldn't
+have seen it.
+</p>
+<h3 class="POD_HEAD2"><a name="Common_Pod_Pitfalls">Common Pod Pitfalls</a></h3>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_"></a>
+
+Pod translators usually will require paragraphs to be separated by
+completely empty lines.  If you have an apparently empty line with
+some spaces on it, this can cause odd formatting.
+<li class="POD_ITEM"><a name="_1"></a>
+
+Translators will mostly add wording around a L&lt;&gt; link, so that
+<code>L&lt;foo(1)&gt;</code> becomes &quot;the <i>foo</i>(1) manpage&quot;, for example (see
+<b>pod2man</b> for details).  Thus, you shouldn't write things like <code>the
+L&lt;foo&gt; manpage</code>, if you want the translated document to read
+sensibly.
+<p class="POD_TEXT">
+If you need total control of the text used for a link in the output
+use the form L&lt;show this text|foo&gt; instead.
+</p>
+<li class="POD_ITEM"><a name="_2"></a>
+
+The <b>podchecker</b> command is provided to check pod syntax
+for errors and warnings. For example, it checks for completely
+blank lines in pod segments and for unknown escape sequences.
+It is still advised to pass it through
+one or more translators and proofread the result, or print out the
+result and proofread that.  Some of the problems found may be bugs in
+the translators, which you may or may not wish to work around.
+</ul>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+the <a class="POD_LINK" href="pod2man.html">pod2man</a> manpage, the section on <a class="POD_LINK" href="perlsyn.html#PODs_Embedded_Docume">PODs: Embedded Documentation</a> in the <a class="POD_LINK" href="perlsyn.html">perlsyn</a> manpage,
+the <a class="POD_LINK" href="podchecker.html">podchecker</a> manpage
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHOR">AUTHOR</a></h2>
+<p class="POD_TEXT">
+Larry Wall
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:35:56 2001
+</body>
+</html>
+

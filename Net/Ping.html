@@ -1,0 +1,190 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>Net::Ping</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="../Net/protoent.html">Next:<br>Net::protoent</a></td><td align="left" width="1%"><a  href="../Net/netent.html">Previous:<br>Net::netent</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="../podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="../podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">Net::Ping</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#Functions">Functions</a>
+</ul>
+<li><a href="#WARNING">WARNING</a>
+<li><a href="#NOTES">NOTES</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+Net::Ping - check a remote host for reachability
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+    use Net::Ping;
+
+    $p = Net::Ping-&gt;new();
+    print &quot;$host is alive.\n&quot; if $p-&gt;ping($host);
+    $p-&gt;close();
+
+    $p = Net::Ping-&gt;new(&quot;icmp&quot;);
+    foreach $host (@host_array)
+    {
+        print &quot;$host is &quot;;
+        print &quot;NOT &quot; unless $p-&gt;ping($host, 2);
+        print &quot;reachable.\n&quot;;
+        sleep(1);
+    }
+    $p-&gt;close();
+
+    $p = Net::Ping-&gt;new(&quot;tcp&quot;, 2);
+    while ($stop_time &gt; time())
+    {
+        print &quot;$host not reachable &quot;, scalar(localtime()), &quot;\n&quot;
+            unless $p-&gt;ping($host);
+        sleep(300);
+    }
+    undef($p);
+
+    # For backward compatibility
+    print &quot;$host is alive.\n&quot; if pingecho($host);
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+This module contains methods to test the reachability of remote
+hosts on a network.  A ping object is first created with optional
+parameters, a variable number of hosts may be pinged multiple
+times and then the connection is closed.
+</p>
+<p class="POD_TEXT">
+You may choose one of three different protocols to use for the
+ping. The &quot;udp&quot; protocol is the default. Note that a live remote host
+may still fail to be pingable by one or more of these protocols. For
+example, www.microsoft.com is generally alive but not pingable.
+</p>
+<p class="POD_TEXT">
+With the &quot;tcp&quot; protocol the ping() method attempts to establish a
+connection to the remote host's echo port.  If the connection is
+successfully established, the remote host is considered reachable.  No
+data is actually echoed.  This protocol does not require any special
+privileges but has higher overhead than the other two protocols.
+</p>
+<p class="POD_TEXT">
+Specifying the &quot;udp&quot; protocol causes the ping() method to send a udp
+packet to the remote host's echo port.  If the echoed packet is
+received from the remote host and the received packet contains the
+same data as the packet that was sent, the remote host is considered
+reachable.  This protocol does not require any special privileges.
+</p>
+<p class="POD_TEXT">
+It should be borne in mind that, for both tcp and udp ping, a host
+will be reported as unreachable if it is not running the
+appropriate echo service.  For Unix-like systems see the <u>inetd</u>(8) manpage for
+more information.
+</p>
+<p class="POD_TEXT">
+If the &quot;icmp&quot; protocol is specified, the ping() method sends an icmp
+echo message to the remote host, which is what the UNIX ping program
+does.  If the echoed message is received from the remote host and
+the echoed information is correct, the remote host is considered
+reachable.  Specifying the &quot;icmp&quot; protocol requires that the program
+be run as root or that the program be setuid to root.
+</p>
+<h3 class="POD_HEAD2"><a name="Functions">Functions</a></h3>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Net_Ping_new_proto_d">Net::Ping-&gt;new([$proto [, $def_timeout [, $bytes]]]);</a>
+<dd>
+Create a new ping object.  All of the parameters are optional.  $proto
+specifies the protocol to use when doing a ping.  The current choices
+are &quot;tcp&quot;, &quot;udp&quot; or &quot;icmp&quot;.  The default is &quot;udp&quot;.
+<p class="POD_TEXT">
+If a default timeout ($def_timeout) in seconds is provided, it is used
+when a timeout is not given to the ping() method (below).  The timeout
+must be greater than 0 and the default, if not specified, is 5 seconds.
+</p>
+<p class="POD_TEXT">
+If the number of data bytes ($bytes) is given, that many data bytes
+are included in the ping packet sent to the remote host. The number of
+data bytes is ignored if the protocol is &quot;tcp&quot;.  The minimum (and
+default) number of data bytes is 1 if the protocol is &quot;udp&quot; and 0
+otherwise.  The maximum number of data bytes that can be specified is
+1024.
+</p>
+<dt class="POD_ITEM"><a name="_p_ping_host_timeout">$p-&gt;ping($host [, $timeout]);</a>
+<dd>
+Ping the remote host and wait for a response.  $host can be either the
+hostname or the IP number of the remote host.  The optional timeout
+must be greater than 0 seconds and defaults to whatever was specified
+when the ping object was created.  If the hostname cannot be found or
+there is a problem with the IP number, undef is returned.  Otherwise,
+1 is returned if the host is reachable and 0 if it is not.  For all
+practical purposes, undef and 0 and can be treated as the same case.
+<dt class="POD_ITEM"><a name="_p_close_">$p-&gt;close();</a>
+<dd>
+Close the network connection for this ping object.  The network
+connection is also closed by &quot;undef $p&quot;.  The network connection is
+automatically closed if the ping object goes out of scope (e.g. $p is
+local to a subroutine and you leave the subroutine).
+<dt class="POD_ITEM"><a name="pingecho_host_timeou">pingecho($host [, $timeout]);</a>
+<dd>
+To provide backward compatibility with the previous version of
+Net::Ping, a pingecho() subroutine is available with the same
+functionality as before.  pingecho() uses the tcp protocol.  The
+return values and parameters are the same as described for the ping()
+method.  This subroutine is obsolete and may be removed in a future
+version of Net::Ping.
+</dl>
+<h2 class="POD_HEAD1"><a name="WARNING">WARNING</a></h2>
+<p class="POD_TEXT">
+pingecho() or a ping object with the tcp protocol use alarm() to
+implement the timeout.  So, don't use alarm() in your program while
+you are using pingecho() or a ping object with the tcp protocol.  The
+udp and icmp protocols do not use alarm() to implement the timeout.
+</p>
+<h2 class="POD_HEAD1"><a name="NOTES">NOTES</a></h2>
+<p class="POD_TEXT">
+There will be less network overhead (and some efficiency in your
+program) if you specify either the udp or the icmp protocol.  The tcp
+protocol will generate 2.5 times or more traffic for each ping than
+either udp or icmp.  If many hosts are pinged frequently, you may wish
+to implement a small wait (e.g. 25ms or more) between each ping to
+avoid flooding your network with packets.
+</p>
+<p class="POD_TEXT">
+The icmp protocol requires that the program be run as root or that it
+be setuid to root.  The tcp and udp protocols do not require special
+privileges, but not all network devices implement the echo protocol
+for tcp or udp.
+</p>
+<p class="POD_TEXT">
+Local hosts should normally respond to pings within milliseconds.
+However, on a very congested network it may take up to 3 seconds or
+longer to receive an echo packet from the remote host.  If the timeout
+is set too low under these conditions, it will appear that the remote
+host is not reachable (which is almost the truth).
+</p>
+<p class="POD_TEXT">
+Reachability doesn't necessarily mean that the remote host is actually
+functioning beyond its ability to echo packets.
+</p>
+<p class="POD_TEXT">
+Because of a lack of anything better, this module uses its own
+routines to pack and unpack ICMP packets.  It would be better for a
+separate module to be written which understands all of the different
+kinds of ICMP packets.
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:37 2001
+</body>
+</html>
+

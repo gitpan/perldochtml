@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>Tie::Hash</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="../Tie/RefHash.html">Next:<br>Tie::RefHash</a></td><td align="left" width="1%"><a  href="../Tie/Handle.html">Previous:<br>Tie::Handle</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="../podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="../podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">Tie::Hash</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#CAVEATS">CAVEATS</a>
+<li><a href="#MORE_INFORMATION">MORE INFORMATION</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+Tie::Hash, Tie::StdHash - base class definitions for tied hashes
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+    package NewHash;
+    require Tie::Hash;
+
+    @ISA = (Tie::Hash);
+
+    sub DELETE { ... }		# Provides needed method
+    sub CLEAR { ... }		# Overrides inherited method
+</pre>
+<pre>
+    package NewStdHash;
+    require Tie::Hash;
+
+    @ISA = (Tie::StdHash);
+
+    # All methods provided by default, define only those needing overrides
+    sub DELETE { ... }
+</pre>
+<pre>
+    package main;
+
+    tie %new_hash, 'NewHash';
+    tie %new_std_hash, 'NewStdHash';
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+This module provides some skeletal methods for hash-tying classes. See
+the <a class="POD_LINK" href="../perltie.html">perltie</a> manpage for a list of the functions required in order to tie a hash
+to a package. The basic <b>Tie::Hash</b> package provides a <code>new</code> method, as well
+as methods <code>TIEHASH</code>, <code>EXISTS</code> and <code>CLEAR</code>. The <b>Tie::StdHash</b> package
+provides most methods required for hashes in the <a class="POD_LINK" href="../perltie.html">perltie</a> manpage. It inherits from
+<b>Tie::Hash</b>, and causes tied hashes to behave exactly like standard hashes,
+allowing for selective overloading of methods. The <code>new</code> method is provided
+as grandfathering in the case a class forgets to include a <code>TIEHASH</code> method.
+</p>
+<p class="POD_TEXT">
+For developers wishing to write their own tied hashes, the required methods
+are briefly defined below. See the the <a class="POD_LINK" href="../perltie.html">perltie</a> manpage section for more detailed
+descriptive, as well as example code:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="TIEHASH_classname_LI">TIEHASH classname, LIST</a>
+<dd>
+The method invoked by the command <code>tie %hash, classname</code>. Associates a new
+hash instance with the specified class. <code>LIST</code> would represent additional
+arguments (along the lines of the <a class="POD_LINK" href="../AnyDBM_File.html">AnyDBM_File</a> manpage and compatriots) needed to
+complete the association.
+<dt class="POD_ITEM"><a name="STORE_this_key_value">STORE this, key, value</a>
+<dd>
+Store datum <i>value</i> into <i>key</i> for the tied hash <i>this</i>.
+<dt class="POD_ITEM"><a name="FETCH_this_key">FETCH this, key</a>
+<dd>
+Retrieve the datum in <i>key</i> for the tied hash <i>this</i>.
+<dt class="POD_ITEM"><a name="FIRSTKEY_this">FIRSTKEY this</a>
+<dd>
+Return the (key, value) pair for the first key in the hash.
+<dt class="POD_ITEM"><a name="NEXTKEY_this_lastkey">NEXTKEY this, lastkey</a>
+<dd>
+Return the next key for the hash.
+<dt class="POD_ITEM"><a name="EXISTS_this_key">EXISTS this, key</a>
+<dd>
+Verify that <i>key</i> exists with the tied hash <i>this</i>.
+<p class="POD_TEXT">
+The <b>Tie::Hash</b> implementation is a stub that simply croaks.
+</p>
+<dt class="POD_ITEM"><a name="DELETE_this_key">DELETE this, key</a>
+<dd>
+Delete the key <i>key</i> from the tied hash <i>this</i>.
+<dt class="POD_ITEM"><a name="CLEAR_this">CLEAR this</a>
+<dd>
+Clear all values from the tied hash <i>this</i>.
+</dl>
+<h2 class="POD_HEAD1"><a name="CAVEATS">CAVEATS</a></h2>
+<p class="POD_TEXT">
+The the <a class="POD_LINK" href="../perltie.html">perltie</a> manpage documentation includes a method called <code>DESTROY</code> as
+a necessary method for tied hashes. Neither <b>Tie::Hash</b> nor <b>Tie::StdHash</b>
+define a default for this method. This is a standard for class packages,
+but may be omitted in favor of a simple default.
+</p>
+<h2 class="POD_HEAD1"><a name="MORE_INFORMATION">MORE INFORMATION</a></h2>
+<p class="POD_TEXT">
+The packages relating to various DBM-related implementations (<code>DB_File</code>,
+<code>NDBM_File</code>, etc.) show examples of general tied hashes, as does the
+the <u>Config</u> manpage module. While these do not utilize <b>Tie::Hash</b>, they serve as
+good working examples.
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:37:01 2001
+</body>
+</html>
+

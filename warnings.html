@@ -1,0 +1,144 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>warnings</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="warnings/register.html">Next:<br>warnings::register</a></td><td align="left" width="1%"><a  href="vars.html">Previous:<br>vars</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">warnings</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+warnings - Perl pragma to control optional warnings
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+    use warnings;
+    no warnings;
+
+    use warnings &quot;all&quot;;
+    no warnings &quot;all&quot;;
+
+    use warnings::register;
+    if (warnings::enabled()) {
+        warnings::warn(&quot;some warning&quot;);
+    }
+
+    if (warnings::enabled(&quot;void&quot;)) {
+        warnings::warn(&quot;void&quot;, &quot;some warning&quot;);
+    }
+
+    if (warnings::enabled($object)) {
+        warnings::warn($object, &quot;some warning&quot;);
+    }
+
+    warnif(&quot;some warning&quot;);
+    warnif(&quot;void&quot;, &quot;some warning&quot;);
+    warnif($object, &quot;some warning&quot;);
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+If no import list is supplied, all possible warnings are either enabled
+or disabled.
+</p>
+<p class="POD_TEXT">
+A number of functions are provided to assist module authors.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="use_warnings_registe">use warnings::register</a>
+<dd>
+Creates a new warnings category with the same name as the package where
+the call to the pragma is used.
+<dt class="POD_ITEM"><a name="warnings_enabled_">warnings::enabled()</a>
+<dd>
+Use the warnings category with the same name as the current package.
+<p class="POD_TEXT">
+Return TRUE if that warnings category is enabled in the calling module.
+Otherwise returns FALSE.
+</p>
+<dt class="POD_ITEM"><a name="warnings_enabled_cat">warnings::enabled($category)</a>
+<dd>
+Return TRUE if the warnings category, <code>$category</code>, is enabled in the
+calling module.
+Otherwise returns FALSE.
+<dt class="POD_ITEM"><a name="warnings_enabled_obj">warnings::enabled($object)</a>
+<dd>
+Use the name of the class for the object reference, <code>$object</code>, as the
+warnings category.
+<p class="POD_TEXT">
+Return TRUE if that warnings category is enabled in the first scope
+where the object is used.
+Otherwise returns FALSE.
+</p>
+<dt class="POD_ITEM"><a name="warnings_warn_messag">warnings::warn($message)</a>
+<dd>
+Print <code>$message</code> to STDERR.
+<p class="POD_TEXT">
+Use the warnings category with the same name as the current package.
+</p>
+<p class="POD_TEXT">
+If that warnings category has been set to &quot;FATAL&quot; in the calling module
+then die. Otherwise return.
+</p>
+<dt class="POD_ITEM"><a name="warnings_warn_catego">warnings::warn($category, $message)</a>
+<dd>
+Print <code>$message</code> to STDERR.
+<p class="POD_TEXT">
+If the warnings category, <code>$category</code>, has been set to &quot;FATAL&quot; in the
+calling module then die. Otherwise return.
+</p>
+<dt class="POD_ITEM"><a name="warnings_warn_object">warnings::warn($object, $message)</a>
+<dd>
+Print <code>$message</code> to STDERR.
+<p class="POD_TEXT">
+Use the name of the class for the object reference, <code>$object</code>, as the
+warnings category.
+</p>
+<p class="POD_TEXT">
+If that warnings category has been set to &quot;FATAL&quot; in the scope where <code>$object</code>
+is first used then die. Otherwise return.
+</p>
+<p></p>
+<dt class="POD_ITEM"><a name="warnings_warnif_mess">warnings::warnif($message)</a>
+<dd>
+Equivalent to:
+<pre class="POD_VERBATIM">
+    if (warnings::enabled())
+      { warnings::warn($message) }
+</pre>
+<dt class="POD_ITEM"><a name="warnings_warnif_cate">warnings::warnif($category, $message)</a>
+<dd>
+Equivalent to:
+<pre class="POD_VERBATIM">
+    if (warnings::enabled($category))
+      { warnings::warn($category, $message) }
+</pre>
+<dt class="POD_ITEM"><a name="warnings_warnif_obje">warnings::warnif($object, $message)</a>
+<dd>
+Equivalent to:
+<pre class="POD_VERBATIM">
+    if (warnings::enabled($object))
+      { warnings::warn($object, $message) }
+</pre>
+</dl>
+<p class="POD_TEXT">
+See the <a class="POD_LINK" href="perlmodlib.html#Pragmatic_Modules">Pragmatic Modules</a> entry in the <a class="POD_LINK" href="perlmodlib.html">perlmodlib</a> manpage and the <a class="POD_LINK" href="perllexwarn.html">perllexwarn</a> manpage.
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:37:03 2001
+</body>
+</html>
+

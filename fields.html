@@ -1,0 +1,158 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>fields</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="File/Basename.html">Next:<br>File::Basename</a></td><td align="left" width="1%"><a href="Fatal.html">Previous:<br>Fatal</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">fields</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+fields - compile-time class fields
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+    {
+        package Foo;
+        use fields qw(foo bar _Foo_private);
+	sub new {
+	    my Foo $self = shift;
+	    unless (ref $self) {
+		$self = fields::new($self);
+		$self-&gt;{_Foo_private} = &quot;this is Foo's secret&quot;;
+	    }
+	    $self-&gt;{foo} = 10;
+	    $self-&gt;{bar} = 20;
+	    return $self;
+	}
+    }
+
+    my Foo $var = Foo::-&gt;new;
+    $var-&gt;{foo} = 42;
+
+    # this will generate a compile-time error
+    $var-&gt;{zap} = 42;
+
+    # subclassing
+    {
+        package Bar;
+        use base 'Foo';
+        use fields qw(baz _Bar_private);	# not shared with Foo
+	sub new {
+	    my $class = shift;
+	    my $self = fields::new($class);
+	    $self-&gt;SUPER::new();		# init base fields
+	    $self-&gt;{baz} = 10;			# init own fields
+	    $self-&gt;{_Bar_private} = &quot;this is Bar's secret&quot;;
+	    return $self;
+	}
+    }
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+The <code>fields</code> pragma enables compile-time verified class fields.
+</p>
+<p class="POD_TEXT">
+NOTE: The current implementation keeps the declared fields in the %FIELDS
+hash of the calling package, but this may change in future versions.
+Do <b>not</b> update the %FIELDS hash directly, because it must be created
+at compile-time for it to be fully useful, as is done by this pragma.
+</p>
+<p class="POD_TEXT">
+If a typed lexical variable holding a reference is used to access a
+hash element and a package with the same name as the type has declared
+class fields using this pragma, then the operation is turned into an
+array access at compile time.
+</p>
+<p class="POD_TEXT">
+The related <code>base</code> pragma will combine fields from base classes and any
+fields declared using the <code>fields</code> pragma.  This enables field
+inheritance to work properly.
+</p>
+<p class="POD_TEXT">
+Field names that start with an underscore character are made private to
+the class and are not visible to subclasses.  Inherited fields can be
+overridden but will generate a warning if used together with the <code><a class="POD_LINK" href="perlrun.html#_w">-w</a></code>
+switch.
+</p>
+<p class="POD_TEXT">
+The effect of all this is that you can have objects with named fields
+which are as compact and as fast arrays to access.  This only works
+as long as the objects are accessed through properly typed variables.
+If the objects are not typed, access is only checked at run time.
+</p>
+<p class="POD_TEXT">
+The following functions are supported:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="new">new</a>
+<dd>
+fields::new() creates and blesses a pseudo-hash comprised of the fields
+declared using the <code>fields</code> pragma into the specified class.
+This makes it possible to write a constructor like this:
+<pre class="POD_VERBATIM">
+    package Critter::Sounds;
+    use fields qw(cat dog bird);
+
+    sub new {
+	my Critter::Sounds $self = shift;
+	$self = fields::new($self) unless ref $self;
+	$self-&gt;{cat} = 'meow';				# scalar element
+	@$self{'dog','bird'} = ('bark','tweet');	# slice
+	return $self;
+    }
+</pre>
+<dt class="POD_ITEM"><a name="phash">phash</a>
+<dd>
+fields::phash() can be used to create and initialize a plain (unblessed)
+pseudo-hash.  This function should always be used instead of creating
+pseudo-hashes directly.
+<pre class="POD_TEXT">
+If the first argument is a reference to an array, the pseudo-hash will
+be created with keys from that array.  If a second argument is supplied,
+it must also be a reference to an array whose elements will be used as
+the values.  If the second array contains less elements than the first,
+the trailing elements of the pseudo-hash will not be initialized.
+This makes it particularly useful for creating a pseudo-hash from
+subroutine arguments:
+
+    sub dogtag {
+	my $tag = fields::phash([qw(name rank ser_num)], [@_]);
+    }
+</pre>
+<pre class="POD_TEXT">
+fields::phash() also accepts a list of key-value pairs that will
+be used to construct the pseudo hash.  Examples:
+
+    my $tag = fields::phash(name =&gt; &quot;Joe&quot;,
+			    rank =&gt; &quot;captain&quot;,
+			    ser_num =&gt; 42);
+
+    my $pseudohash = fields::phash(%args);
+</pre>
+</dl>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+the <a class="POD_LINK" href="base.html">base</a> manpage,
+the <a class="POD_LINK" href="perlref.html#Pseudo_hashes_Using_">Pseudo-hashes: Using an array as a hash</a> entry in the <a class="POD_LINK" href="perlref.html">perlref</a> manpage
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:27 2001
+</body>
+</html>
+

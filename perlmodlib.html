@@ -1,0 +1,1305 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>perlmodlib</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="perlnewmod.html">Next:<br>perlnewmod</a></td><td align="left" width="1%"><a  href="perlmodlib.html">Previous:<br>perlmodlib</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">perlmodlib</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#THE_PERL_MODULE_LIBR">THE PERL MODULE LIBRARY</a>
+<ul>
+<li><a href="#Pragmatic_Modules">Pragmatic Modules</a>
+<li><a href="#Standard_Modules">Standard Modules</a>
+<li><a href="#Extension_Modules">Extension Modules</a>
+</ul>
+<li><a href="#CPAN1">CPAN</a>
+<li><a href="#Modules_Creation_Use">Modules: Creation, Use, and Abuse</a>
+<ul>
+<li><a href="#Guidelines_for_Modul">Guidelines for Module Creation</a>
+<li><a href="#Guidelines_for_Conve">Guidelines for Converting Perl 4 Library Scripts into Modules</a>
+<li><a href="#Guidelines_for_Reusi">Guidelines for Reusing Application Code</a>
+</ul>
+<li><a href="#NOTE">NOTE</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+perlmodlib - constructing new Perl modules and finding existing ones
+</p>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<h2 class="POD_HEAD1"><a name="THE_PERL_MODULE_LIBR">THE PERL MODULE LIBRARY</a></h2>
+<p class="POD_TEXT">
+Many modules are included the Perl distribution.  These are described
+below, and all end in <code>.pm</code>.  You may discover compiled library
+file (usually ending in <code>.so</code>) or small pieces of modules to be
+autoloaded (ending in <code>.al</code>); these were automatically generated
+by the installation process.  You may also discover files in the
+library directory that end in either <code>.pl</code> or <code>.ph</code>.  These are
+old libraries supplied so that old programs that use them still
+run.  The <code>.pl</code> files will all eventually be converted into standard
+modules, and the <code>.ph</code> files made by <b>h2ph</b> will probably end up
+as extension modules made by <b>h2xs</b>.  (Some <code>.ph</code> values may
+already be available through the POSIX, Errno, or Fcntl modules.)
+The <b>pl2pm</b> file in the distribution may help in your conversion,
+but it's just a mechanical process and therefore far from bulletproof.
+</p>
+<h3 class="POD_HEAD2"><a name="Pragmatic_Modules">Pragmatic Modules</a></h3>
+<pre class="POD_TEXT">
+They work somewhat like compiler directives (pragmata) in that they
+tend to affect the compilation of your program, and thus will usually
+work well only when used within a <code><a class="POD_LINK" href="perlfunc.html#use_Module_LIST">use</a></code>, or <code><a class="POD_LINK" href="perlfunc.html#no_Module_LIST">no</a></code>.  Most of these
+are lexically scoped, so an inner BLOCK may countermand them
+by saying:
+
+    no integer;
+    no strict 'refs';
+    no warnings;
+</pre>
+<p class="POD_TEXT">
+which lasts until the end of that BLOCK.
+</p>
+<p class="POD_TEXT">
+Some pragmas are lexically scoped--typically those that affect the
+<code><a class="POD_LINK" href="perlvar.html#_H">$^H</a></code> hints variable.  Others affect the current package instead,
+like <code>use vars</code> and <code>use subs</code>, which allow you to predeclare a
+variables or subroutines within a particular <i>file</i> rather than
+just a block.  Such declarations are effective for the entire file
+for which they were declared.  You cannot rescind them with <code>no
+vars</code> or <code>no subs</code>.
+</p>
+<p class="POD_TEXT">
+The following pragmas are defined (and have their own documentation).
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="attributes">attributes</a>
+<dd>
+Get/set subroutine or variable attributes
+<dt class="POD_ITEM"><a name="attrs">attrs</a>
+<dd>
+Set/get attributes of a subroutine (deprecated)
+<dt class="POD_ITEM"><a name="autouse">autouse</a>
+<dd>
+Postpone load of modules until a function is used
+<dt class="POD_ITEM"><a name="base">base</a>
+<dd>
+Establish IS-A relationship with base class at compile time
+<dt class="POD_ITEM"><a name="blib">blib</a>
+<dd>
+Use MakeMaker's uninstalled version of a package
+<dt class="POD_ITEM"><a name="bytes">bytes</a>
+<dd>
+Force byte semantics rather than character semantics
+<dt class="POD_ITEM"><a name="charnames">charnames</a>
+<dd>
+Define character names for <code>\N{named}</code> string literal escape.
+<dt class="POD_ITEM"><a name="constant">constant</a>
+<dd>
+Declare constants
+<dt class="POD_ITEM"><a name="diagnostics">diagnostics</a>
+<dd>
+Perl compiler pragma to force verbose warning diagnostics
+<dt class="POD_ITEM"><a name="fields">fields</a>
+<dd>
+Compile-time class fields
+<dt class="POD_ITEM"><a name="filetest">filetest</a>
+<dd>
+Control the filetest permission operators
+<dt class="POD_ITEM"><a name="integer">integer</a>
+<dd>
+Compute arithmetic in integer instead of double
+<dt class="POD_ITEM"><a name="less">less</a>
+<dd>
+Request less of something from the compiler
+<dt class="POD_ITEM"><a name="lib">lib</a>
+<dd>
+Manipulate @INC at compile time
+<dt class="POD_ITEM"><a name="locale">locale</a>
+<dd>
+Use and avoid POSIX locales for built-in operations
+<dt class="POD_ITEM"><a name="open">open</a>
+<dd>
+Set default disciplines for input and output
+<dt class="POD_ITEM"><a name="ops">ops</a>
+<dd>
+Restrict unsafe operations when compiling
+<dt class="POD_ITEM"><a name="overload">overload</a>
+<dd>
+Package for overloading perl operations
+<dt class="POD_ITEM"><a name="re">re</a>
+<dd>
+Alter regular expression behaviour
+<dt class="POD_ITEM"><a name="sigtrap">sigtrap</a>
+<dd>
+Enable simple signal handling
+<dt class="POD_ITEM"><a name="strict">strict</a>
+<dd>
+Restrict unsafe constructs
+<dt class="POD_ITEM"><a name="subs">subs</a>
+<dd>
+Predeclare sub names
+<dt class="POD_ITEM"><a name="utf8">utf8</a>
+<dd>
+Enable/disable UTF-8 in source code
+<dt class="POD_ITEM"><a name="vars">vars</a>
+<dd>
+Predeclare global variable names (obsolete)
+<dt class="POD_ITEM"><a name="warnings">warnings</a>
+<dd>
+Control optional warnings
+<dt class="POD_ITEM"><a name="warnings_register">warnings::register</a>
+<dd>
+Warnings import function
+</dl>
+<h3 class="POD_HEAD2"><a name="Standard_Modules">Standard Modules</a></h3>
+<p class="POD_TEXT">
+Standard, bundled modules are all expected to behave in a well-defined
+manner with respect to namespace pollution because they use the
+Exporter module.  See their own documentation for details.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="AnyDBM_File">AnyDBM_File</a>
+<dd>
+Provide framework for multiple DBMs
+<dt class="POD_ITEM"><a name="AutoLoader">AutoLoader</a>
+<dd>
+Load subroutines only on demand
+<dt class="POD_ITEM"><a name="AutoSplit">AutoSplit</a>
+<dd>
+Split a package for autoloading
+<dt class="POD_ITEM"><a name="B">B</a>
+<dd>
+The Perl Compiler
+<dt class="POD_ITEM"><a name="B_Asmdata">B::Asmdata</a>
+<dd>
+Autogenerated data about Perl ops, used to generate bytecode
+<dt class="POD_ITEM"><a name="B_Assembler">B::Assembler</a>
+<dd>
+Assemble Perl bytecode
+<dt class="POD_ITEM"><a name="B_Bblock">B::Bblock</a>
+<dd>
+Walk basic blocks
+<dt class="POD_ITEM"><a name="B_Bytecode">B::Bytecode</a>
+<dd>
+Perl compiler's bytecode backend
+<dt class="POD_ITEM"><a name="B_C">B::C</a>
+<dd>
+Perl compiler's C backend
+<dt class="POD_ITEM"><a name="B_CC">B::CC</a>
+<dd>
+Perl compiler's optimized C translation backend
+<dt class="POD_ITEM"><a name="B_Concise">B::Concise</a>
+<dd>
+Walk Perl syntax tree, printing concise info about ops
+<dt class="POD_ITEM"><a name="B_Debug">B::Debug</a>
+<dd>
+Walk Perl syntax tree, printing debug info about ops
+<dt class="POD_ITEM"><a name="B_Deparse">B::Deparse</a>
+<dd>
+Perl compiler backend to produce perl code
+<dt class="POD_ITEM"><a name="B_Disassembler">B::Disassembler</a>
+<dd>
+Disassemble Perl bytecode
+<dt class="POD_ITEM"><a name="B_Lint">B::Lint</a>
+<dd>
+Perl lint
+<dt class="POD_ITEM"><a name="B_Showlex">B::Showlex</a>
+<dd>
+Show lexical variables used in functions or files
+<dt class="POD_ITEM"><a name="B_Stackobj">B::Stackobj</a>
+<dd>
+Helper module for CC backend
+<dt class="POD_ITEM"><a name="B_Stash">B::Stash</a>
+<dd>
+Show what stashes are loaded
+<dt class="POD_ITEM"><a name="B_Terse">B::Terse</a>
+<dd>
+Walk Perl syntax tree, printing terse info about ops
+<dt class="POD_ITEM"><a name="B_Xref">B::Xref</a>
+<dd>
+Generates cross reference reports for Perl programs
+<dt class="POD_ITEM"><a name="Benchmark">Benchmark</a>
+<dd>
+Benchmark running times of Perl code
+<dt class="POD_ITEM"><a name="ByteLoader">ByteLoader</a>
+<dd>
+Load byte compiled perl code
+<dt class="POD_ITEM"><a name="CGI">CGI</a>
+<dd>
+Simple Common Gateway Interface Class
+<dt class="POD_ITEM"><a name="CGI_Apache">CGI::Apache</a>
+<dd>
+Backward compatibility module for CGI.pm
+<dt class="POD_ITEM"><a name="CGI_Carp">CGI::Carp</a>
+<dd>
+CGI routines for writing to the HTTPD (or other) error log
+<dt class="POD_ITEM"><a name="CGI_Cookie">CGI::Cookie</a>
+<dd>
+Interface to Netscape Cookies
+<dt class="POD_ITEM"><a name="CGI_Fast">CGI::Fast</a>
+<dd>
+CGI Interface for Fast CGI
+<dt class="POD_ITEM"><a name="CGI_Pretty">CGI::Pretty</a>
+<dd>
+Module to produce nicely formatted HTML code
+<dt class="POD_ITEM"><a name="CGI_Push">CGI::Push</a>
+<dd>
+Simple Interface to Server Push
+<dt class="POD_ITEM"><a name="CGI_Switch">CGI::Switch</a>
+<dd>
+Backward compatibility module for defunct CGI::Switch
+<dt class="POD_ITEM"><a name="CPAN">CPAN</a>
+<dd>
+Query, download and build perl modules from CPAN sites
+<dt class="POD_ITEM"><a name="CPAN_FirstTime">CPAN::FirstTime</a>
+<dd>
+Utility for CPAN::Config file Initialization
+<dt class="POD_ITEM"><a name="CPAN_Nox">CPAN::Nox</a>
+<dd>
+Wrapper around CPAN.pm without using any XS module
+<dt class="POD_ITEM"><a name="Carp">Carp</a>
+<dd>
+Warn of errors (from perspective of caller)
+<dt class="POD_ITEM"><a name="Carp_Heavy">Carp::Heavy</a>
+<dd>
+Carp guts
+<dt class="POD_ITEM"><a name="Class_Struct">Class::Struct</a>
+<dd>
+Declare struct-like datatypes as Perl classes
+<dt class="POD_ITEM"><a name="Cwd">Cwd</a>
+<dd>
+Get pathname of current working directory
+<dt class="POD_ITEM"><a name="DB">DB</a>
+<dd>
+Programmatic interface to the Perl debugging API (draft, subject to
+<dt class="POD_ITEM"><a name="DB_File">DB_File</a>
+<dd>
+Perl5 access to Berkeley DB version 1.x
+<dt class="POD_ITEM"><a name="Devel_SelfStubber">Devel::SelfStubber</a>
+<dd>
+Generate stubs for a SelfLoading module
+<dt class="POD_ITEM"><a name="DirHandle">DirHandle</a>
+<dd>
+Supply object methods for directory handles
+<dt class="POD_ITEM"><a name="Dumpvalue">Dumpvalue</a>
+<dd>
+Provides screen dump of Perl data.
+<dt class="POD_ITEM"><a name="English">English</a>
+<dd>
+Use nice English (or awk) names for ugly punctuation variables
+<dt class="POD_ITEM"><a name="Env">Env</a>
+<dd>
+Perl module that imports environment variables as scalars or arrays
+<dt class="POD_ITEM"><a name="Exporter">Exporter</a>
+<dd>
+Implements default import method for modules
+<dt class="POD_ITEM"><a name="Exporter_Heavy">Exporter::Heavy</a>
+<dd>
+Exporter guts
+<dt class="POD_ITEM"><a name="ExtUtils_Command">ExtUtils::Command</a>
+<dd>
+Utilities to replace common UNIX commands in Makefiles etc.
+<dt class="POD_ITEM"><a name="ExtUtils_Embed">ExtUtils::Embed</a>
+<dd>
+Utilities for embedding Perl in C/C++ applications
+<dt class="POD_ITEM"><a name="ExtUtils_Install">ExtUtils::Install</a>
+<dd>
+Install files from here to there
+<dt class="POD_ITEM"><a name="ExtUtils_Installed">ExtUtils::Installed</a>
+<dd>
+Inventory management of installed modules
+<dt class="POD_ITEM"><a name="ExtUtils_Liblist">ExtUtils::Liblist</a>
+<dd>
+Determine libraries to use and how to use them
+<dt class="POD_ITEM"><a name="ExtUtils_MM_Cygwin">ExtUtils::MM_Cygwin</a>
+<dd>
+Methods to override UN*X behaviour in ExtUtils::MakeMaker
+<dt class="POD_ITEM"><a name="ExtUtils_MM_OS2">ExtUtils::MM_OS2</a>
+<dd>
+Methods to override UN*X behaviour in ExtUtils::MakeMaker
+<dt class="POD_ITEM"><a name="ExtUtils_MM_Unix">ExtUtils::MM_Unix</a>
+<dd>
+Methods used by ExtUtils::MakeMaker
+<dt class="POD_ITEM"><a name="ExtUtils_MM_VMS">ExtUtils::MM_VMS</a>
+<dd>
+Methods to override UN*X behaviour in ExtUtils::MakeMaker
+<dt class="POD_ITEM"><a name="ExtUtils_MM_Win32">ExtUtils::MM_Win32</a>
+<dd>
+Methods to override UN*X behaviour in ExtUtils::MakeMaker
+<dt class="POD_ITEM"><a name="ExtUtils_MakeMaker">ExtUtils::MakeMaker</a>
+<dd>
+Create an extension Makefile
+<dt class="POD_ITEM"><a name="ExtUtils_Manifest">ExtUtils::Manifest</a>
+<dd>
+Utilities to write and check a MANIFEST file
+<dt class="POD_ITEM"><a name="ExtUtils_Mkbootstrap">ExtUtils::Mkbootstrap</a>
+<dd>
+Make a bootstrap file for use by DynaLoader
+<dt class="POD_ITEM"><a name="ExtUtils_Mksymlists">ExtUtils::Mksymlists</a>
+<dd>
+Write linker options files for dynamic extension
+<dt class="POD_ITEM"><a name="ExtUtils_Packlist">ExtUtils::Packlist</a>
+<dd>
+Manage .packlist files
+<dt class="POD_ITEM"><a name="ExtUtils_testlib">ExtUtils::testlib</a>
+<dd>
+Add blib/* directories to @INC
+<dt class="POD_ITEM"><a name="Fatal">Fatal</a>
+<dd>
+Replace functions with equivalents which succeed or die
+<dt class="POD_ITEM"><a name="Fcntl">Fcntl</a>
+<dd>
+Load the C Fcntl.h defines
+<dt class="POD_ITEM"><a name="File_Basename">File::Basename</a>
+<dd>
+Split a pathname into pieces
+<dt class="POD_ITEM"><a name="File_CheckTree">File::CheckTree</a>
+<dd>
+Run many filetest checks on a tree
+<dt class="POD_ITEM"><a name="File_Compare">File::Compare</a>
+<dd>
+Compare files or filehandles
+<dt class="POD_ITEM"><a name="File_Copy">File::Copy</a>
+<dd>
+Copy files or filehandles
+<dt class="POD_ITEM"><a name="File_DosGlob">File::DosGlob</a>
+<dd>
+DOS like globbing and then some
+<dt class="POD_ITEM"><a name="File_Find">File::Find</a>
+<dd>
+Traverse a file tree
+<dt class="POD_ITEM"><a name="File_Path">File::Path</a>
+<dd>
+Create or remove directory trees
+<dt class="POD_ITEM"><a name="File_Spec">File::Spec</a>
+<dd>
+Portably perform operations on file names
+<dt class="POD_ITEM"><a name="File_Spec_Epoc">File::Spec::Epoc</a>
+<dd>
+Methods for Epoc file specs
+<dt class="POD_ITEM"><a name="File_Spec_Functions">File::Spec::Functions</a>
+<dd>
+Portably perform operations on file names
+<dt class="POD_ITEM"><a name="File_Spec_Mac">File::Spec::Mac</a>
+<dd>
+File::Spec for MacOS
+<dt class="POD_ITEM"><a name="File_Spec_OS2">File::Spec::OS2</a>
+<dd>
+Methods for OS/2 file specs
+<dt class="POD_ITEM"><a name="File_Spec_Unix">File::Spec::Unix</a>
+<dd>
+Methods used by File::Spec
+<dt class="POD_ITEM"><a name="File_Spec_VMS">File::Spec::VMS</a>
+<dd>
+Methods for VMS file specs
+<dt class="POD_ITEM"><a name="File_Spec_Win32">File::Spec::Win32</a>
+<dd>
+Methods for Win32 file specs
+<dt class="POD_ITEM"><a name="File_Temp">File::Temp</a>
+<dd>
+Return name and handle of a temporary file safely
+<dt class="POD_ITEM"><a name="File_stat">File::stat</a>
+<dd>
+By-name interface to Perl's built-in stat() functions
+<dt class="POD_ITEM"><a name="FileCache">FileCache</a>
+<dd>
+Keep more files open than the system permits
+<dt class="POD_ITEM"><a name="FileHandle">FileHandle</a>
+<dd>
+Supply object methods for filehandles
+<dt class="POD_ITEM"><a name="FindBin">FindBin</a>
+<dd>
+Locate directory of original perl script
+<dt class="POD_ITEM"><a name="GDBM_File">GDBM_File</a>
+<dd>
+Perl5 access to the gdbm library.
+<dt class="POD_ITEM"><a name="Getopt_Long">Getopt::Long</a>
+<dd>
+Extended processing of command line options
+<dt class="POD_ITEM"><a name="Getopt_Std">Getopt::Std</a>
+<dd>
+Process single-character switches with switch clustering
+<dt class="POD_ITEM"><a name="I18N_Collate">I18N::Collate</a>
+<dd>
+Compare 8-bit scalar data according to the current locale
+<dt class="POD_ITEM"><a name="IO">IO</a>
+<dd>
+Load various IO modules
+<dt class="POD_ITEM"><a name="IPC_Open2">IPC::Open2</a>
+<dd>
+Open a process for both reading and writing
+<dt class="POD_ITEM"><a name="IPC_Open3">IPC::Open3</a>
+<dd>
+Open a process for reading, writing, and error handling
+<dt class="POD_ITEM"><a name="Math_BigFloat">Math::BigFloat</a>
+<dd>
+Arbitrary length float math package
+<dt class="POD_ITEM"><a name="Math_BigInt">Math::BigInt</a>
+<dd>
+Arbitrary size integer math package
+<dt class="POD_ITEM"><a name="Math_Complex">Math::Complex</a>
+<dd>
+Complex numbers and associated mathematical functions
+<dt class="POD_ITEM"><a name="Math_Trig">Math::Trig</a>
+<dd>
+Trigonometric functions
+<dt class="POD_ITEM"><a name="Net_Ping">Net::Ping</a>
+<dd>
+Check a remote host for reachability
+<dt class="POD_ITEM"><a name="Net_hostent">Net::hostent</a>
+<dd>
+By-name interface to Perl's built-in gethost*() functions
+<dt class="POD_ITEM"><a name="Net_netent">Net::netent</a>
+<dd>
+By-name interface to Perl's built-in getnet*() functions
+<dt class="POD_ITEM"><a name="Net_protoent">Net::protoent</a>
+<dd>
+By-name interface to Perl's built-in getproto*() functions
+<dt class="POD_ITEM"><a name="Net_servent">Net::servent</a>
+<dd>
+By-name interface to Perl's built-in getserv*() functions
+<dt class="POD_ITEM"><a name="O">O</a>
+<dd>
+Generic interface to Perl Compiler backends
+<dt class="POD_ITEM"><a name="Opcode">Opcode</a>
+<dd>
+Disable named opcodes when compiling perl code
+<dt class="POD_ITEM"><a name="Pod_Checker">Pod::Checker</a>
+<dd>
+Check pod documents for syntax errors
+<dt class="POD_ITEM"><a name="Pod_Find">Pod::Find</a>
+<dd>
+Find POD documents in directory trees
+<dt class="POD_ITEM"><a name="Pod_Html">Pod::Html</a>
+<dd>
+Module to convert pod files to HTML
+<dt class="POD_ITEM"><a name="Pod_InputObjects">Pod::InputObjects</a>
+<dd>
+Objects representing POD input paragraphs, commands, etc.
+<dt class="POD_ITEM"><a name="Pod_LaTeX">Pod::LaTeX</a>
+<dd>
+Convert Pod data to formatted Latex
+<dt class="POD_ITEM"><a name="Pod_Man">Pod::Man</a>
+<dd>
+Convert POD data to formatted *roff input
+<dt class="POD_ITEM"><a name="Pod_ParseUtils">Pod::ParseUtils</a>
+<dd>
+Helpers for POD parsing and conversion
+<dt class="POD_ITEM"><a name="Pod_Parser">Pod::Parser</a>
+<dd>
+Base class for creating POD filters and translators
+<dt class="POD_ITEM"><a name="Pod_Plainer">Pod::Plainer</a>
+<dd>
+Perl extension for converting Pod to old style Pod.
+<dt class="POD_ITEM"><a name="Pod_Select">Pod::Select</a>
+<dd>
+Extract selected sections of POD from input
+<dt class="POD_ITEM"><a name="Pod_Text">Pod::Text</a>
+<dd>
+Convert POD data to formatted ASCII text
+<dt class="POD_ITEM"><a name="Pod_Text_Color">Pod::Text::Color</a>
+<dd>
+Convert POD data to formatted color ASCII text
+<dt class="POD_ITEM"><a name="Pod_Text_Overstrike">Pod::Text::Overstrike</a>
+<dd>
+Convert POD data to formatted overstrike text
+<dt class="POD_ITEM"><a name="Pod_Text_Termcap">Pod::Text::Termcap</a>
+<dd>
+Convert POD data to ASCII text with format escapes
+<dt class="POD_ITEM"><a name="Pod_Usage">Pod::Usage</a>
+<dd>
+Print a usage message from embedded pod documentation
+<dt class="POD_ITEM"><a name="SDBM_File">SDBM_File</a>
+<dd>
+Tied access to sdbm files
+<dt class="POD_ITEM"><a name="Safe">Safe</a>
+<dd>
+Compile and execute code in restricted compartments
+<dt class="POD_ITEM"><a name="Search_Dict">Search::Dict</a>
+<dd>
+Search for key in dictionary file
+<dt class="POD_ITEM"><a name="SelectSaver">SelectSaver</a>
+<dd>
+Save and restore selected file handle
+<dt class="POD_ITEM"><a name="SelfLoader">SelfLoader</a>
+<dd>
+Load functions only on demand
+<dt class="POD_ITEM"><a name="Shell">Shell</a>
+<dd>
+Run shell commands transparently within perl
+<dt class="POD_ITEM"><a name="Socket">Socket</a>
+<dd>
+Load the C socket.h defines and structure manipulators
+<dt class="POD_ITEM"><a name="Symbol">Symbol</a>
+<dd>
+Manipulate Perl symbols and their names
+<dt class="POD_ITEM"><a name="Term_ANSIColor">Term::ANSIColor</a>
+<dd>
+Color screen output using ANSI escape sequences
+<dt class="POD_ITEM"><a name="Term_Cap">Term::Cap</a>
+<dd>
+Perl termcap interface
+<dt class="POD_ITEM"><a name="Term_Complete">Term::Complete</a>
+<dd>
+Perl word completion module
+<dt class="POD_ITEM"><a name="Term_ReadLine">Term::ReadLine</a>
+<dd>
+Perl interface to various <code><a class="POD_LINK" href="perlfunc.html#readline_EXPR">readline</a></code> packages. If
+<dt class="POD_ITEM"><a name="Test">Test</a>
+<dd>
+Provides a simple framework for writing test scripts
+<dt class="POD_ITEM"><a name="Test_Harness">Test::Harness</a>
+<dd>
+Run perl standard test scripts with statistics
+<dt class="POD_ITEM"><a name="Text_Abbrev">Text::Abbrev</a>
+<dd>
+Create an abbreviation table from a list
+<dt class="POD_ITEM"><a name="Text_ParseWords">Text::ParseWords</a>
+<dd>
+Parse text into an array of tokens or array of arrays
+<dt class="POD_ITEM"><a name="Text_Soundex">Text::Soundex</a>
+<dd>
+Implementation of the Soundex Algorithm as Described by Knuth
+<dt class="POD_ITEM"><a name="Text_Wrap">Text::Wrap</a>
+<dd>
+Line wrapping to form simple paragraphs
+<dt class="POD_ITEM"><a name="Thread">Thread</a>
+<dd>
+Manipulate threads in Perl (EXPERIMENTAL, subject to change)
+<dt class="POD_ITEM"><a name="Thread_Queue">Thread::Queue</a>
+<dd>
+Thread-safe queues
+<dt class="POD_ITEM"><a name="Thread_Semaphore">Thread::Semaphore</a>
+<dd>
+Thread-safe semaphores
+<dt class="POD_ITEM"><a name="Thread_Signal">Thread::Signal</a>
+<dd>
+Start a thread which runs signal handlers reliably
+<dt class="POD_ITEM"><a name="Thread_Specific">Thread::Specific</a>
+<dd>
+Thread-specific keys
+<dt class="POD_ITEM"><a name="Tie_Array">Tie::Array</a>
+<dd>
+Base class for tied arrays
+<dt class="POD_ITEM"><a name="Tie_Handle">Tie::Handle</a>
+<dd>
+Base class definitions for tied handles
+<dt class="POD_ITEM"><a name="Tie_Hash">Tie::Hash</a>
+<dd>
+Base class definitions for tied hashes
+<dt class="POD_ITEM"><a name="Tie_RefHash">Tie::RefHash</a>
+<dd>
+Use references as hash keys
+<dt class="POD_ITEM"><a name="Tie_Scalar">Tie::Scalar</a>
+<dd>
+Base class definitions for tied scalars
+<dt class="POD_ITEM"><a name="Tie_SubstrHash">Tie::SubstrHash</a>
+<dd>
+Fixed-table-size, fixed-key-length hashing
+<dt class="POD_ITEM"><a name="Time_Local">Time::Local</a>
+<dd>
+Efficiently compute time from local and GMT time
+<dt class="POD_ITEM"><a name="Time_gmtime">Time::gmtime</a>
+<dd>
+By-name interface to Perl's built-in gmtime() function
+<dt class="POD_ITEM"><a name="Time_localtime">Time::localtime</a>
+<dd>
+By-name interface to Perl's built-in localtime() function
+<dt class="POD_ITEM"><a name="Time_tm">Time::tm</a>
+<dd>
+Internal object used by Time::gmtime and Time::localtime
+<dt class="POD_ITEM"><a name="UNIVERSAL">UNIVERSAL</a>
+<dd>
+Base class for ALL classes (blessed references)
+<dt class="POD_ITEM"><a name="User_grent">User::grent</a>
+<dd>
+By-name interface to Perl's built-in getgr*() functions
+<dt class="POD_ITEM"><a name="User_pwent">User::pwent</a>
+<dd>
+By-name interface to Perl's built-in getpw*() functions
+</dl>
+<pre class="POD_TEXT">
+To find out <i>all</i> modules installed on your system, including
+those without documentation or outside the standard release,
+just do this:
+
+    % find `perl -e 'print &quot;@INC&quot;'` -name '*.pm' -print
+</pre>
+<p class="POD_TEXT">
+They should all have their own documentation installed and accessible
+via your system man(1) command.  If you do not have a <b>find</b>
+program, you can use the Perl <b>find2perl</b> program instead, which
+generates Perl code as output you can run through perl.  If you
+have a <b>man</b> program but it doesn't find your modules, you'll have
+to fix your manpath.  See the <a class="POD_LINK" href="perl.html">perl</a> manpage for details.  If you have no
+system <b>man</b> command, you might try the <b>perldoc</b> program.
+</p>
+<h3 class="POD_HEAD2"><a name="Extension_Modules">Extension Modules</a></h3>
+<p class="POD_TEXT">
+Extension modules are written in C (or a mix of Perl and C).  They
+are usually dynamically loaded into Perl if and when you need them,
+but may also be be linked in statically.  Supported extension modules
+include Socket, Fcntl, and POSIX.
+</p>
+<p class="POD_TEXT">
+Many popular C extension modules do not come bundled (at least, not
+completely) due to their sizes, volatility, or simply lack of time
+for adequate testing and configuration across the multitude of
+platforms on which Perl was beta-tested.  You are encouraged to
+look for them on CPAN (described below), or using web search engines
+like Alta Vista or Deja News.
+</p>
+<h2 class="POD_HEAD1"><a name="CPAN1">CPAN</a></h2>
+<p class="POD_TEXT">
+CPAN stands for Comprehensive Perl Archive Network; it's a globally
+replicated trove of Perl materials, including documentation, style
+guides, tricks and traps, alternate ports to non-Unix systems and
+occasional binary distributions for these.   Search engines for
+CPAN can be found at http://cpan.perl.com/ and at
+http://theory.uwinnipeg.ca/mod_perl/cpan-search.pl .
+</p>
+<p class="POD_TEXT">
+Most importantly, CPAN includes around a thousand unbundled modules,
+some of which require a C compiler to build.  Major categories of
+modules are:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_"></a>
+
+Language Extensions and Documentation Tools
+<li class="POD_ITEM"><a name="_1"></a>
+
+Development Support
+<li class="POD_ITEM"><a name="_2"></a>
+
+Operating System Interfaces
+<li class="POD_ITEM"><a name="_3"></a>
+
+Networking, Device Control (modems) and InterProcess Communication
+<li class="POD_ITEM"><a name="_4"></a>
+
+Data Types and Data Type Utilities
+<li class="POD_ITEM"><a name="_5"></a>
+
+Database Interfaces
+<li class="POD_ITEM"><a name="_6"></a>
+
+User Interfaces
+<li class="POD_ITEM"><a name="_7"></a>
+
+Interfaces to / Emulations of Other Programming Languages
+<li class="POD_ITEM"><a name="_8"></a>
+
+File Names, File Systems and File Locking (see also File Handles)
+<li class="POD_ITEM"><a name="_9"></a>
+
+String Processing, Language Text Processing, Parsing, and Searching
+<li class="POD_ITEM"><a name="_10"></a>
+
+Option, Argument, Parameter, and Configuration File Processing
+<li class="POD_ITEM"><a name="_11"></a>
+
+Internationalization and Locale
+<li class="POD_ITEM"><a name="_12"></a>
+
+Authentication, Security, and Encryption
+<li class="POD_ITEM"><a name="_13"></a>
+
+World Wide Web, HTML, HTTP, CGI, MIME
+<li class="POD_ITEM"><a name="_14"></a>
+
+Server and Daemon Utilities
+<li class="POD_ITEM"><a name="_15"></a>
+
+Archiving and Compression
+<li class="POD_ITEM"><a name="_16"></a>
+
+Images, Pixmap and Bitmap Manipulation, Drawing, and Graphing
+<li class="POD_ITEM"><a name="_17"></a>
+
+Mail and Usenet News
+<li class="POD_ITEM"><a name="_18"></a>
+
+Control Flow Utilities (callbacks and exceptions etc)
+<li class="POD_ITEM"><a name="_19"></a>
+
+File Handle and Input/Output Stream Utilities
+<li class="POD_ITEM"><a name="_20"></a>
+
+Miscellaneous Modules
+</ul>
+<p class="POD_TEXT">
+Registered CPAN sites as of this writing include the following.
+You should try to choose one close to you:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Africa">Africa</a>
+<dd><pre class="POD_VERBATIM">
+    South Africa   ftp://ftp.is.co.za/programming/perl/CPAN/
+                   ftp://ftp.saix.net/pub/CPAN/
+                   ftp://ftp.sun.ac.za/CPAN/
+                   ftp://ftpza.co.za/pub/mirrors/cpan/
+</pre>
+<p></p>
+<dt class="POD_ITEM"><a name="Asia">Asia</a>
+<dd><pre class="POD_VERBATIM">
+    China          ftp://freesoft.cei.gov.cn/pub/languages/perl/CPAN/
+    Hong Kong      ftp://ftp.pacific.net.hk/pub/mirror/CPAN/
+    Indonesia      ftp://malone.piksi.itb.ac.id/pub/CPAN/
+    Israel         ftp://bioinfo.weizmann.ac.il/pub/software/perl/CPAN/
+    Japan          ftp://ftp.dti.ad.jp/pub/lang/CPAN/
+                   ftp://ftp.jaist.ac.jp/pub/lang/perl/CPAN/
+                   ftp://ftp.lab.kdd.co.jp/lang/perl/CPAN/
+                   ftp://ftp.meisei-u.ac.jp/pub/CPAN/
+                   ftp://ftp.ring.gr.jp/pub/lang/perl/CPAN/
+                   ftp://mirror.nucba.ac.jp/mirror/Perl/
+    Saudi-Arabia   ftp://ftp.isu.net.sa/pub/CPAN/
+    Singapore      ftp://ftp.nus.edu.sg/pub/unix/perl/CPAN/
+    South Korea    ftp://ftp.bora.net/pub/CPAN/
+                   ftp://ftp.kornet.net/pub/CPAN/
+                   ftp://ftp.nuri.net/pub/CPAN/
+    Taiwan         ftp://coda.nctu.edu.tw/computer-languages/perl/CPAN/
+                   ftp://ftp.ee.ncku.edu.tw/pub3/perl/CPAN/
+                   ftp://ftp1.sinica.edu.tw/pub1/perl/CPAN/
+    Thailand       ftp://ftp.nectec.or.th/pub/mirrors/CPAN/
+</pre>
+<p></p>
+<dt class="POD_ITEM"><a name="Australasia">Australasia</a>
+<dd><pre class="POD_VERBATIM">
+    Australia      ftp://cpan.topend.com.au/pub/CPAN/
+                   ftp://ftp.labyrinth.net.au/pub/perl-CPAN/
+                   ftp://ftp.sage-au.org.au/pub/compilers/perl/CPAN/
+                   ftp://mirror.aarnet.edu.au/pub/perl/CPAN/
+    New Zealand    ftp://ftp.auckland.ac.nz/pub/perl/CPAN/
+                   ftp://sunsite.net.nz/pub/languages/perl/CPAN/
+</pre>
+<p></p>
+<dt class="POD_ITEM"><a name="Central_America">Central America</a>
+<dd><pre class="POD_VERBATIM">
+    Costa Rica     ftp://ftp.ucr.ac.cr/pub/Unix/CPAN/
+</pre>
+<p></p>
+<dt class="POD_ITEM"><a name="Europe">Europe</a>
+<dd><pre class="POD_VERBATIM">
+    Austria        ftp://ftp.tuwien.ac.at/pub/languages/perl/CPAN/
+    Belgium        ftp://ftp.kulnet.kuleuven.ac.be/pub/mirror/CPAN/
+    Bulgaria       ftp://ftp.ntrl.net/pub/mirrors/CPAN/
+    Croatia        ftp://ftp.linux.hr/pub/CPAN/
+    Czech Republic ftp://ftp.fi.muni.cz/pub/perl/
+                   ftp://sunsite.mff.cuni.cz/Languages/Perl/CPAN/
+    Denmark        ftp://sunsite.auc.dk/pub/languages/perl/CPAN/
+    Estonia        ftp://ftp.ut.ee/pub/languages/perl/CPAN/
+    Finland        ftp://ftp.funet.fi/pub/languages/perl/CPAN/
+    France         ftp://ftp.grolier.fr/pub/perl/CPAN/
+                   ftp://ftp.lip6.fr/pub/perl/CPAN/
+                   ftp://ftp.oleane.net/pub/mirrors/CPAN/
+                   ftp://ftp.pasteur.fr/pub/computing/CPAN/
+                   ftp://ftp.uvsq.fr/pub/perl/CPAN/
+    German         ftp://ftp.gigabell.net/pub/CPAN/
+    Germany        ftp://ftp.archive.de.uu.net/pub/CPAN/
+                   ftp://ftp.freenet.de/pub/ftp.cpan.org/pub/
+                   ftp://ftp.gmd.de/packages/CPAN/
+                   ftp://ftp.gwdg.de/pub/languages/perl/CPAN/
+</pre>
+
+ftp://ftp.leo.org/pub/comp/general/programming/languages/script/perl/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://ftp.mpi-sb.mpg.de/pub/perl/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://ftp.rz.ruhr-uni-bochum.de/pub/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://ftp.uni-erlangen.de/pub/source/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://ftp.uni-hamburg.de/pub/soft/lang/perl/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;Germany        ftp://ftp.archive.de.uu.net/pub/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://ftp.freenet.de/pub/ftp.cpan.org/pub/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://ftp.gmd.de/packages/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://ftp.gwdg.de/pub/languages/perl/CPAN/
+<p class="POD_TEXT">
+ftp://ftp.leo.org/pub/comp/general/programming/languages/script/perl/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://ftp.mpi-sb.mpg.de/pub/perl/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://ftp.rz.ruhr-uni-bochum.de/pub/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://ftp.uni-erlangen.de/pub/source/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://ftp.uni-hamburg.de/pub/soft/lang/perl/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;Greece         ftp://ftp.ntua.gr/pub/lang/perl/<br>&nbsp;&nbsp;&nbsp;&nbsp;Hungary        ftp://ftp.kfki.hu/pub/packages/perl/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;Iceland        ftp://ftp.gm.is/pub/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;Ireland        ftp://cpan.indigo.ie/pub/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://sunsite.compapp.dcu.ie/pub/perl/<br>&nbsp;&nbsp;&nbsp;&nbsp;Italy          ftp://cis.uniRoma2.it/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://ftp.flashnet.it/pub/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://ftp.unina.it/pub/Other/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://ftp.unipi.it/pub/mirror/perl/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;Netherlands    ftp://ftp.cs.uu.nl/mirror/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://ftp.nluug.nl/pub/languages/perl/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;Norway         ftp://ftp.uit.no/pub/languages/perl/cpan/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://sunsite.uio.no/pub/languages/perl/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;Poland         ftp://ftp.man.torun.pl/pub/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://ftp.pk.edu.pl/pub/lang/perl/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://sunsite.icm.edu.pl/pub/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;Portugal       ftp://ftp.ci.uminho.pt/pub/mirrors/cpan/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://ftp.ist.utl.pt/pub/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://ftp.ua.pt/pub/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;Romania        ftp://ftp.dnttm.ro/pub/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;Russia         ftp://ftp.chg.ru/pub/lang/perl/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://ftp.sai.msu.su/pub/lang/perl/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;Slovakia       ftp://ftp.entry.sk/pub/languages/perl/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;Slovenia       ftp://ftp.arnes.si/software/perl/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;Spain          ftp://ftp.etse.urv.es/pub/perl/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://ftp.rediris.es/mirror/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;Sweden         ftp://ftp.sunet.se/pub/lang/perl/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;Switzerland    ftp://sunsite.cnlab-switch.ch/mirror/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;Turkey         ftp://sunsite.bilkent.edu.tr/pub/languages/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;United Kingdom ftp://ftp.demon.co.uk/pub/mirrors/perl/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://ftp.flirble.org/pub/languages/perl/CPAN/
+</p>
+<p class="POD_TEXT">
+ftp://ftp.mirror.ac.uk/sites/ftp.funet.fi/pub/languages/perl/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://ftp.plig.org/pub/CPAN/<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ftp://sunsite.doc.ic.ac.uk/packages/CPAN/
+</p>
+<p></p>
+<dt class="POD_ITEM"><a name="North_America">North America</a>
+<dd><pre class="POD_VERBATIM">
+    Alberta        ftp://sunsite.ualberta.ca/pub/Mirror/CPAN/
+    California     ftp://cpan.nas.nasa.gov/pub/perl/CPAN/
+                   ftp://cpan.valueclick.com/CPAN/
+                   ftp://ftp.cdrom.com/pub/perl/CPAN/
+                   http://download.sourceforge.net/mirrors/CPAN/
+    Colorado       ftp://ftp.cs.colorado.edu/pub/perl/CPAN/
+    Florida        ftp://ftp.cise.ufl.edu/pub/perl/CPAN/
+    Georgia        ftp://ftp.twoguys.org/CPAN/
+    Illinois       ftp://uiarchive.uiuc.edu/pub/lang/perl/CPAN/
+    Indiana        ftp://csociety-ftp.ecn.purdue.edu/pub/CPAN/
+                   ftp://ftp.uwsg.indiana.edu/pub/perl/CPAN/
+    Kentucky       ftp://ftp.uky.edu/CPAN/
+    Manitoba       ftp://theoryx5.uwinnipeg.ca/pub/CPAN/
+    Massachusetts
+ftp://ftp.ccs.neu.edu/net/mirrors/ftp.funet.fi/pub/languages/perl/CPAN/
+                   ftp://ftp.iguide.com/pub/mirrors/packages/perl/CPAN/
+    Mexico         ftp://ftp.msg.com.mx/pub/CPAN/
+    New York       ftp://ftp.deao.net/pub/CPAN/
+                   ftp://ftp.rge.com/pub/languages/perl/
+    North Carolina ftp://ftp.duke.edu/pub/perl/
+    Nova Scotia    ftp://cpan.chebucto.ns.ca/pub/CPAN/
+    Oklahoma       ftp://ftp.ou.edu/mirrors/CPAN/
+    Ontario        ftp://ftp.crc.ca/pub/packages/lang/perl/CPAN/
+    Oregon         ftp://ftp.orst.edu/pub/packages/CPAN/
+    Pennsylvania   ftp://ftp.epix.net/pub/languages/perl/
+    Tennessee      ftp://ftp.sunsite.utk.edu/pub/CPAN/
+    Texas          ftp://ftp.sedl.org/pub/mirrors/CPAN/
+                   ftp://jhcloos.com/pub/mirror/CPAN/
+    Utah           ftp://mirror.xmission.com/CPAN/
+    Virginia       ftp://ftp.perl.org/pub/perl/CPAN/
+                   ftp://ruff.cs.jmu.edu/pub/CPAN/
+    Washington     ftp://ftp-mirror.internap.com/pub/CPAN/
+                   ftp://ftp.llarian.net/pub/CPAN/
+                   ftp://ftp.spu.edu/pub/CPAN/
+</pre>
+<p></p>
+<dt class="POD_ITEM"><a name="South_America">South America</a>
+<dd><pre class="POD_VERBATIM">
+    Brazil         ftp://cpan.if.usp.br/pub/mirror/CPAN/
+                   ftp://ftp.matrix.com.br/pub/perl/
+    Chile          ftp://sunsite.dcc.uchile.cl/pub/Lang/PERL/
+</pre>
+</dl>
+
+For an up-to-date listing of CPAN sites,
+see http://www.perl.com/perl/CPAN/SITES or ftp://www.perl.com/CPAN/SITES .
+<h2 class="POD_HEAD1"><a name="Modules_Creation_Use">Modules: Creation, Use, and Abuse</a></h2>
+<p class="POD_TEXT">
+(The following section is borrowed directly from Tim Bunce's modules
+file, available at your nearest CPAN site.)
+</p>
+<p class="POD_TEXT">
+Perl implements a class using a package, but the presence of a
+package doesn't imply the presence of a class.  A package is just a
+namespace.  A class is a package that provides subroutines that can be
+used as methods.  A method is just a subroutine that expects, as its
+first argument, either the name of a package (for &quot;static&quot; methods),
+or a reference to something (for &quot;virtual&quot; methods).
+</p>
+<p class="POD_TEXT">
+A module is a file that (by convention) provides a class of the same
+name (sans the .pm), plus an import method in that class that can be
+called to fetch exported symbols.  This module may implement some of
+its methods by loading dynamic C or C++ objects, but that should be
+totally transparent to the user of the module.  Likewise, the module
+might set up an AUTOLOAD function to slurp in subroutine definitions on
+demand, but this is also transparent.  Only the <code>.pm</code> file is required to
+exist.  See the <a class="POD_LINK" href="perlsub.html">perlsub</a> manpage, the <a class="POD_LINK" href="perltoot.html">perltoot</a> manpage, and the <a class="POD_LINK" href="AutoLoader.html">AutoLoader</a> manpage for details about
+the AUTOLOAD mechanism.
+</p>
+<h3 class="POD_HEAD2"><a name="Guidelines_for_Modul">Guidelines for Module Creation</a></h3>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Do_similar_modules_a">Do similar modules already exist in some form?</a>
+<dd>
+If so, please try to reuse the existing modules either in whole or
+by inheriting useful features into a new class.  If this is not
+practical try to get together with the module authors to work on
+extending or enhancing the functionality of the existing modules.
+A perfect example is the plethora of packages in perl4 for dealing
+with command line options.
+<p class="POD_TEXT">
+If you are writing a module to expand an already existing set of
+modules, please coordinate with the author of the package.  It
+helps if you follow the same naming scheme and module interaction
+scheme as the original author.
+</p>
+<dt class="POD_ITEM"><a name="Try_to_design_the_ne">Try to design the new module to be easy to extend and reuse.</a>
+<dd>
+Try to <code>use warnings;</code> (or <code>use warnings qw(...);</code>).
+Remember that you can add <code>no warnings qw(...);</code> to individual blocks
+of code that need less warnings.
+<pre class="POD_TEXT">
+Use blessed references.  Use the two argument form of bless to bless
+into the class name given as the first parameter of the constructor,
+e.g.,:
+
+ sub new {
+     my $class = shift;
+     return bless {}, $class;
+ }
+</pre>
+<pre class="POD_TEXT">
+or even this if you'd like it to be used as either a static
+or a virtual method.
+
+ sub new {
+     my $self  = shift;
+     my $class = ref($self) || $self;
+     return bless {}, $class;
+ }
+</pre>
+<p class="POD_TEXT">
+Pass arrays as references so more parameters can be added later
+(it's also faster).  Convert functions into methods where
+appropriate.  Split large methods into smaller more flexible ones.
+Inherit methods from other modules if appropriate.
+</p>
+<p class="POD_TEXT">
+Avoid class name tests like: <code>die &quot;Invalid&quot; unless ref $ref eq 'FOO'</code>.
+Generally you can delete the <code>eq 'FOO'</code> part with no harm at all.
+Let the objects look after themselves! Generally, avoid hard-wired
+class names as far as possible.
+</p>
+<p class="POD_TEXT">
+Avoid <code>$r-&gt;Class::func()</code> where using <code>@ISA=qw(... Class ...)</code> and
+<code>$r-&gt;func()</code> would work (see the <a class="POD_LINK" href="perlbot.html">perlbot</a> manpage for more details).
+</p>
+<pre class="POD_TEXT">
+Use autosplit so little used or newly added functions won't be a
+burden to programs that don't use them. Add test functions to
+the module after __END__ either using AutoSplit or by saying:
+
+ eval join('',&lt;main::DATA&gt;) || die $@ unless caller();
+</pre>
+<p class="POD_TEXT">
+Does your module pass the 'empty subclass' test? If you say
+<code>@SUBCLASS::ISA = qw(YOURCLASS);</code> your applications should be able
+to use SUBCLASS in exactly the same way as YOURCLASS.  For example,
+does your application still work if you change:  <code>$obj = new YOURCLASS;</code>
+into: <code>$obj = new SUBCLASS;</code> ?
+</p>
+<p class="POD_TEXT">
+Avoid keeping any state information in your packages. It makes it
+difficult for multiple other packages to use yours. Keep state
+information in objects.
+</p>
+<p class="POD_TEXT">
+Always use <b>-w</b>.
+</p>
+<p class="POD_TEXT">
+Try to <code>use strict;</code> (or <code>use strict qw(...);</code>).
+Remember that you can add <code>no strict qw(...);</code> to individual blocks
+of code that need less strictness.
+</p>
+<p class="POD_TEXT">
+Always use <b>-w</b>.
+</p>
+<p class="POD_TEXT">
+Follow the guidelines in the perlstyle(1) manual.
+</p>
+<p class="POD_TEXT">
+Always use <b>-w</b>.
+</p>
+<dt class="POD_ITEM"><a name="Some_simple_style_gu">Some simple style guidelines</a>
+<dd>
+The perlstyle manual supplied with Perl has many helpful points.
+<p class="POD_TEXT">
+Coding style is a matter of personal taste. Many people evolve their
+style over several years as they learn what helps them write and
+maintain good code.  Here's one set of assorted suggestions that
+seem to be widely used by experienced developers:
+</p>
+<p class="POD_TEXT">
+Use underscores to separate words.  It is generally easier to read
+$var_names_like_this than $VarNamesLikeThis, especially for
+non-native speakers of English. It's also a simple rule that works
+consistently with VAR_NAMES_LIKE_THIS.
+</p>
+<p class="POD_TEXT">
+Package/Module names are an exception to this rule. Perl informally
+reserves lowercase module names for 'pragma' modules like integer
+and strict. Other modules normally begin with a capital letter and
+use mixed case with no underscores (need to be short and portable).
+</p>
+<pre class="POD_TEXT">
+You may find it helpful to use letter case to indicate the scope
+or nature of a variable. For example:
+
+ $ALL_CAPS_HERE   constants only (beware clashes with Perl vars)
+ $Some_Caps_Here  package-wide global/static
+ $no_caps_here    function scope my() or local() variables
+</pre>
+<p class="POD_TEXT">
+Function and method names seem to work best as all lowercase.
+e.g., <code>$obj-&gt;as_string()</code>.
+</p>
+<p class="POD_TEXT">
+You can use a leading underscore to indicate that a variable or
+function should not be used outside the package that defined it.
+</p>
+<dt class="POD_ITEM"><a name="Select_what_to_expor">Select what to export.</a>
+<dd>
+Do NOT export method names!
+<p class="POD_TEXT">
+Do NOT export anything else by default without a good reason!
+</p>
+<p class="POD_TEXT">
+Exports pollute the namespace of the module user.  If you must
+export try to use @EXPORT_OK in preference to @EXPORT and avoid
+short or common names to reduce the risk of name clashes.
+</p>
+<p class="POD_TEXT">
+Generally anything not exported is still accessible from outside the
+module using the ModuleName::item_name (or <code>$blessed_ref-&gt;method</code>)
+syntax.  By convention you can use a leading underscore on names to
+indicate informally that they are 'internal' and not for public use.
+</p>
+<p class="POD_TEXT">
+(It is actually possible to get private functions by saying:
+<code>my $subref = sub { ... };  &amp;$subref;</code>.  But there's no way to call that
+directly as a method, because a method must have a name in the symbol
+table.)
+</p>
+<p class="POD_TEXT">
+As a general rule, if the module is trying to be object oriented
+then export nothing. If it's just a collection of functions then
+@EXPORT_OK anything but use @EXPORT with caution.
+</p>
+<dt class="POD_ITEM"><a name="Select_a_name_for_th">Select a name for the module.</a>
+<dd>
+This name should be as descriptive, accurate, and complete as
+possible.  Avoid any risk of ambiguity. Always try to use two or
+more whole words.  Generally the name should reflect what is special
+about what the module does rather than how it does it.  Please use
+nested module names to group informally or categorize a module.
+There should be a very good reason for a module not to have a nested name.
+Module names should begin with a capital letter.
+<p class="POD_TEXT">
+Having 57 modules all called Sort will not make life easy for anyone
+(though having 23 called Sort::Quick is only marginally better :-).
+Imagine someone trying to install your module alongside many others.
+If in any doubt ask for suggestions in comp.lang.perl.misc.
+</p>
+<p class="POD_TEXT">
+If you are developing a suite of related modules/classes it's good
+practice to use nested classes with a common prefix as this will
+avoid namespace clashes. For example: Xyz::Control, Xyz::View,
+Xyz::Model etc. Use the modules in this list as a naming guide.
+</p>
+<p class="POD_TEXT">
+If adding a new module to a set, follow the original author's
+standards for naming modules and the interface to methods in
+those modules.
+</p>
+<p class="POD_TEXT">
+If developing modules for private internal or project specific use,
+that will never be released to the public, then you should ensure
+that their names will not clash with any future public module. You
+can do this either by using the reserved Local::* category or by
+using a category name that includes an underscore like Foo_Corp::*.
+</p>
+<p class="POD_TEXT">
+To be portable each component of a module name should be limited to
+11 characters. If it might be used on MS-DOS then try to ensure each is
+unique in the first 8 characters. Nested modules make this easier.
+</p>
+<dt class="POD_ITEM"><a name="Have_you_got_it_righ">Have you got it right?</a>
+<dd>
+How do you know that you've made the right decisions? Have you
+picked an interface design that will cause problems later? Have
+you picked the most appropriate name? Do you have any questions?
+<p class="POD_TEXT">
+The best way to know for sure, and pick up many helpful suggestions,
+is to ask someone who knows. Comp.lang.perl.misc is read by just about
+all the people who develop modules and it's the best place to ask.
+</p>
+<p class="POD_TEXT">
+All you need to do is post a short summary of the module, its
+purpose and interfaces. A few lines on each of the main methods is
+probably enough. (If you post the whole module it might be ignored
+by busy people - generally the very people you want to read it!)
+</p>
+<p class="POD_TEXT">
+Don't worry about posting if you can't say when the module will be
+ready - just say so in the message. It might be worth inviting
+others to help you, they may be able to complete it for you!
+</p>
+<dt class="POD_ITEM"><a name="README_and_other_Add">README and other Additional Files.</a>
+<dd>
+It's well known that software developers usually fully document the
+software they write. If, however, the world is in urgent need of
+your software and there is not enough time to write the full
+documentation please at least provide a README file containing:
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="A_description_of_the">A description of the module/package/extension etc.</a>
+<li class="POD_ITEM"><a name="A_copyright_notice_s">A copyright notice - see below.</a>
+<li class="POD_ITEM"><a name="Prerequisites_what_e">Prerequisites - what else you may need to have.</a>
+<li class="POD_ITEM"><a name="How_to_build_it_poss">How to build it - possible changes to Makefile.PL etc.</a>
+<li class="POD_ITEM"><a name="How_to_install_it_">How to install it.</a>
+<li class="POD_ITEM"><a name="Recent_changes_in_th">Recent changes in this release, especially incompatibilities</a>
+<li class="POD_ITEM"><a name="Changes_enhancements">Changes / enhancements you plan to make in the future.</a>
+</ul>
+
+If the README file seems to be getting too large you may wish to
+split out some of the sections into separate files: INSTALL,
+Copying, ToDo etc.
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Adding_a_Copyright_N">Adding a Copyright Notice.</a>
+<dd>
+How you choose to license your work is a personal decision.
+The general mechanism is to assert your Copyright and then make
+a declaration of how others may copy/use/modify your work.
+<p class="POD_TEXT">
+Perl, for example, is supplied with two types of licence: The GNU
+GPL and The Artistic Licence (see the files README, Copying, and
+Artistic).  Larry has good reasons for NOT just using the GNU GPL.
+</p>
+<pre class="POD_TEXT">
+My personal recommendation, out of respect for Larry, Perl, and the
+Perl community at large is to state something simply like:
+
+ Copyright (c) 1995 Your Name. All rights reserved.
+ This program is free software; you can redistribute it and/or
+ modify it under the same terms as Perl itself.
+</pre>
+<p class="POD_TEXT">
+This statement should at least appear in the README file. You may
+also wish to include it in a Copying file and your source files.
+Remember to include the other words in addition to the Copyright.
+</p>
+<dt class="POD_ITEM"><a name="Give_the_module_a_ve">Give the module a version/issue/release number.</a>
+<dd>
+To be fully compatible with the Exporter and MakeMaker modules you
+should store your module's version number in a non-my package
+variable called $VERSION.  This should be a floating point
+number with at least two digits after the decimal (i.e., hundredths,
+e.g, <code>$VERSION = &quot;0.01&quot;</code>).  Don't use a &quot;1.3.2&quot; style version.
+See the <a class="POD_LINK" href="Exporter.html">Exporter</a> manpage for details.
+<p class="POD_TEXT">
+It may be handy to add a function or method to retrieve the number.
+Use the number in announcements and archive file names when
+releasing the module (ModuleName-1.02.tar.Z).
+See perldoc ExtUtils::MakeMaker.pm for details.
+</p>
+<dt class="POD_ITEM"><a name="How_to_release_and_d">How to release and distribute a module.</a>
+<dd>
+It's good idea to post an announcement of the availability of your
+module (or the module itself if small) to the comp.lang.perl.announce
+Usenet newsgroup.  This will at least ensure very wide once-off
+distribution.
+<p class="POD_TEXT">
+If possible, register the module with CPAN.  You should
+include details of its location in your announcement.
+</p>
+<p class="POD_TEXT">
+Some notes about ftp archives: Please use a long descriptive file
+name that includes the version number. Most incoming directories
+will not be readable/listable, i.e., you won't be able to see your
+file after uploading it. Remember to send your email notification
+message as soon as possible after uploading else your file may get
+deleted automatically. Allow time for the file to be processed
+and/or check the file has been processed before announcing its
+location.
+</p>
+<p class="POD_TEXT">
+FTP Archives for Perl Modules:
+</p>
+<pre class="POD_TEXT">
+Follow the instructions and links on:
+
+   http://www.perl.com/CPAN/modules/00modlist.long.html
+   http://www.perl.com/CPAN/modules/04pause.html
+</pre>
+<pre class="POD_TEXT">
+or upload to one of these sites:
+
+   https://pause.kbx.de/pause/
+   http://pause.perl.org/pause/
+</pre>
+<p class="POD_TEXT">
+and notify &lt;modules@perl.org&gt;.
+</p>
+<p class="POD_TEXT">
+By using the WWW interface you can ask the Upload Server to mirror
+your modules from your ftp or WWW site into your own directory on
+CPAN!
+</p>
+<p class="POD_TEXT">
+Please remember to send me an updated entry for the Module list!
+</p>
+<dt class="POD_ITEM"><a name="Take_care_when_chang">Take care when changing a released module.</a>
+<dd>
+Always strive to remain compatible with previous released versions.
+Otherwise try to add a mechanism to revert to the
+old behavior if people rely on it.  Document incompatible changes.
+</dl>
+</dl>
+<h3 class="POD_HEAD2"><a name="Guidelines_for_Conve">Guidelines for Converting Perl 4 Library Scripts into Modules</a></h3>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="There_is_no_requirem">There is no requirement to convert anything.</a>
+<dd>
+If it ain't broke, don't fix it! Perl 4 library scripts should
+continue to work with no problems. You may need to make some minor
+changes (like escaping non-array @'s in double quoted strings) but
+there is no need to convert a .pl file into a Module for just that.
+<dt class="POD_ITEM"><a name="Consider_the_implica">Consider the implications.</a>
+<dd>
+All Perl applications that make use of the script will need to
+be changed (slightly) if the script is converted into a module.  Is
+it worth it unless you plan to make other changes at the same time?
+<dt class="POD_ITEM"><a name="Make_the_most_of_the">Make the most of the opportunity.</a>
+<dd>
+If you are going to convert the script to a module you can use the
+opportunity to redesign the interface.  The guidelines for module
+creation above include many of the issues you should consider.
+<dt class="POD_ITEM"><a name="The_pl2pm_utility_wi">The pl2pm utility will get you started.</a>
+<dd>
+This utility will read *.pl files (given as parameters) and write
+corresponding *.pm files. The pl2pm utilities does the following:
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="Adds_the_standard_Mo">Adds the standard Module prologue lines</a>
+<li class="POD_ITEM"><a name="Converts_package_spe">Converts package specifiers from ' to ::</a>
+<li class="POD_ITEM"><a name="Converts_die_to_croa">Converts die(...) to croak(...)</a>
+<li class="POD_ITEM"><a name="Several_other_minor_">Several other minor changes</a>
+</ul>
+
+Being a mechanical process pl2pm is not bullet proof. The converted
+code will need careful checking, especially any package statements.
+Don't delete the original .pl file till the new .pm one works!
+</dl>
+<h3 class="POD_HEAD2"><a name="Guidelines_for_Reusi">Guidelines for Reusing Application Code</a></h3>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_21"></a>
+
+Complete applications rarely belong in the Perl Module Library.
+<li class="POD_ITEM"><a name="_22"></a>
+
+Many applications contain some Perl code that could be reused.
+<p class="POD_TEXT">
+Help save the world! Share your code in a form that makes it easy
+to reuse.
+</p>
+<li class="POD_ITEM"><a name="_23"></a>
+
+Break-out the reusable code into one or more separate module files.
+<li class="POD_ITEM"><a name="_24"></a>
+
+Take the opportunity to reconsider and redesign the interfaces.
+<li class="POD_ITEM"><a name="_25"></a>
+
+In some cases the 'application' can then be reduced to a small
+<pre class="POD_TEXT">
+fragment of code built on top of the reusable modules. In these cases
+the application could invoked as:
+
+     % perl -e 'use Module::Name; method(@ARGV)' ...
+or
+     % perl -mModule::Name ...    (in perl5.002 or higher)
+</pre>
+</ul>
+<h2 class="POD_HEAD1"><a name="NOTE">NOTE</a></h2>
+<p class="POD_TEXT">
+Perl does not enforce private and public parts of its modules as you may
+have been used to in other languages like C++, Ada, or Modula-17.  Perl
+doesn't have an infatuation with enforced privacy.  It would prefer
+that you stayed out of its living room because you weren't invited, not
+because it has a shotgun.
+</p>
+<p class="POD_TEXT">
+The module and its user have a contract, part of which is common law,
+and part of which is &quot;written&quot;.  Part of the common law contract is
+that a module doesn't pollute any namespace it wasn't asked to.  The
+written contract for the module (A.K.A. documentation) may make other
+provisions.  But then you know when you <code>use RedefineTheWorld</code> that
+you're redefining the world and willing to take the consequences.
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:35:50 2001
+</body>
+</html>
+

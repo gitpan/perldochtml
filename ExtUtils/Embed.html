@@ -1,0 +1,288 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>ExtUtils::Embed</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="../ExtUtils/Install.html">Next:<br>ExtUtils::Install</a></td><td align="left" width="1%"><a  href="../ExtUtils/Command.html">Previous:<br>ExtUtils::Command</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="../podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="../podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">ExtUtils::Embed</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#_EXPORT">@EXPORT</a>
+<li><a href="#FUNCTIONS">FUNCTIONS</a>
+<li><a href="#EXAMPLES">EXAMPLES</a>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+<li><a href="#AUTHOR">AUTHOR</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+ExtUtils::Embed - Utilities for embedding Perl in C/C++ applications
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre>
+ perl -MExtUtils::Embed -e xsinit 
+ perl -MExtUtils::Embed -e ldopts
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+ExtUtils::Embed provides utility functions for embedding a Perl interpreter
+and extensions in your C/C++ applications.  
+Typically, an application <b>Makefile</b> will invoke ExtUtils::Embed
+functions while building your application.
+</p>
+<h2 class="POD_HEAD1"><a name="_EXPORT">@EXPORT</a></h2>
+<p class="POD_TEXT">
+ExtUtils::Embed exports the following functions:
+</p>
+<p class="POD_TEXT">
+xsinit(), ldopts(), ccopts(), perl_inc(), ccflags(), 
+ccdlflags(), xsi_header(), xsi_protos(), xsi_body()
+</p>
+<h2 class="POD_HEAD1"><a name="FUNCTIONS">FUNCTIONS</a></h2>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="xsinit_">xsinit()</a>
+<dd>
+Generate C/C++ code for the XS initializer function.
+<p class="POD_TEXT">
+When invoked as <code>`perl -MExtUtils::Embed -e xsinit --`</code>
+the following options are recognized:
+</p>
+<p class="POD_TEXT">
+<b>-o</b> &lt;output filename&gt; (Defaults to <b>perlxsi.c</b>)
+</p>
+<p class="POD_TEXT">
+<b>-o STDOUT</b> will print to STDOUT.
+</p>
+<p class="POD_TEXT">
+<b>-std</b> (Write code for extensions that are linked with the current Perl.)
+</p>
+<p class="POD_TEXT">
+Any additional arguments are expected to be names of modules
+to generate code for.
+</p>
+<p class="POD_TEXT">
+When invoked with parameters the following are accepted and optional:
+</p>
+<p class="POD_TEXT">
+<code>xsinit($filename,$std,[@modules])</code>
+</p>
+<p class="POD_TEXT">
+Where,
+</p>
+<p class="POD_TEXT">
+<b>$filename</b> is equivalent to the <b>-o</b> option.
+</p>
+<p class="POD_TEXT">
+<b>$std</b> is boolean, equivalent to the <b>-std</b> option.
+</p>
+<p class="POD_TEXT">
+<b>[@modules]</b> is an array ref, same as additional arguments mentioned above.
+</p>
+<dt class="POD_ITEM"><a name="Examples">Examples</a>
+<dd><pre>
+ perl -MExtUtils::Embed -e xsinit -- -o xsinit.c Socket
+</pre>
+<p></p>
+
+This will generate code with an <b>xs_init</b> function that glues the perl <b>Socket::bootstrap</b> function 
+to the C <b>boot_Socket</b> function and writes it to a file named <code>xsinit.c</code>.
+<pre class="POD_TEXT">
+Note that <b>DynaLoader</b> is a special case where it must call <b>boot_DynaLoader</b> directly.
+
+ perl -MExtUtils::Embed -e xsinit
+</pre>
+<p></p>
+<p class="POD_TEXT">
+This will generate code for linking with <b>DynaLoader</b> and 
+each static extension found in <b>$Config{static_ext}</b>.
+The code is written to the default file name <b>perlxsi.c</b>.
+</p>
+<pre>
+ perl -MExtUtils::Embed -e xsinit -- -o xsinit.c -std DBI DBD::Oracle
+</pre>
+<p></p>
+<p class="POD_TEXT">
+Here, code is written for all the currently linked extensions along with code
+for <b>DBI</b> and <b>DBD::Oracle</b>.
+</p>
+<p class="POD_TEXT">
+If you have a working <b>DynaLoader</b> then there is rarely any need to statically link in any 
+other extensions.
+</p>
+<dt class="POD_ITEM"><a name="ldopts_">ldopts()</a>
+<dd>
+Output arguments for linking the Perl library and extensions to your
+application.
+<p class="POD_TEXT">
+When invoked as <code>`perl -MExtUtils::Embed -e ldopts --`</code>
+the following options are recognized:
+</p>
+<p class="POD_TEXT">
+<b>-std</b>
+</p>
+<p class="POD_TEXT">
+Output arguments for linking the Perl library and any extensions linked
+with the current Perl.
+</p>
+<p class="POD_TEXT">
+<b>-I</b> &lt;path1:path2&gt;
+</p>
+<p class="POD_TEXT">
+Search path for ModuleName.a archives.  
+Default path is <b>@INC</b>.
+Library archives are expected to be found as 
+<b>/some/path/auto/ModuleName/ModuleName.a</b>
+For example, when looking for <b>Socket.a</b> relative to a search path, 
+we should find <b>auto/Socket/Socket.a</b>
+</p>
+<p class="POD_TEXT">
+When looking for <b>DBD::Oracle</b> relative to a search path,
+we should find <b>auto/DBD/Oracle/Oracle.a</b>
+</p>
+<p class="POD_TEXT">
+Keep in mind that you can always supply <b>/my/own/path/ModuleName.a</b>
+as an additional linker argument.
+</p>
+<p class="POD_TEXT">
+<b>--</b>  &lt;list of linker args&gt;
+</p>
+<p class="POD_TEXT">
+Additional linker arguments to be considered.
+</p>
+<p class="POD_TEXT">
+Any additional arguments found before the <b>--</b> token 
+are expected to be names of modules to generate code for.
+</p>
+<p class="POD_TEXT">
+When invoked with parameters the following are accepted and optional:
+</p>
+<p class="POD_TEXT">
+<code>ldopts($std,[@modules],[@link_args],$path)</code>
+</p>
+<p class="POD_TEXT">
+Where:
+</p>
+<p class="POD_TEXT">
+<b>$std</b> is boolean, equivalent to the <b>-std</b> option.
+</p>
+<p class="POD_TEXT">
+<b>[@modules]</b> is equivalent to additional arguments found before the <b>--</b> token.
+</p>
+<p class="POD_TEXT">
+<b>[@link_args]</b> is equivalent to arguments found after the <b>--</b> token.
+</p>
+<p class="POD_TEXT">
+<b>$path</b> is equivalent to the <b>-I</b> option.
+</p>
+<p class="POD_TEXT">
+In addition, when ldopts is called with parameters, it will return the argument string
+rather than print it to STDOUT.
+</p>
+<dt class="POD_ITEM"><a name="Examples1">Examples</a>
+<dd><pre>
+ perl -MExtUtils::Embed -e ldopts
+</pre>
+<p></p>
+
+This will print arguments for linking with <b>libperl.a</b>, <b>DynaLoader</b> and 
+extensions found in <b>$Config{static_ext}</b>.  This includes libraries
+found in <b>$Config{libs}</b> and the first ModuleName.a library
+for each extension that is found by searching <b>@INC</b> or the path 
+specified by the <b>-I</b> option.  
+In addition, when ModuleName.a is found, additional linker arguments
+are picked up from the <b>extralibs.ld</b> file in the same directory.
+<pre>
+ perl -MExtUtils::Embed -e ldopts -- -std Socket
+</pre>
+<p></p>
+<p class="POD_TEXT">
+This will do the same as the above example, along with printing additional arguments for linking with the <b>Socket</b> extension.
+</p>
+<pre>
+ perl -MExtUtils::Embed -e ldopts -- DynaLoader
+</pre>
+<p></p>
+<p class="POD_TEXT">
+This will print arguments for linking with just the <b>DynaLoader</b> extension
+and <b>libperl.a</b>.
+</p>
+<pre>
+ perl -MExtUtils::Embed -e ldopts -- -std Msql -- -L/usr/msql/lib -lmsql
+</pre>
+<p></p>
+<p class="POD_TEXT">
+Any arguments after the second '--' token are additional linker
+arguments that will be examined for potential conflict.  If there is no
+conflict, the additional arguments will be part of the output.
+</p>
+<p></p>
+<dt class="POD_ITEM"><a name="perl_inc_">perl_inc()</a>
+<dd>
+For including perl header files this function simply prints:
+<pre class="POD_VERBATIM">
+ -I$Config{archlibexp}/CORE
+</pre>
+<pre class="POD_TEXT">
+So, rather than having to say:
+
+ perl -MConfig -e 'print &quot;-I$Config{archlibexp}/CORE&quot;'
+</pre>
+<pre class="POD_TEXT">
+Just say:
+
+ perl -MExtUtils::Embed -e perl_inc
+</pre>
+<dt class="POD_ITEM"><a name="ccflags_ccdlflags_">ccflags(), ccdlflags()</a>
+<dd>
+These functions simply print $Config{ccflags} and $Config{ccdlflags}
+<dt class="POD_ITEM"><a name="ccopts_">ccopts()</a>
+<dd>
+This function combines perl_inc(), ccflags() and ccdlflags() into one.
+<dt class="POD_ITEM"><a name="xsi_header_">xsi_header()</a>
+<dd>
+This function simply returns a string defining the same <b>EXTERN_C</b> macro as
+<b>perlmain.c</b> along with #including <b>perl.h</b> and <b>EXTERN.h</b>.
+<dt class="POD_ITEM"><a name="xsi_protos_modules_">xsi_protos(@modules)</a>
+<dd>
+This function returns a string of <b>boot_$ModuleName</b> prototypes for each @modules.
+<dt class="POD_ITEM"><a name="xsi_body_modules_">xsi_body(@modules)</a>
+<dd>
+This function returns a string of calls to <b>newXS()</b> that glue the module <b>bootstrap</b>
+function to <b>boot_ModuleName</b> for each @modules.
+<p class="POD_TEXT">
+<b>xsinit()</b> uses the xsi_* functions to generate most of it's code.
+</p>
+</dl>
+<h2 class="POD_HEAD1"><a name="EXAMPLES">EXAMPLES</a></h2>
+<p class="POD_TEXT">
+For examples on how to use <b>ExtUtils::Embed</b> for building C/C++ applications
+with embedded perl, see the <a class="POD_LINK" href="../perlembed.html">perlembed</a> manpage.
+</p>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+the <a class="POD_LINK" href="../perlembed.html">perlembed</a> manpage
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHOR">AUTHOR</a></h2>
+<p class="POD_TEXT">
+Doug MacEachern &lt;<code>dougm@osf.org</code>&gt;
+</p>
+<p class="POD_TEXT">
+Based on ideas from Tim Bunce &lt;<code>Tim.Bunce@ig.co.uk</code>&gt; and
+<b>minimod.pl</b> by Andreas Koenig &lt;<code>k@anna.in-berlin.de</code>&gt; and Tim Bunce.
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:22 2001
+</body>
+</html>
+

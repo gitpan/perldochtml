@@ -1,0 +1,210 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>perldbmfilter</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="perldebguts.html">Next:<br>perldebguts</a></td><td align="left" width="1%"><a href="perldata.html">Previous:<br>perldata</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">perldbmfilter</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#The_Filter">The Filter</a>
+<li><a href="#An_Example_the_NULL_">An Example -- the NULL termination problem.</a>
+<li><a href="#Another_Example_Key_">Another Example -- Key is a C int.</a>
+</ul>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+<li><a href="#AUTHOR">AUTHOR</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+perldbmfilter - Perl DBM Filters
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+    $db = tie %hash, 'DBM', ...
+
+    $old_filter = $db-&gt;filter_store_key  ( sub { ... } ) ;
+    $old_filter = $db-&gt;filter_store_value( sub { ... } ) ;
+    $old_filter = $db-&gt;filter_fetch_key  ( sub { ... } ) ;
+    $old_filter = $db-&gt;filter_fetch_value( sub { ... } ) ;
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+The four <code>filter_*</code> methods shown above are available in all the DBM
+modules that ship with Perl, namely DB_File, GDBM_File, NDBM_File,
+ODBM_File and SDBM_File.
+</p>
+<p class="POD_TEXT">
+Each of the methods work identically, and are used to install (or
+uninstall) a single DBM Filter. The only difference between them is the
+place that the filter is installed.
+</p>
+<p class="POD_TEXT">
+To summarise:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="filter_store_key"><b>filter_store_key</b></a>
+<dd>
+If a filter has been installed with this method, it will be invoked
+every time you write a key to a DBM database.
+<dt class="POD_ITEM"><a name="filter_store_value"><b>filter_store_value</b></a>
+<dd>
+If a filter has been installed with this method, it will be invoked
+every time you write a value to a DBM database.
+<p></p>
+<dt class="POD_ITEM"><a name="filter_fetch_key"><b>filter_fetch_key</b></a>
+<dd>
+If a filter has been installed with this method, it will be invoked
+every time you read a key from a DBM database.
+<dt class="POD_ITEM"><a name="filter_fetch_value"><b>filter_fetch_value</b></a>
+<dd>
+If a filter has been installed with this method, it will be invoked
+every time you read a value from a DBM database.
+</dl>
+<p class="POD_TEXT">
+You can use any combination of the methods from none to all four.
+</p>
+<p class="POD_TEXT">
+All filter methods return the existing filter, if present, or <code><a class="POD_LINK" href="perlfunc.html#undef">undef</a></code>
+in not.
+</p>
+<p class="POD_TEXT">
+To delete a filter pass <code><a class="POD_LINK" href="perlfunc.html#undef">undef</a></code> to it.
+</p>
+<h3 class="POD_HEAD2"><a name="The_Filter">The Filter</a></h3>
+<p class="POD_TEXT">
+When each filter is called by Perl, a local copy of <code><a class="POD_LINK" href="perlvar.html#_">$_</a></code> will contain
+the key or value to be filtered. Filtering is achieved by modifying
+the contents of <code><a class="POD_LINK" href="perlvar.html#_">$_</a></code>. The return code from the filter is ignored.
+</p>
+<h3 class="POD_HEAD2"><a name="An_Example_the_NULL_">An Example -- the NULL termination problem.</a></h3>
+<p class="POD_TEXT">
+DBM Filters are useful for a class of problems where you <i>always</i>
+want to make the same transformation to all keys, all values or both.
+</p>
+<pre class="POD_TEXT">
+For example, consider the following scenario. You have a DBM database
+that you need to share with a third-party C application. The C application
+assumes that <i>all</i> keys and values are NULL terminated. Unfortunately
+when Perl writes to DBM databases it doesn't use NULL termination, so
+your Perl application will have to manage NULL termination itself. When
+you write to the database you will have to use something like this:
+
+    $hash{&quot;$key\0&quot;} = &quot;$value\0&quot; ;
+</pre>
+<p class="POD_TEXT">
+Similarly the NULL needs to be taken into account when you are considering
+the length of existing keys/values.
+</p>
+<pre class="POD_TEXT">
+It would be much better if you could ignore the NULL terminations issue
+in the main application code and have a mechanism that automatically
+added the terminating NULL to all keys and values whenever you write to
+the database and have them removed when you read from the database. As I'm
+sure you have already guessed, this is a problem that DBM Filters can
+fix very easily.
+
+    use strict ;
+    use warnings ;
+    use SDBM_File ;
+    use Fcntl ;
+
+    my %hash ;
+    my $filename = &quot;/tmp/filt&quot; ;
+    unlink $filename ;
+
+    my $db = tie(%hash, 'SDBM_File', $filename, O_RDWR|O_CREAT, 0640)
+      or die &quot;Cannot open $filename: $!\n&quot; ;
+
+    # Install DBM Filters
+    $db-&gt;filter_fetch_key  ( sub { s/\0$//    } ) ;
+    $db-&gt;filter_store_key  ( sub { $_ .= &quot;\0&quot; } ) ;
+    $db-&gt;filter_fetch_value( 
+        sub { no warnings 'uninitialized' ;s/\0$// } ) ;
+    $db-&gt;filter_store_value( sub { $_ .= &quot;\0&quot; } ) ;
+
+    $hash{&quot;abc&quot;} = &quot;def&quot; ;
+    my $a = $hash{&quot;ABC&quot;} ;
+    # ...
+    undef $db ;
+    untie %hash ;
+</pre>
+<p class="POD_TEXT">
+The code above uses SDBM_File, but it will work with any of the DBM
+modules.
+</p>
+<p class="POD_TEXT">
+Hopefully the contents of each of the filters should be
+self-explanatory. Both &quot;fetch&quot; filters remove the terminating NULL,
+and both &quot;store&quot; filters add a terminating NULL.
+</p>
+<p></p>
+<h3 class="POD_HEAD2"><a name="Another_Example_Key_">Another Example -- Key is a C int.</a></h3>
+<pre class="POD_TEXT">
+Here is another real-life example. By default, whenever Perl writes to
+a DBM database it always writes the key and value as strings. So when
+you use this:
+
+    $hash{12345} = &quot;something&quot; ;
+</pre>
+<p class="POD_TEXT">
+the key 12345 will get stored in the DBM database as the 5 byte string
+&quot;12345&quot;. If you actually want the key to be stored in the DBM database
+as a C int, you will have to use <code><a class="POD_LINK" href="perlfunc.html#pack_TEMPLATE_LIST">pack</a></code> when writing, and <code><a class="POD_LINK" href="perlfunc.html#unpack_TEMPLATE_EXPR">unpack</a></code>
+when reading.
+</p>
+<pre class="POD_TEXT">
+Here is a DBM Filter that does it:
+
+    use strict ;
+    use warnings ;
+    use DB_File ;
+    my %hash ;
+    my $filename = &quot;/tmp/filt&quot; ;
+    unlink $filename ;
+</pre>
+<pre>
+    my $db = tie %hash, 'DB_File', $filename, O_CREAT|O_RDWR, 0666, $DB_HASH 
+      or die &quot;Cannot open $filename: $!\n&quot; ;
+
+    $db-&gt;filter_fetch_key  ( sub { $_ = unpack(&quot;i&quot;, $_) } ) ;
+    $db-&gt;filter_store_key  ( sub { $_ = pack (&quot;i&quot;, $_) } ) ;
+    $hash{123} = &quot;def&quot; ;
+    # ...
+    undef $db ;
+    untie %hash ;
+</pre>
+<p class="POD_TEXT">
+The code above uses DB_File, but again it will work with any of the
+DBM modules.
+</p>
+<p class="POD_TEXT">
+This time only two filters have been used -- we only need to manipulate
+the contents of the key, so it wasn't necessary to install any value
+filters.
+</p>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+the <u>DB_File</u> manpage, the <u>GDBM_File</u> manpage, the <u>NDBM_File</u> manpage, the <u>ODBM_File</u> manpage and the <u>SDBM_File</u> manpage.
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHOR">AUTHOR</a></h2>
+<p class="POD_TEXT">
+Paul Marquess
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:57 2001
+</body>
+</html>
+

@@ -1,0 +1,610 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>File::Temp</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="../FileCache.html">Next:<br>FileCache</a></td><td align="left" width="1%"><a  href="../File/stat.html">Previous:<br>File::stat</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="../podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="../podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">File::Temp</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#PORTABILITY">PORTABILITY</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#FUNCTIONS">FUNCTIONS</a>
+<li><a href="#MKTEMP_FUNCTIONS">MKTEMP FUNCTIONS</a>
+<li><a href="#POSIX_FUNCTIONS">POSIX FUNCTIONS</a>
+<li><a href="#ADDITIONAL_FUNCTIONS">ADDITIONAL FUNCTIONS</a>
+<li><a href="#UTILITY_FUNCTIONS">UTILITY FUNCTIONS</a>
+<li><a href="#PACKAGE_VARIABLES">PACKAGE VARIABLES</a>
+<li><a href="#WARNING">WARNING</a>
+<ul>
+<li><a href="#Temporary_files_and_">Temporary files and NFS</a>
+</ul>
+<li><a href="#HISTORY">HISTORY</a>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+<li><a href="#AUTHOR">AUTHOR</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+File::Temp - return name and handle of a temporary file safely
+</p>
+<h2 class="POD_HEAD1"><a name="PORTABILITY">PORTABILITY</a></h2>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_"></a>
+<li class="POD_ITEM"><a name="_1"></a>
+<li class="POD_ITEM"><a name="_2"></a>
+</ul>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+  use File::Temp qw/ tempfile tempdir /;
+
+  $dir = tempdir( CLEANUP =&gt; 1 );
+  ($fh, $filename) = tempfile( DIR =&gt; $dir );
+
+  ($fh, $filename) = tempfile( $template, DIR =&gt; $dir);
+  ($fh, $filename) = tempfile( $template, SUFFIX =&gt; '.dat');
+
+  $fh = tempfile();
+
+  use File::Temp qw/ :mktemp  /;
+
+  ($fh, $file) = mkstemp( &quot;tmpfileXXXXX&quot; );
+  ($fh, $file) = mkstemps( &quot;tmpfileXXXXXX&quot;, $suffix);
+
+  $tmpdir = mkdtemp( $template );
+
+  $unopened_file = mktemp( $template );
+</pre>
+
+MkTemp family:
+<pre class="POD_TEXT">
+POSIX functions:
+
+  use File::Temp qw/ :POSIX /;
+
+  $file = tmpnam();
+  $fh = tmpfile();
+
+  ($fh, $file) = tmpnam();
+  ($fh, $file) = tmpfile();
+</pre>
+<p></p>
+<pre class="POD_TEXT">
+Compatibility functions:
+
+  $unopened_file = File::Temp::tempnam( $dir, $pfx );
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+<code>File::Temp</code> can be used to create and open temporary files in a safe way.
+The tempfile() function can be used to return the name and the open
+filehandle of a temporary file.  The tempdir() function can 
+be used to create a temporary directory.
+</p>
+<p class="POD_TEXT">
+The security aspect of temporary file creation is emphasized such that
+a filehandle and filename are returned together.  This helps guarantee
+that a race condition can not occur where the temporary file is
+created by another process between checking for the existence of the
+file and its opening.  Additional security levels are provided to
+check, for example, that the sticky bit is set on world writable
+directories.  See the section on <a class="POD_LINK" href="#safe_level">safe_level</a> elsewhere in this document for more information.
+</p>
+<p class="POD_TEXT">
+For compatibility with popular C library functions, Perl implementations of
+the mkstemp() family of functions are provided. These are, mkstemp(),
+mkstemps(), mkdtemp() and mktemp().
+</p>
+<p class="POD_TEXT">
+Additionally, implementations of the standard <u>POSIX</u>
+tmpnam() and tmpfile() functions are provided if required.
+</p>
+<p class="POD_TEXT">
+Implementations of mktemp(), tmpnam(), and tempnam() are provided,
+but should be used with caution since they return only a filename
+that was valid when function was called, so cannot guarantee
+that the file will not exist by the time the caller opens the filename.
+</p>
+<h2 class="POD_HEAD1"><a name="FUNCTIONS">FUNCTIONS</a></h2>
+<p class="POD_TEXT">
+This section describes the recommended interface for generating
+temporary files and directories.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="tempfile"><b>tempfile</b></a>
+<dd>
+This is the basic function to generate temporary files.
+The behaviour of the file can be changed using various options:
+<pre class="POD_VERBATIM">
+  ($fh, $filename) = tempfile();
+</pre>
+<pre class="POD_TEXT">
+Create a temporary file in  the directory specified for temporary
+files, as specified by the tmpdir() function in the <a class="POD_LINK" href="../File/Spec.html">File::Spec</a> manpage.
+
+  ($fh, $filename) = tempfile($template);
+</pre>
+<pre class="POD_TEXT">
+Create a temporary file in the current directory using the supplied
+template.  Trailing `X' characters are replaced with random letters to
+generate the filename.  At least four `X' characters must be present
+in the template.
+
+  ($fh, $filename) = tempfile($template, SUFFIX =&gt; $suffix)
+</pre>
+<pre class="POD_TEXT">
+Same as previously, except that a suffix is added to the template
+after the `X' translation.  Useful for ensuring that a temporary
+filename has a particular extension when needed by other applications.
+But see the WARNING at the end.
+
+  ($fh, $filename) = tempfile($template, DIR =&gt; $dir);
+</pre>
+<pre class="POD_TEXT">
+Translates the template as before except that a directory name
+is specified.
+
+  ($fh, $filename) = tempfile($template, UNLINK =&gt; 1);
+</pre>
+<p class="POD_TEXT">
+Return the filename and filehandle as before except that the file is
+automatically removed when the program exits. Default is for the file
+to be removed if a file handle is requested and to be kept if the
+filename is requested. In a scalar context (where no filename is 
+returned) the file is always deleted either on exit or when it is closed.
+</p>
+<pre class="POD_TEXT">
+If the template is not specified, a template is always
+automatically generated. This temporary file is placed in tmpdir()
+(the <a class="POD_LINK" href="../File/Spec.html">File::Spec</a> manpage) unless a directory is specified explicitly with the 
+DIR option.
+
+  $fh = tempfile( $template, DIR =&gt; $dir );
+</pre>
+<pre class="POD_TEXT">
+If called in scalar context, only the filehandle is returned
+and the file will automatically be deleted when closed (see 
+the description of tmpfile() elsewhere in this document).
+This is the preferred mode of operation, as if you only 
+have a filehandle, you can never create a race condition
+by fumbling with the filename. On systems that can not unlink
+an open file or can not mark a file as temporary when it is opened
+(for example, Windows NT uses the <code>O_TEMPORARY</code> flag))
+the file is marked for deletion when the program ends (equivalent
+to setting UNLINK to 1). The <code>UNLINK</code> flag is ignored if present.
+
+  (undef, $filename) = tempfile($template, OPEN =&gt; 0);
+</pre>
+<p class="POD_TEXT">
+This will return the filename based on the template but
+will not open this file.  Cannot be used in conjunction with
+UNLINK set to true. Default is to always open the file 
+to protect from possible race conditions. A warning is issued
+if warnings are turned on. Consider using the tmpnam()
+and mktemp() functions described elsewhere in this document
+if opening the file is not required.
+</p>
+<p class="POD_TEXT">
+Options can be combined as required.
+</p>
+<dt class="POD_ITEM"><a name="tempdir"><b>tempdir</b></a>
+<dd>
+This is the recommended interface for creation of temporary directories.
+The behaviour of the function depends on the arguments:
+<pre class="POD_VERBATIM">
+  $tempdir = tempdir();
+</pre>
+<pre class="POD_TEXT">
+Create a directory in tmpdir() (see <a class="POD_LINK" href="../File/Spec.html">File::Spec</a>).
+
+  $tempdir = tempdir( $template );
+</pre>
+<pre class="POD_TEXT">
+Create a directory from the supplied template. This template is
+similar to that described for tempfile(). `X' characters at the end
+of the template are replaced with random letters to construct the
+directory name. At least four `X' characters must be in the template.
+
+  $tempdir = tempdir ( DIR =&gt; $dir );
+</pre>
+<pre class="POD_TEXT">
+Specifies the directory to use for the temporary directory.
+The temporary directory name is derived from an internal template.
+
+  $tempdir = tempdir ( $template, DIR =&gt; $dir );
+</pre>
+<pre class="POD_TEXT">
+Prepend the supplied directory name to the template. The template
+should not include parent directory specifications itself. Any parent
+directory specifications are removed from the template before
+prepending the supplied directory.
+
+  $tempdir = tempdir ( $template, TMPDIR =&gt; 1 );
+</pre>
+<pre class="POD_TEXT">
+Using the supplied template, creat the temporary directory in 
+a standard location for temporary files. Equivalent to doing
+
+  $tempdir = tempdir ( $template, DIR =&gt; File::Spec-&gt;tmpdir);
+</pre>
+<pre class="POD_TEXT">
+but shorter. Parent directory specifications are stripped from the
+template itself. The <code>TMPDIR</code> option is ignored if <code>DIR</code> is set
+explicitly.  Additionally, <code>TMPDIR</code> is implied if neither a template
+nor a directory are supplied.
+
+  $tempdir = tempdir( $template, CLEANUP =&gt; 1);
+</pre>
+<p class="POD_TEXT">
+Create a temporary directory using the supplied template, but 
+attempt to remove it (and all files inside it) when the program
+exits. Note that an attempt will be made to remove all files from
+the directory even if they were not created by this module (otherwise
+why ask to clean it up?). The directory removal is made with
+the rmtree() function from the <a class="POD_LINK" href="../File/Path.html">File::Path</a> module.
+Of course, if the template is not specified, the temporary directory
+will be created in tmpdir() and will also be removed at program exit.
+</p>
+</dl>
+<h2 class="POD_HEAD1"><a name="MKTEMP_FUNCTIONS">MKTEMP FUNCTIONS</a></h2>
+<p class="POD_TEXT">
+The following functions are Perl implementations of the 
+mktemp() family of temp file generation system calls.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="mkstemp"><b>mkstemp</b></a>
+<dd>
+Given a template, returns a filehandle to the temporary file and the name
+of the file.
+<pre class="POD_VERBATIM">
+  ($fh, $name) = mkstemp( $template );
+</pre>
+<p class="POD_TEXT">
+In scalar context, just the filehandle is returned.
+</p>
+<p class="POD_TEXT">
+The template may be any filename with some number of X's appended
+to it, for example <code>/tmp/temp.XXXX</code>. The trailing X's are replaced
+with unique alphanumeric combinations.
+</p>
+<dt class="POD_ITEM"><a name="mkstemps"><b>mkstemps</b></a>
+<dd>
+Similar to mkstemp(), except that an extra argument can be supplied
+with a suffix to be appended to the template.
+<pre class="POD_VERBATIM">
+  ($fh, $name) = mkstemps( $template, $suffix );
+</pre>
+<p class="POD_TEXT">
+For example a template of <code>testXXXXXX</code> and suffix of <code>.dat</code>
+would generate a file similar to <code>testhGji_w.dat</code>.
+</p>
+<p class="POD_TEXT">
+Returns just the filehandle alone when called in scalar context.
+</p>
+<dt class="POD_ITEM"><a name="mkdtemp"><b>mkdtemp</b></a>
+<dd>
+Create a directory from a template. The template must end in
+X's that are replaced by the routine.
+<pre class="POD_VERBATIM">
+  $tmpdir_name = mkdtemp($template);
+</pre>
+<p class="POD_TEXT">
+Returns the name of the temporary directory created.
+Returns undef on failure.
+</p>
+<p class="POD_TEXT">
+Directory must be removed by the caller.
+</p>
+<dt class="POD_ITEM"><a name="mktemp"><b>mktemp</b></a>
+<dd>
+Returns a valid temporary filename but does not guarantee
+that the file will not be opened by someone else.
+<pre class="POD_VERBATIM">
+  $unopened_file = mktemp($template);
+</pre>
+<p class="POD_TEXT">
+Template is the same as that required by mkstemp().
+</p>
+</dl>
+<h2 class="POD_HEAD1"><a name="POSIX_FUNCTIONS">POSIX FUNCTIONS</a></h2>
+<p class="POD_TEXT">
+This section describes the re-implementation of the tmpnam()
+and tmpfile() functions described in the <u>POSIX</u> manpage 
+using the mkstemp() from this module.
+</p>
+<p class="POD_TEXT">
+Unlike the <u>POSIX</u> implementations, the directory used
+for the temporary file is not specified in a system include
+file (<code>P_tmpdir</code>) but simply depends on the choice of tmpdir()
+returned by <a class="POD_LINK" href="../File/Spec.html">File::Spec</a>. On some implementations this
+location can be set using the <code>TMPDIR</code> environment variable, which
+may not be secure.
+If this is a problem, simply use mkstemp() and specify a template.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="tmpnam"><b>tmpnam</b></a>
+<dd>
+When called in scalar context, returns the full name (including path)
+of a temporary file (uses mktemp()). The only check is that the file does
+not already exist, but there is no guarantee that that condition will
+continue to apply.
+<pre class="POD_VERBATIM">
+  $file = tmpnam();
+</pre>
+<pre class="POD_TEXT">
+When called in list context, a filehandle to the open file and
+a filename are returned. This is achieved by calling mkstemp()
+after constructing a suitable template.
+
+  ($fh, $file) = tmpnam();
+</pre>
+<p class="POD_TEXT">
+If possible, this form should be used to prevent possible
+race conditions.
+</p>
+<p class="POD_TEXT">
+See the <a class="POD_LINK" href="../File/Spec.html">tmpdir</a> entry in the <a class="POD_LINK" href="../File/Spec.html">File::Spec</a> manpage for information on the choice of temporary
+directory for a particular operating system.
+</p>
+<dt class="POD_ITEM"><a name="tmpfile"><b>tmpfile</b></a>
+<dd>
+In scalar context, returns the filehandle of a temporary file.
+<pre class="POD_VERBATIM">
+  $fh = tmpfile();
+</pre>
+<p class="POD_TEXT">
+The file is removed when the filehandle is closed or when the program
+exits. No access to the filename is provided.
+</p>
+<p class="POD_TEXT">
+If the temporary file can not be created undef is returned.
+Currently this command will probably not work when the temporary
+directory is on an NFS file system.
+</p>
+</dl>
+<h2 class="POD_HEAD1"><a name="ADDITIONAL_FUNCTIONS">ADDITIONAL FUNCTIONS</a></h2>
+<p class="POD_TEXT">
+These functions are provided for backwards compatibility
+with common tempfile generation C library functions.
+</p>
+<p class="POD_TEXT">
+They are not exported and must be addressed using the full package
+name.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="tempnam"><b>tempnam</b></a>
+<dd>
+Return the name of a temporary file in the specified directory
+using a prefix. The file is guaranteed not to exist at the time
+the function was called, but such guarantees are good for one 
+clock tick only.  Always use the proper form of <code><a class="POD_LINK" href="../perlfunc.html#sysopen_FILEHANDLE_F">sysopen</a></code>
+with <code>O_CREAT | O_EXCL</code> if you must open such a filename.
+<pre class="POD_VERBATIM">
+  $filename = File::Temp::tempnam( $dir, $prefix );
+</pre>
+<p class="POD_TEXT">
+Equivalent to running mktemp() with $dir/$prefixXXXXXXXX
+(using unix file convention as an example)
+</p>
+<p class="POD_TEXT">
+Because this function uses mktemp(), it can suffer from race conditions.
+</p>
+</dl>
+<h2 class="POD_HEAD1"><a name="UTILITY_FUNCTIONS">UTILITY FUNCTIONS</a></h2>
+<p class="POD_TEXT">
+Useful functions for dealing with the filehandle and filename.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="unlink0"><b>unlink0</b></a>
+<dd>
+Given an open filehandle and the associated filename, make a safe
+unlink. This is achieved by first checking that the filename and
+filehandle initially point to the same file and that the number of
+links to the file is 1 (all fields returned by stat() are compared).
+Then the filename is unlinked and the filehandle checked once again to
+verify that the number of links on that file is now 0.  This is the
+closest you can come to making sure that the filename unlinked was the
+same as the file whose descriptor you hold.
+<pre class="POD_VERBATIM">
+  unlink0($fh, $path) or die &quot;Error unlinking file $path safely&quot;;
+</pre>
+<p class="POD_TEXT">
+Returns false on error. The filehandle is not closed since on some
+occasions this is not required.
+</p>
+<p class="POD_TEXT">
+On some platforms, for example Windows NT, it is not possible to
+unlink an open file (the file must be closed first). On those
+platforms, the actual unlinking is deferred until the program ends and
+good status is returned. A check is still performed to make sure that
+the filehandle and filename are pointing to the same thing (but not at
+the time the end block is executed since the deferred removal may not
+have access to the filehandle).
+</p>
+<p class="POD_TEXT">
+Additionally, on Windows NT not all the fields returned by stat() can
+be compared. For example, the <code>dev</code> and <code>rdev</code> fields seem to be
+different.  Also, it seems that the size of the file returned by stat()
+does not always agree, with <code>stat(FH)</code> being more accurate than
+<code>stat(filename)</code>, presumably because of caching issues even when
+using autoflush (this is usually overcome by waiting a while after
+writing to the tempfile before attempting to <code>unlink0</code> it).
+</p>
+<p class="POD_TEXT">
+Finally, on NFS file systems the link count of the file handle does
+not always go to zero immediately after unlinking. Currently, this
+command is expected to fail on NFS disks.
+</p>
+</dl>
+<h2 class="POD_HEAD1"><a name="PACKAGE_VARIABLES">PACKAGE VARIABLES</a></h2>
+<p class="POD_TEXT">
+These functions control the global state of the package.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="safe_level"><b>safe_level</b></a>
+<dd>
+Controls the lengths to which the module will go to check the safety of the
+temporary file or directory before proceeding.
+Options are:
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="STANDARD">STANDARD</a>
+<dd>
+Do the basic security measures to ensure the directory exists and
+is writable, that the umask() is fixed before opening of the file,
+that temporary files are opened only if they do not already exist, and
+that possible race conditions are avoided.  Finally the <a class="POD_LINK" href="#unlink0">unlink0</a>
+function is used to remove files safely.
+<dt class="POD_ITEM"><a name="MEDIUM">MEDIUM</a>
+<dd>
+In addition to the STANDARD security, the output directory is checked
+to make sure that it is owned either by root or the user running the
+program. If the directory is writable by group or by other, it is then
+checked to make sure that the sticky bit is set.
+<p class="POD_TEXT">
+Will not work on platforms that do not support the <code>-k</code> test
+for sticky bit.
+</p>
+<dt class="POD_ITEM"><a name="HIGH">HIGH</a>
+<dd>
+In addition to the MEDIUM security checks, also check for the
+possibility of ``chown() giveaway'' using the <u>POSIX</u>
+sysconf() function. If this is a possibility, each directory in the
+path is checked in turn for safeness, recursively walking back to the 
+root directory.
+<p class="POD_TEXT">
+For platforms that do not support the <u>POSIX</u>
+<code>_PC_CHOWN_RESTRICTED</code> symbol (for example, Windows NT) it is 
+assumed that ``chown() giveaway'' is possible and the recursive test
+is performed.
+</p>
+</dl>
+<pre class="POD_TEXT">
+The level can be changed as follows:
+
+  File::Temp-&gt;safe_level( File::Temp::HIGH );
+</pre>
+<p class="POD_TEXT">
+The level constants are not exported by the module.
+</p>
+<p class="POD_TEXT">
+Currently, you must be running at least perl v5.6.0 in order to
+run with MEDIUM or HIGH security. This is simply because the 
+safety tests use functions from <u>Fcntl</u> that are not
+available in older versions of perl. The problem is that the version
+number for Fcntl is the same in perl 5.6.0 and in 5.005_03 even though
+they are different versions.
+</p>
+<p class="POD_TEXT">
+On systems that do not support the HIGH or MEDIUM safety levels
+(for example Win NT or OS/2) any attempt to change the level will
+be ignored. The decision to ignore rather than raise an exception
+allows portable programs to be written with high security in mind
+for the systems that can support this without those programs failing
+on systems where the extra tests are irrelevant.
+</p>
+<pre class="POD_TEXT">
+If you really need to see whether the change has been accepted
+simply examine the return value of <code>safe_level</code>.
+
+  $newlevel = File::Temp-&gt;safe_level( File::Temp::HIGH );
+  die &quot;Could not change to high security&quot; 
+      if $newlevel != File::Temp::HIGH;
+</pre>
+<dt class="POD_ITEM"><a name="TopSystemUID">TopSystemUID</a>
+<dd>
+This is the highest UID on the current system that refers to a root
+UID. This is used to make sure that the temporary directory is 
+owned by a system UID (<code>root</code>, <code>bin</code>, <code>sys</code> etc) rather than 
+simply by root.
+<p class="POD_TEXT">
+This is required since on many unix systems <code>/tmp</code> is not owned
+by root.
+</p>
+<pre class="POD_TEXT">
+Default is to assume that any UID less than or equal to 10 is a root
+UID.
+
+  File::Temp-&gt;top_system_uid(10);
+  my $topid = File::Temp-&gt;top_system_uid;
+</pre>
+<p class="POD_TEXT">
+This value can be adjusted to reduce security checking if required.
+The value is only relevant when <code>safe_level</code> is set to MEDIUM or higher.
+</p>
+</dl>
+<h2 class="POD_HEAD1"><a name="WARNING">WARNING</a></h2>
+<p class="POD_TEXT">
+For maximum security, endeavour always to avoid ever looking at,
+touching, or even imputing the existence of the filename.  You do not
+know that that filename is connected to the same file as the handle
+you have, and attempts to check this can only trigger more race
+conditions.  It's far more secure to use the filehandle alone and
+dispense with the filename altogether.
+</p>
+<pre class="POD_TEXT">
+If you need to pass the handle to something that expects a filename
+then, on a unix system, use <code>&quot;/dev/fd/&quot; . fileno($fh)</code> for arbitrary
+programs, or more generally <code>&quot;+&lt;=&amp;&quot; . fileno($fh)</code> for Perl
+programs.  You will have to clear the close-on-exec bit on that file
+descriptor before passing it to another process.
+
+    use Fcntl qw/F_SETFD F_GETFD/;
+    fcntl($tmpfh, F_SETFD, 0)
+        or die &quot;Can't clear close-on-exec flag on temp fh: $!\n&quot;;
+</pre>
+<h3 class="POD_HEAD2"><a name="Temporary_files_and_">Temporary files and NFS</a></h3>
+<p class="POD_TEXT">
+Some problems are associated with using temporary files that reside
+on NFS file systems and it is recommended that a local filesystem
+is used whenever possible. Some of the security tests will most probably
+fail when the temp file is not local. Additionally, be aware that
+the performance of I/O operations over NFS will not be as good as for
+a local disk.
+</p>
+<h2 class="POD_HEAD1"><a name="HISTORY">HISTORY</a></h2>
+<p class="POD_TEXT">
+Originally began life in May 1999 as an XS interface to the system
+mkstemp() function. In March 2000, the OpenBSD mkstemp() code was
+translated to Perl for total control of the code's
+security checking, to ensure the presence of the function regardless of
+operating system and to help with portability.
+</p>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+the <u>tmpnam</u> entry in the <u>POSIX</u> manpage, the <u>tmpfile</u> entry in the <u>POSIX</u> manpage, the <a class="POD_LINK" href="../File/Spec.html">File::Spec</a> manpage, the <a class="POD_LINK" href="../File/Path.html">File::Path</a> manpage
+</p>
+<p class="POD_TEXT">
+See the <u>IO::File</u> manpage and the <u>File::MkTemp</u> manpage for different implementations of 
+temporary file handling.
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHOR">AUTHOR</a></h2>
+<p class="POD_TEXT">
+Tim Jenness &lt;t.jenness@jach.hawaii.edu&gt;
+</p>
+<p class="POD_TEXT">
+Copyright (C) 1999-2001 Tim Jenness and the UK Particle Physics and
+Astronomy Research Council. All Rights Reserved.  This program is free
+software; you can redistribute it and/or modify it under the same
+terms as Perl itself.
+</p>
+<p class="POD_TEXT">
+Original Perl implementation loosely based on the OpenBSD C code for 
+mkstemp(). Thanks to Tom Christiansen for suggesting that this module
+should be written and providing ideas for code improvements and
+security enhancements.
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:31 2001
+</body>
+</html>
+

@@ -1,0 +1,1552 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>pumpkin</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="repository.html">Next:<br>repository</a></td><td align="left" width="1%"><a  href="podselect.html">Previous:<br>podselect</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">pumpkin</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#Where_Do_I_Get_Perl_">Where Do I Get Perl Sources and Related Material?</a>
+<ul>
+<li><a href="#Perl5_porters_mailin">Perl5-porters mailing list</a>
+</ul>
+<li><a href="#How_are_Perl_Release">How are Perl Releases Numbered?</a>
+<ul>
+<li><a href="#Maintenance_and_Deve">Maintenance and Development Subversions</a>
+<li><a href="#Why_is_it_called_the">Why is it called the patch pumpkin?</a>
+</ul>
+<li><a href="#Philosophical_Issues">Philosophical Issues in Patching and Porting Perl</a>
+<ul>
+<li><a href="#Solve_problems_as_ge">Solve problems as generally as possible</a>
+<li><a href="#Seek_consensus_on_ma">Seek consensus on major changes</a>
+<li><a href="#Keep_the_documentati">Keep the documentation up-to-date</a>
+<li><a href="#Avoid_machine_specif">Avoid machine-specific #ifdef's</a>
+<li><a href="#Machine_specific_fil">Machine-specific files</a>
+<li><a href="#Allow_for_lots_of_te">Allow for lots of testing</a>
+<li><a href="#Test_popular_applica">Test popular applications and modules.</a>
+<li><a href="#Automated_generation">Automated generation of derivative files</a>
+</ul>
+<li><a href="#How_to_Make_a_Distri">How to Make a Distribution</a>
+<ul>
+<li><a href="#Announce_your_intent">Announce your intentions</a>
+<li><a href="#refresh_pod_perltoc_">refresh pod/perltoc.pod</a>
+<li><a href="#run_installhtml_to_c">run installhtml to check the validity of the pod files</a>
+<li><a href="#update_patchlevel_h">update patchlevel.h</a>
+<li><a href="#run_metaconfig">run metaconfig</a>
+<li><a href="#MANIFEST">MANIFEST</a>
+<li><a href="#Check_permissions">Check permissions</a>
+<li><a href="#Run_Configure">Run Configure</a>
+<li><a href="#Update_Porting_confi">Update Porting/config.sh and Porting/config_H</a>
+<li><a href="#make_run_byacc">make run_byacc</a>
+<li><a href="#make_regen_all">make regen_all</a>
+<li><a href="#make_regen_headers">make regen_headers</a>
+<li><a href="#make_regen_pods">make regen_pods</a>
+<li><a href="#global_sym_interp_sy">global.sym, interp.sym and perlio.sym</a>
+<li><a href="#Binary_compatibility">Binary compatibility</a>
+<li><a href="#Changes">Changes</a>
+<li><a href="#Todo">Todo</a>
+<li><a href="#OS_2_specific_update">OS/2-specific updates</a>
+<li><a href="#VMS_specific_updates">VMS-specific updates</a>
+<li><a href="#Making_the_new_distr">Making the new distribution</a>
+<li><a href="#Making_a_new_patch">Making a new patch</a>
+<li><a href="#Testing_your_patch">Testing your patch</a>
+<li><a href="#More_testing">More testing</a>
+<li><a href="#Other_tests">Other tests</a>
+</ul>
+<li><a href="#Running_Purify">Running Purify</a>
+<li><a href="#Common_Gotcha_s">Common Gotcha's</a>
+<li><a href="#Miscellaneous_Topics">Miscellaneous Topics</a>
+<ul>
+<li><a href="#Autoconf">Autoconf</a>
+<li><a href="#Why_isn_t_there_a_di">Why isn't there a directory to override Perl's library?</a>
+<li><a href="#APPLLIB">APPLLIB</a>
+<li><a href="#Shared_libperl_so_lo">Shared libperl.so location</a>
+</ul>
+<li><a href="#Upload_Your_Work_to_">Upload Your Work to CPAN</a>
+<li><a href="#Help_Save_the_World">Help Save the World</a>
+<li><a href="#Todo1">Todo</a>
+<ul>
+<li><a href="#Good_ideas_waiting_f">Good ideas waiting for round tuits</a>
+<li><a href="#Probably_good_ideas_">Probably good ideas waiting for round tuits</a>
+<li><a href="#Vague_possibilities">Vague possibilities</a>
+</ul>
+<li><a href="#AUTHORS">AUTHORS</a>
+<li><a href="#LAST_MODIFIED">LAST MODIFIED</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+Pumpkin - Notes on handling the Perl Patch Pumpkin
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<p class="POD_TEXT">
+There is no simple synopsis, yet.
+</p>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+This document attempts to begin to describe some of the considerations
+involved in patching, porting, and maintaining perl.
+</p>
+<p class="POD_TEXT">
+This document is still under construction, and still subject to
+significant changes.  Still, I hope parts of it will be useful,
+so I'm releasing it even though it's not done.
+</p>
+<p class="POD_TEXT">
+For the most part, it's a collection of anecdotal information that
+already assumes some familiarity with the Perl sources.  I really need
+an introductory section that describes the organization of the sources
+and all the various auxiliary files that are part of the distribution.
+</p>
+<h2 class="POD_HEAD1"><a name="Where_Do_I_Get_Perl_">Where Do I Get Perl Sources and Related Material?</a></h2>
+<p class="POD_TEXT">
+The Comprehensive Perl Archive Network (or CPAN) is the place to go.
+There are many mirrors, but the easiest thing to use is probably
+http://www.perl.com/CPAN/README.html , which automatically points you to a
+mirror site &quot;close&quot; to you.
+</p>
+<h3 class="POD_HEAD2"><a name="Perl5_porters_mailin">Perl5-porters mailing list</a></h3>
+<p class="POD_TEXT">
+The mailing list perl5-porters@perl.org
+is the main group working with the development of perl.  If you're
+interested in all the latest developments, you should definitely
+subscribe.  The list is high volume, but generally has a
+fairly low noise level.
+</p>
+<pre class="POD_TEXT">
+Subscribe by sending the message (in the body of your letter)
+
+	subscribe perl5-porters
+</pre>
+<p class="POD_TEXT">
+to perl5-porters-request@perl.org .
+</p>
+<pre class="POD_TEXT">
+Archives of the list are held at:
+
+    http://www.rosat.mpe-garching.mpg.de/mailing-lists/perl-porters/
+</pre>
+<h2 class="POD_HEAD1"><a name="How_are_Perl_Release">How are Perl Releases Numbered?</a></h2>
+<p class="POD_TEXT">
+Beginning with v5.6.0, even versions will stand for maintenance releases
+and odd versions for development releases, i.e., v5.6.x for maintenance
+releases, and v5.7.x for development releases.  Before v5.6.0, subversions
+_01 through _49 were reserved for bug-fix maintenance releases, and
+subversions _50 through _99 for unstable development versions.
+</p>
+<p class="POD_TEXT">
+For example, in v5.6.1, the revision number is 5, the version is 6,
+and 1 is the subversion.
+</p>
+<pre class="POD_TEXT">
+For compatibility with the older numbering scheme the composite floating
+point version number continues to be available as the magic variable $],
+and amounts to <code>$revision + $version/1000 + $subversion/100000</code>.  This
+can still be used in comparisons.
+
+	print &quot;You've got an old perl\n&quot; if $] &lt; 5.005_03;
+</pre>
+<pre class="POD_TEXT">
+In addition, the version is also available as a string in $^V.
+
+	print &quot;You've got a new perl\n&quot; if $^V and $^V ge v5.6.0;
+</pre>
+<pre class="POD_TEXT">
+You can also require particular version (or later) with:
+
+        use 5.006;
+</pre>
+<pre class="POD_TEXT">
+or using the new syntax available only from v5.6 onward:
+
+	use v5.6.0;
+</pre>
+<p class="POD_TEXT">
+At some point in the future, we may need to decide what to call the
+next big revision.  In the .package file used by metaconfig to
+generate Configure, there are two variables that might be relevant:
+$baserev=5 and $package=perl5.
+</p>
+<p class="POD_TEXT">
+Perl releases produced by the members of perl5-porters are usually
+available on CPAN in the <code>src/5.0/maint</code> and <code>src/5.0/devel</code>
+directories.
+</p>
+<h3 class="POD_HEAD2"><a name="Maintenance_and_Deve">Maintenance and Development Subversions</a></h3>
+<p class="POD_TEXT">
+The first rule of maintenance work is &quot;First, do no harm.&quot;
+</p>
+<p class="POD_TEXT">
+Trial releases of bug-fix maintenance releases are announced on
+perl5-porters. Trial releases use the new subversion number (to avoid
+testers installing it over the previous release) and include a 'local
+patch' entry in patchlevel.h. The distribution file contains the
+string <code>MAINT_TRIAL</code> to make clear that the file is not meant for
+public consumption.
+</p>
+<pre class="POD_TEXT">
+In general, the names of official distribution files for the public
+always match the regular expression:
+
+    ^perl\d+\.(\d+)\.\d+(-MAINT_TRIAL_\d+)\.tar\.gz$
+</pre>
+<p class="POD_TEXT">
+<code><a class="POD_LINK" href="perlvar.html#_1_is_the_same_as_su">$1</a></code> in the pattern is always an even number for maintenance
+versions, and odd for developer releases.
+</p>
+<p class="POD_TEXT">
+In the past it has been observed that pumkings tend to invent new
+naming conventions on the fly. If you are a pumpking, before you
+invent a new name for any of the three types of perl distributions,
+please inform the guys from the CPAN who are doing indexing and
+provide the trees of symlinks and the like. They will have to know
+<i>in advance</i> what you decide.
+</p>
+<h3 class="POD_HEAD2"><a name="Why_is_it_called_the">Why is it called the patch pumpkin?</a></h3>
+<p class="POD_TEXT">
+Chip Salzenberg gets credit for that, with a nod to his cow orker,
+David Croy.  We had passed around various names (baton, token, hot
+potato) but none caught on.  Then, Chip asked:
+</p>
+<pre class="POD_TEXT">
+[begin quote]
+
+   Who has the patch pumpkin?
+</pre>
+<p class="POD_TEXT">
+To explain:  David Croy once told me once that at a previous job,
+there was one tape drive and multiple systems that used it for backups.
+But instead of some high-tech exclusion software, they used a low-tech
+method to prevent multiple simultaneous backups: a stuffed pumpkin.
+No one was allowed to make backups unless they had the &quot;backup pumpkin&quot;.
+</p>
+<p class="POD_TEXT">
+[end quote]
+</p>
+<p class="POD_TEXT">
+The name has stuck.
+</p>
+<h2 class="POD_HEAD1"><a name="Philosophical_Issues">Philosophical Issues in Patching and Porting Perl</a></h2>
+<p class="POD_TEXT">
+There are no absolute rules, but there are some general guidelines I
+have tried to follow as I apply patches to the perl sources.
+(This section is still under construction.)
+</p>
+<h3 class="POD_HEAD2"><a name="Solve_problems_as_ge">Solve problems as generally as possible</a></h3>
+<p class="POD_TEXT">
+Never implement a specific restricted solution to a problem when you
+can solve the same problem in a more general, flexible way.
+</p>
+<p class="POD_TEXT">
+For example, for dynamic loading to work on some SVR4 systems, we had
+to build a shared libperl.so library.  In order to build &quot;FAT&quot; binaries
+on NeXT 4.0 systems, we had to build a special libperl library.  Rather
+than continuing to build a contorted nest of special cases, I
+generalized the process of building libperl so that NeXT and SVR4 users
+could still get their work done, but others could build a shared
+libperl if they wanted to as well.
+</p>
+<p class="POD_TEXT">
+Contain your changes carefully.  Assume nothing about other operating
+systems, not even closely related ones.  Your changes must not affect
+other platforms.
+</p>
+<p class="POD_TEXT">
+Spy shamelessly on how similar patching or porting issues have been
+settled elsewhere.
+</p>
+<p class="POD_TEXT">
+If feasible, try to keep filenames 8.3-compliant to humor those poor
+souls that get joy from running Perl under such dire limitations.
+</p>
+<h3 class="POD_HEAD2"><a name="Seek_consensus_on_ma">Seek consensus on major changes</a></h3>
+<p class="POD_TEXT">
+If you are making big changes, don't do it in secret.  Discuss the
+ideas in advance on perl5-porters.
+</p>
+<h3 class="POD_HEAD2"><a name="Keep_the_documentati">Keep the documentation up-to-date</a></h3>
+<p class="POD_TEXT">
+If your changes may affect how users use perl, then check to be sure
+that the documentation is in sync with your changes.  Be sure to
+check all the files <code>pod/*.pod</code> and also the <code>INSTALL</code> document.
+</p>
+<p class="POD_TEXT">
+Consider writing the appropriate documentation first and then
+implementing your change to correspond to the documentation.
+</p>
+<h3 class="POD_HEAD2"><a name="Avoid_machine_specif">Avoid machine-specific #ifdef's</a></h3>
+<p class="POD_TEXT">
+To the extent reasonable, try to avoid machine-specific #ifdef's in
+the sources.  Instead, use feature-specific #ifdef's.  The reason is
+that the machine-specific #ifdef's may not be valid across major
+releases of the operating system.  Further, the feature-specific tests
+may help out folks on another platform who have the same problem.
+</p>
+<h3 class="POD_HEAD2"><a name="Machine_specific_fil">Machine-specific files</a></h3>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="source_code">source code</a>
+<dd>
+If you have many machine-specific #defines or #includes, consider
+creating an &quot;osish.h&quot; (os2ish.h, vmsish.h, and so on) and including
+that in perl.h.  If you have several machine-specific files (function
+emulations, function stubs, build utility wrappers) you may create a
+separate subdirectory (djgpp, win32) and put the files in there.
+Remember to update <code>MANIFEST</code> when you add files.
+<p class="POD_TEXT">
+If your system supports dynamic loading but none of the existing
+methods at <code>ext/DynaLoader/dl_*.xs</code> work for you, you must write
+a new one.  Study the existing ones to see what kind of interface
+you must supply.
+</p>
+<dt class="POD_ITEM"><a name="build_hints">build hints</a>
+<dd>
+There are two kinds of hints: hints for building Perl and hints for
+extensions.   The former live in the <code>hints</code> subdirectory, the latter
+in <code>ext/*/hints</code> subdirectories.
+<p class="POD_TEXT">
+The top level hints are Bourne-shell scripts that set, modify and
+unset appropriate Configure variables, based on the Configure command
+line options and possibly existing config.sh and Policy.sh files from
+previous Configure runs.
+</p>
+<p class="POD_TEXT">
+The extension hints are written in Perl (by the time they are used
+miniperl has been built) and control the building of their respective
+extensions.  They can be used to for example manipulate compilation
+and linking flags.
+</p>
+<dt class="POD_ITEM"><a name="build_and_installati">build and installation Makefiles, scripts, and so forth</a>
+<dd>
+Sometimes you will also need to tweak the Perl build and installation
+procedure itself, like for example <code>Makefile.SH</code> and <code>installperl</code>.
+Tread very carefully, even more than usual.  Contain your changes
+with utmost care.
+<dt class="POD_ITEM"><a name="test_suite">test suite</a>
+<dd>
+Many of the tests in <code>t</code> subdirectory assume machine-specific things
+like existence of certain functions, something about filesystem
+semantics, certain external utilities and their error messages.  Use
+the <code><a class="POD_LINK" href="perlvar.html#_O">$^O</a></code> and the <code>Config</code> module (which contains the results of the
+Configure run, in effect the <code>config.sh</code> converted to Perl) to either
+skip (preferably not) or customize (preferable) the tests for your
+platform.
+<dt class="POD_ITEM"><a name="modules">modules</a>
+<dd>
+Certain standard modules may need updating if your operating system
+sports for example a native filesystem naming.  You may want to update
+some or all of the modules File::Basename, File::Spec, File::Path, and
+File::Copy to become aware of your native filesystem syntax and
+peculiarities.
+<dt class="POD_ITEM"><a name="documentation">documentation</a>
+<dd>
+If your operating system comes from outside UNIX you almost certainly
+will have differences in the available operating system functionality
+(missing system calls, different semantics, whatever).  Please
+document these at <code>pod/perlport.pod</code>.  If your operating system is
+the first <b>not</b> to have a system call also update the list of
+&quot;portability-bewares&quot; at the beginning of <code>pod/perlfunc.pod</code>.
+<p class="POD_TEXT">
+A file called <code>README.youros</code> at the top level that explains things
+like how to install perl at this platform, where to get any possibly
+required additional software, and for example what test suite errors
+to expect, is nice too.  Such files are in the process of being written
+in pod format and will eventually be renamed <code>INSTALL.youros</code>.
+</p>
+<p class="POD_TEXT">
+You may also want to write a separate <code>.pod</code> file for your operating
+system to tell about existing mailing lists, os-specific modules,
+documentation, whatever.  Please name these along the lines of
+<code>perl</code><i>youros</i>.pod.  [unfinished: where to put this file (the pod/
+subdirectory, of course: but more importantly, which/what index files
+should be updated?)]
+</p>
+</dl>
+<h3 class="POD_HEAD2"><a name="Allow_for_lots_of_te">Allow for lots of testing</a></h3>
+<p class="POD_TEXT">
+We should never release a main version without testing it as a
+subversion first.
+</p>
+<h3 class="POD_HEAD2"><a name="Test_popular_applica">Test popular applications and modules.</a></h3>
+<p class="POD_TEXT">
+We should never release a main version without testing whether or not
+it breaks various popular modules and applications.  A partial list of
+such things would include majordomo, metaconfig, apache, Tk, CGI,
+libnet, and libwww, to name just a few.  Of course it's quite possible
+that some of those things will be just plain broken and need to be fixed,
+but, in general, we ought to try to avoid breaking widely-installed
+things.
+</p>
+<h3 class="POD_HEAD2"><a name="Automated_generation">Automated generation of derivative files</a></h3>
+<p class="POD_TEXT">
+The <code>embed.h</code>, <code>keywords.h</code>, <code>opcode.h</code>, and <code>perltoc.pod</code> files
+are all automatically generated by perl scripts.  In general, don't
+patch these directly; patch the data files instead.
+</p>
+<p class="POD_TEXT">
+<code>Configure</code> and <code>config_h.SH</code> are also automatically generated by
+<b>metaconfig</b>.  In general, you should patch the metaconfig units
+instead of patching these files directly.  However, very minor changes
+to <code>Configure</code> may be made in between major sync-ups with the
+metaconfig units, which tends to be complicated operations.  But be
+careful, this can quickly spiral out of control.  Running metaconfig
+is not really hard.
+</p>
+<p class="POD_TEXT">
+Also <code>Makefile</code> is automatically produced from <code>Makefile.SH</code>.
+In general, look out for all <code>*.SH</code> files.
+</p>
+<p class="POD_TEXT">
+Finally, the sample files in the <code>Porting/</code> subdirectory are
+generated automatically by the script <code>U/mksample</code> included 
+with the metaconfig units.  See the section on <a class="POD_LINK" href="#run_metaconfig">run metaconfig</a> elsewhere in this document below for
+information on obtaining the metaconfig units.
+</p>
+<h2 class="POD_HEAD1"><a name="How_to_Make_a_Distri">How to Make a Distribution</a></h2>
+<p class="POD_TEXT">
+There really ought to be a 'make dist' target, but there isn't.
+The 'dist' suite of tools also contains a number of tools that I haven't
+learned how to use yet.  Some of them may make this all a bit easier.
+</p>
+<p class="POD_TEXT">
+Here are the steps I go through to prepare a patch &amp; distribution.
+</p>
+<p class="POD_TEXT">
+Lots of it could doubtless be automated but isn't.  The Porting/makerel
+(make release) perl script does now help automate some parts of it.
+</p>
+<h3 class="POD_HEAD2"><a name="Announce_your_intent">Announce your intentions</a></h3>
+<p class="POD_TEXT">
+First, you should volunteer out loud to take the patch pumpkin.  It's
+generally counter-productive to have multiple people working in secret
+on the same thing.
+</p>
+<p class="POD_TEXT">
+At the same time, announce what you plan to do with the patch pumpkin,
+to allow folks a chance to object or suggest alternatives, or do it for
+you.  Naturally, the patch pumpkin holder ought to incorporate various
+bug fixes and documentation improvements that are posted while he or
+she has the pumpkin, but there might also be larger issues at stake.
+</p>
+<p class="POD_TEXT">
+One of the precepts of the subversion idea is that we shouldn't give
+the patch pumpkin to anyone unless we have some idea what he or she
+is going to do with it.
+</p>
+<h3 class="POD_HEAD2"><a name="refresh_pod_perltoc_">refresh pod/perltoc.pod</a></h3>
+<p class="POD_TEXT">
+Presumably, you have done a full <code>make</code> in your working source
+directory.  Before you <code>make spotless</code> (if you do), and if you have
+changed any documentation in any module or pod file, change to the
+<code>pod</code> directory and run <code>make toc</code>.
+</p>
+<h3 class="POD_HEAD2"><a name="run_installhtml_to_c">run installhtml to check the validity of the pod files</a></h3>
+<h3 class="POD_HEAD2"><a name="update_patchlevel_h">update patchlevel.h</a></h3>
+<p class="POD_TEXT">
+Don't be shy about using the subversion number, even for a relatively
+modest patch.  We've never even come close to using all 99 subversions,
+and it's better to have a distinctive number for your patch.  If you
+need feedback on your patch, go ahead and issue it and promise to
+incorporate that feedback quickly (e.g. within 1 week) and send out a
+second patch.
+</p>
+<h3 class="POD_HEAD2"><a name="run_metaconfig">run metaconfig</a></h3>
+<pre class="POD_TEXT">
+If you need to make changes to Configure or config_h.SH, it may be best to
+change the appropriate metaconfig units instead, and regenerate Configure.
+
+	metaconfig -m
+</pre>
+<p class="POD_TEXT">
+will regenerate Configure and config_h.SH.  Much more information
+on obtaining and running metaconfig is in the <code>U/README</code> file
+that comes with Perl's metaconfig units.  Perl's metaconfig units
+should be available on CPAN.  A set of units that will work with
+perl5.005 is in the file <code>mc_units-5.005_00-01.tar.gz</code> under
+http://www.perl.com/CPAN/authors/id/ANDYD/ .  The mc_units tar file
+should be unpacked in your main perl source directory.  Note: those
+units were for use with 5.005.  There may have been changes since then.
+Check for later versions or contact perl5-porters@perl.org to obtain a
+pointer to the current version.
+</p>
+<p class="POD_TEXT">
+Alternatively, do consider if the <code>*ish.h</code> files might be a better
+place for your changes.
+</p>
+<h3 class="POD_HEAD2"><a name="MANIFEST">MANIFEST</a></h3>
+<pre class="POD_TEXT">
+Make sure the MANIFEST is up-to-date.  You can use dist's <b>manicheck</b>
+program for this.  You can also use
+
+    perl -w -MExtUtils::Manifest=fullcheck -e fullcheck
+</pre>
+<p class="POD_TEXT">
+Both commands will also list extra files in the directory that are not
+listed in MANIFEST.
+</p>
+<p class="POD_TEXT">
+The MANIFEST is normally sorted.
+</p>
+<p class="POD_TEXT">
+If you are using metaconfig to regenerate Configure, then you should note
+that metaconfig actually uses MANIFEST.new, so you want to be sure
+MANIFEST.new is up-to-date too.  I haven't found the MANIFEST/MANIFEST.new
+distinction particularly useful, but that's probably because I still haven't
+learned how to use the full suite of tools in the dist distribution.
+</p>
+<h3 class="POD_HEAD2"><a name="Check_permissions">Check permissions</a></h3>
+<p class="POD_TEXT">
+All the tests in the t/ directory ought to be executable.  The
+main makefile used to do a 'chmod t/*/*.t', but that resulted in
+a self-modifying distribution--something some users would strongly
+prefer to avoid.  The <code>t/TEST</code> script will check for this
+and do the chmod if needed, but the tests still ought to be
+executable.
+</p>
+<pre class="POD_TEXT">
+In all, the following files should probably be executable:
+
+    Configure
+    configpm
+    configure.gnu
+    embed.pl
+    installperl
+    installman
+    keywords.pl
+    myconfig
+    opcode.pl
+    perly.fixer
+    t/TEST
+    t/*/*.t
+    *.SH
+    vms/ext/Stdio/test.pl
+    vms/ext/filespec.t
+    x2p/*.SH
+</pre>
+<p class="POD_TEXT">
+Other things ought to be readable, at least :-).
+</p>
+<p class="POD_TEXT">
+Probably, the permissions for the files could be encoded in MANIFEST
+somehow, but I'm reluctant to change MANIFEST itself because that
+could break old scripts that use MANIFEST.
+</p>
+<p class="POD_TEXT">
+I seem to recall that some SVR3 systems kept some sort of file that listed
+permissions for system files; something like that might be appropriate.
+</p>
+<h3 class="POD_HEAD2"><a name="Run_Configure">Run Configure</a></h3>
+<pre class="POD_TEXT">
+This will build a config.sh and config.h.  You can skip this if you haven't
+changed Configure or config_h.SH at all.  I use the following command
+
+    sh Configure -Dprefix=/opt/perl -Doptimize=-O -Dusethreads \
+	-Dcf_by='yourname' \
+	-Dcf_email='yourname@yourhost.yourplace.com' \
+	-Dperladmin='yourname@yourhost.yourplace.com' \
+	-Dmydomain='.yourplace.com' \
+	-Dmyhostname='yourhost' \
+	-des
+</pre>
+<h3 class="POD_HEAD2"><a name="Update_Porting_confi">Update Porting/config.sh and Porting/config_H</a></h3>
+<p class="POD_TEXT">
+[XXX 
+This section needs revision.  We're currently working on easing
+the task of keeping the vms, win32, and plan9 config.sh info
+up-to-date.  The plan is to use keep up-to-date 'canned' config.sh
+files in the appropriate subdirectories and then generate 'canned'
+config.h files for vms, win32, etc. from the generic config.sh file.
+This is to ease maintenance.  When Configure gets updated, the parts
+sometimes get scrambled around, and the changes in config_H can
+sometimes be very hard to follow.  config.sh, on the other hand, can
+safely be sorted, so it's easy to track (typically very small) changes
+to config.sh and then propoagate them to a canned 'config.h' by any
+number of means, including a perl script in win32/ or carrying 
+config.sh and config_h.SH to a Unix system and running sh
+config_h.SH.)  Vms uses configure.com to generate its own config.sh
+and config.h.  If you want to add a new variable to config.sh check
+with vms folk how to add it to configure.com too.
+XXX]
+</p>
+<p class="POD_TEXT">
+The Porting/config.sh and Porting/config_H files are provided to
+help those folks who can't run Configure.  It is important to keep
+them up-to-date.  If you have changed config_h.SH, those changes must
+be reflected in config_H as well.  (The name config_H was chosen to
+distinguish the file from config.h even on case-insensitive file systems.)
+Simply edit the existing config_H file; keep the first few explanatory
+lines and then copy your new config.h below.
+</p>
+<p class="POD_TEXT">
+It may also be necessary to update win32/config.?c, and
+plan9/config.plan9, though you should be quite careful in doing so if
+you are not familiar with those systems.  You might want to issue your
+patch with a promise to quickly issue a follow-up that handles those
+directories.
+</p>
+<h3 class="POD_HEAD2"><a name="make_run_byacc">make run_byacc</a></h3>
+<p class="POD_TEXT">
+If you have byacc-1.8.2 (available from CPAN), and if there have been
+changes to <code>perly.y</code>, you can regenerate the <code>perly.c</code> file.  The
+run_byacc makefile target does this by running byacc and then applying
+some patches so that byacc dynamically allocates space, rather than
+having fixed limits.  This patch is handled by the <code>perly.fixer</code>
+script.  Depending on the nature of the changes to <code>perly.y</code>, you may
+or may not have to hand-edit the patch to apply correctly.  If you do,
+you should include the edited patch in the new distribution.  If you
+have byacc-1.9, the patch won't apply cleanly.  Changes to the printf
+output statements mean the patch won't apply cleanly.  Long ago I
+started to fix <code>perly.fixer</code> to detect this, but I never completed the
+task.
+</p>
+<p class="POD_TEXT">
+If <code>perly.c</code> or <code>perly.h</code> changes, make sure you run <code>perl vms/vms_yfix.pl</code> 
+to update the corresponding VMS files.  This could be taken care of by 
+the regen_all target in the Unix Makefile.  See also 
+the <a class="POD_LINK" href="#VMS_specific_updates">VMS-specific updates</a> entry elsewhere in this document.
+</p>
+<p class="POD_TEXT">
+Some additional notes from Larry on this:
+</p>
+<pre class="POD_TEXT">
+Don't forget to regenerate perly_c.diff.
+
+    byacc -d perly.y
+    mv y.tab.c perly.c
+    patch perly.c &lt;perly_c.diff
+    # manually apply any failed hunks
+    diff -c2 perly.c.orig perly.c &gt;perly_c.diff
+</pre>
+<pre class="POD_TEXT">
+One chunk of lines that often fails begins with
+
+    #line 29 &quot;perly.y&quot;
+</pre>
+<pre class="POD_TEXT">
+and ends one line before
+
+    #define YYERRCODE 256
+</pre>
+<p class="POD_TEXT">
+This only happens when you add or remove a token type.  I suppose this
+could be automated, but it doesn't happen very often nowadays.
+</p>
+<p class="POD_TEXT">
+Larry
+</p>
+<h3 class="POD_HEAD2"><a name="make_regen_all">make regen_all</a></h3>
+<p class="POD_TEXT">
+This target takes care of the PERLYVMS, regen_headers, and regen_pods
+targets.
+</p>
+<h3 class="POD_HEAD2"><a name="make_regen_headers">make regen_headers</a></h3>
+<p class="POD_TEXT">
+The <code>embed.h</code>, <code>keywords.h</code>, and <code>opcode.h</code> files are all automatically
+generated by perl scripts.  Since the user isn't guaranteed to have a
+working perl, we can't require the user to generate them.  Hence you have
+to, if you're making a distribution.
+</p>
+<pre class="POD_TEXT">
+I used to include rules like the following in the makefile:
+
+    # The following three header files are generated automatically
+    # The correct versions should be already supplied with the perl kit,
+    # in case you don't have perl or 'sh' available.
+    # The - is to ignore error return codes in case you have the source
+    # installed read-only or you don't have perl yet.
+    keywords.h: keywords.pl
+	    @echo &quot;Don't worry if this fails.&quot;
+	    - perl keywords.pl
+</pre>
+<p></p>
+<p class="POD_TEXT">
+However, I got <b>lots</b> of mail consisting of people worrying because the
+command failed.  I eventually decided that I would save myself time
+and effort by manually running <code>make regen_headers</code> myself rather
+than answering all the questions and complaints about the failing
+command.
+</p>
+<h3 class="POD_HEAD2"><a name="make_regen_pods">make regen_pods</a></h3>
+<p class="POD_TEXT">
+Will run `make regen_pods` in the pod directory for indexing.
+</p>
+<h3 class="POD_HEAD2"><a name="global_sym_interp_sy">global.sym, interp.sym and perlio.sym</a></h3>
+<p class="POD_TEXT">
+Make sure these files are up-to-date.  Read the comments in these
+files and in perl_exp.SH to see what to do.
+</p>
+<h3 class="POD_HEAD2"><a name="Binary_compatibility">Binary compatibility</a></h3>
+<p class="POD_TEXT">
+If you do change <code>global.sym</code> or <code>interp.sym</code>, think carefully about
+what you are doing.  To the extent reasonable, we'd like to maintain
+source and binary compatibility with older releases of perl.  That way,
+extensions built under one version of perl will continue to work with
+new versions of perl.
+</p>
+<p class="POD_TEXT">
+Of course, some incompatible changes may well be necessary.  I'm just
+suggesting that we not make any such changes without thinking carefully
+about them first.  If possible, we should provide
+backwards-compatibility stubs.  There's a lot of XS code out there.
+Let's not force people to keep changing it.
+</p>
+<h3 class="POD_HEAD2"><a name="Changes">Changes</a></h3>
+<p class="POD_TEXT">
+Be sure to update the <code>Changes</code> file.  Try to include both an overall
+summary as well as detailed descriptions of the changes.  Your
+audience will include other developers and users, so describe
+user-visible changes (if any) in terms they will understand, not in
+code like &quot;initialize foo variable in bar function&quot;.
+</p>
+<p class="POD_TEXT">
+There are differing opinions on whether the detailed descriptions
+ought to go in the Changes file or whether they ought to be available
+separately in the patch file (or both).  There is no disagreement that
+detailed descriptions ought to be easily available somewhere.
+</p>
+<h3 class="POD_HEAD2"><a name="Todo">Todo</a></h3>
+<p class="POD_TEXT">
+The <code>Todo</code> file contains a roughly-catgorized unordered list of
+aspects of Perl that could use enhancement, features that could be
+added, areas that could be cleaned up, and so on.  During your term as
+pumpkin-holder, you will probably address some of these issues, and
+perhaps identify others which, while you decide not to address them
+this time around, may be tackled in the future.  Update the file
+reflect the situation as it stands when you hand over the pumpkin.
+</p>
+<p class="POD_TEXT">
+You might like, early in your pumpkin-holding career, to see if you
+can find champions for partiticular issues on the to-do list: an issue
+owned is an issue more likely to be resolved.
+</p>
+<p class="POD_TEXT">
+There are also some more porting-specific the <u>Todo</u> manpage items later in this
+file.
+</p>
+<h3 class="POD_HEAD2"><a name="OS_2_specific_update">OS/2-specific updates</a></h3>
+<p class="POD_TEXT">
+In the os2 directory is <code>diff.configure</code>, a set of OS/2-specific
+diffs against <b>Configure</b>.  If you make changes to Configure, you may
+want to consider regenerating this diff file to save trouble for the
+OS/2 maintainer.
+</p>
+<p class="POD_TEXT">
+You can also consider the OS/2 diffs as reminders of portability
+things that need to be fixed in Configure.
+</p>
+<h3 class="POD_HEAD2"><a name="VMS_specific_updates">VMS-specific updates</a></h3>
+<p class="POD_TEXT">
+If you have changed <code>perly.y</code> or <code>perly.c</code>, then you most probably want
+to update <code>vms/perly_{h,c}.vms</code> by running <code>perl vms/vms_yfix.pl</code>, or
+by running `make regen_all` which will run that script for you.
+</p>
+<p class="POD_TEXT">
+The Perl revision number appears as &quot;perl5&quot; in configure.com.
+It is courteous to update that if necessary.
+</p>
+<h3 class="POD_HEAD2"><a name="Making_the_new_distr">Making the new distribution</a></h3>
+<pre class="POD_TEXT">
+Suppose, for example, that you want to make version 5.004_08.  Then you can
+do something like the following
+
+	mkdir ../perl5.004_08
+	awk '{print $1}' MANIFEST | cpio -pdm ../perl5.004_08
+	cd ../
+	tar cf perl5.004_08.tar perl5.004_08
+	gzip --best perl5.004_08.tar
+</pre>
+<p class="POD_TEXT">
+These steps, with extra checks, are automated by the Porting/makerel
+script.
+</p>
+<h3 class="POD_HEAD2"><a name="Making_a_new_patch">Making a new patch</a></h3>
+<pre class="POD_TEXT">
+I find the <code>makepatch</code> utility quite handy for making patches.
+You can obtain it from any CPAN archive under
+http://www.perl.com/CPAN/authors/Johan_Vromans/ .  There are a couple
+of differences between my version and the standard one. I have mine do
+a
+
+	# Print a reassuring &quot;End of Patch&quot; note so people won't
+	# wonder if their mailer truncated patches.
+	print &quot;\n\nEnd of Patch.\n&quot;;
+</pre>
+<p class="POD_TEXT">
+at the end.  That's because I used to get questions from people asking
+if their mail was truncated.
+</p>
+<p class="POD_TEXT">
+It also writes Index: lines which include the new directory prefix
+(change Index: print, approx line 294 or 310 depending on the version,
+to read:  print PATCH (&quot;Index: $newdir$new\n&quot;);).  That helps patches
+work with more POSIX conformant patch programs.
+</p>
+<pre class="POD_TEXT">
+Here's how I generate a new patch.  I'll use the hypothetical
+5.004_07 to 5.004_08 patch as an example.
+
+	# unpack perl5.004_07/
+	gzip -d -c perl5.004_07.tar.gz | tar -xof -
+	# unpack perl5.004_08/
+	gzip -d -c perl5.004_08.tar.gz | tar -xof -
+	makepatch perl5.004_07 perl5.004_08 &gt; perl5.004_08.pat
+</pre>
+<pre class="POD_TEXT">
+Makepatch will automatically generate appropriate <b>rm</b> commands to remove
+deleted files.  Unfortunately, it will not correctly set permissions
+for newly created files, so you may have to do so manually.  For example,
+patch 5.003_04 created a new test <code>t/op/gv.t</code> which needs to be executable,
+so at the top of the patch, I inserted the following lines:
+
+	# Make a new test
+	touch t/op/gv.t
+	chmod +x t/opt/gv.t
+</pre>
+<p class="POD_TEXT">
+Now, of course, my patch is now wrong because makepatch didn't know I
+was going to do that command, and it patched against /dev/null.
+</p>
+<pre class="POD_TEXT">
+So, what I do is sort out all such shell commands that need to be in the
+patch (including possible mv-ing of files, if needed) and put that in the
+shell commands at the top of the patch.  Next, I delete all the patch parts
+of perl5.004_08.pat, leaving just the shell commands.  Then, I do the
+following:
+
+	cd perl5.004_07
+	sh ../perl5.004_08.pat
+	cd ..
+	makepatch perl5.004_07 perl5.004_08 &gt;&gt; perl5.004_08.pat
+</pre>
+<p class="POD_TEXT">
+(Note the append to preserve my shell commands.)
+Now, my patch will line up with what the end users are going to do.
+</p>
+<h3 class="POD_HEAD2"><a name="Testing_your_patch">Testing your patch</a></h3>
+<pre class="POD_TEXT">
+It seems obvious, but be sure to test your patch.  That is, verify that
+it produces exactly the same thing as your full distribution.
+
+	rm -rf perl5.004_07
+	gzip -d -c perl5.004_07.tar.gz | tar -xf -
+	cd perl5.004_07
+	sh ../perl5.004_08.pat
+	patch -p1 -N &lt; ../perl5.004_08.pat
+	cd ..
+	gdiff -r perl5.004_07 perl5.004_08
+</pre>
+<p class="POD_TEXT">
+where <b>gdiff</b> is GNU diff.  Other diff's may also do recursive checking.
+</p>
+<h3 class="POD_HEAD2"><a name="More_testing">More testing</a></h3>
+<p class="POD_TEXT">
+Again, it's obvious, but you should test your new version as widely as you
+can.  You can be sure you'll hear about it quickly if your version doesn't
+work on both ANSI and pre-ANSI compilers, and on common systems such as
+SunOS 4.1.[34], Solaris, and Linux.
+</p>
+<pre class="POD_TEXT">
+If your changes include conditional code, try to test the different
+branches as thoroughly as you can.  For example, if your system
+supports dynamic loading, you can also test static loading with
+
+	sh Configure -Uusedl
+</pre>
+<p class="POD_TEXT">
+You can also hand-tweak your config.h to try out different #ifdef
+branches.
+</p>
+<h3 class="POD_HEAD2"><a name="Other_tests">Other tests</a></h3>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="CHECK_FORMAT">CHECK_FORMAT</a>
+<dd>
+To test the correct use of printf-style arguments, <code>Configure</code> with
+-Dccflags='-DCHECK_FORMAT&nbsp;-Wformat' and run <code>make</code>.  The compiler
+will produce warning of incorrect use of format arguments.  CHECK_FORMAT
+changes perl-defined formats to common formats, so DO NOT USE the executable
+produced by this process.
+<pre class="POD_TEXT">
+A more accurate approach is the following commands:
+
+    sh Configure -des -Dccflags=-Wformat ...
+    make miniperl		# without -DCHECK_FORMAT
+    perl -i.orig -pwe 's/-Wformat/-DCHECK_FORMAT $&amp;/' config.sh
+    sh Configure -S
+    make &gt;&amp; make.log		# build from correct miniperl
+    make clean
+    make miniperl &gt;&amp; mini.log	# build miniperl with -DCHECK_FORMAT 
+    perl -nwe 'print if /^\S+:/ and not /^make\b/' mini.log make.log
+    make clean
+</pre>
+<p class="POD_TEXT">
+(-Wformat support by Robin Barker.)
+</p>
+</dl>
+<h2 class="POD_HEAD1"><a name="Running_Purify">Running Purify</a></h2>
+<p class="POD_TEXT">
+Purify is a commercial tool that is helpful in identifying memory
+overruns, wild pointers, memory leaks and other such badness.  Perl
+must be compiled in a specific way for optimal testing with Purify.
+</p>
+<pre class="POD_TEXT">
+Use the following commands to test perl with Purify:
+
+	sh Configure -des -Doptimize=-g -Uusemymalloc -Dusemultiplicity \
+	    -Accflags=-DPURIFY
+	setenv PURIFYOPTIONS &quot;-chain-length=25&quot;
+	make all pureperl
+	cd t
+	ln -s ../pureperl perl
+	setenv PERL_DESTRUCT_LEVEL 5
+	./perl TEST
+</pre>
+<p class="POD_TEXT">
+Disabling Perl's malloc allows Purify to monitor allocations and leaks
+more closely; using Perl's malloc will make Purify report most leaks
+in the &quot;potential&quot; leaks category.  Enabling the multiplicity option
+allows perl to clean up thoroughly when the interpreter shuts down, which
+reduces the number of bogus leak reports from Purify.  The -DPURIFY
+enables any Purify-specific debugging code in the sources.
+</p>
+<pre class="POD_TEXT">
+Purify outputs messages in &quot;Viewer&quot; windows by default.  If you don't have
+a windowing environment or if you simply want the Purify output to
+unobtrusively go to a log file instead of to the interactive window,
+use the following options instead:
+
+	setenv PURIFYOPTIONS &quot;-chain-length=25 -windows=no -log-file=perl.log \
+	    -append-logfile=yes&quot;
+</pre>
+<p class="POD_TEXT">
+The only currently known leaks happen when there are compile-time errors
+within eval or require.  (Fixing these is non-trivial, unfortunately, but
+they must be fixed eventually.)
+</p>
+<h2 class="POD_HEAD1"><a name="Common_Gotcha_s">Common Gotcha's</a></h2>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_elif">#elif</a>
+<dd>
+The '#elif' preprocessor directive is not understood on all systems.
+Specifically, I know that Pyramids don't understand it.  Thus instead of the
+simple
+<pre class="POD_VERBATIM">
+	#if defined(I_FOO)
+	#  include &lt;foo.h&gt;
+	#elif defined(I_BAR)
+	#  include &lt;bar.h&gt;
+	#else
+	#  include &lt;fubar.h&gt;
+	#endif
+</pre>
+<pre class="POD_TEXT">
+You have to do the more Byzantine
+
+	#if defined(I_FOO)
+	#  include &lt;foo.h&gt;
+	#else
+	#  if defined(I_BAR)
+	#    include &lt;bar.h&gt;
+	#  else
+	#    include &lt;fubar.h&gt;
+	#  endif
+	#endif
+</pre>
+<p class="POD_TEXT">
+Incidentally, whitespace between the leading '#' and the preprocessor
+command is not guaranteed, but is very portable and you may use it freely.
+I think it makes things a bit more readable, especially once things get
+rather deeply nested.  I also think that things should almost never get
+too deeply nested,  so it ought to be a moot point :-)
+</p>
+<dt class="POD_ITEM"><a name="Probably_Prefer_POSI">Probably Prefer POSIX</a>
+<dd>
+It's often the case that you'll need to choose whether to do
+something the BSD-ish way or the POSIX-ish way.  It's usually not
+a big problem when the two systems use different names for similar
+functions, such as memcmp() and bcmp().  The perl.h header file
+handles these by appropriate #defines, selecting the POSIX mem*()
+functions if available, but falling back on the b*() functions, if
+need be.
+<pre class="POD_TEXT">
+More serious is the case where some brilliant person decided to
+use the same function name but give it a different meaning or
+calling sequence :-).  getpgrp() and setpgrp() come to mind.
+These are a real problem on systems that aim for conformance to
+one standard (e.g. POSIX), but still try to support the other way
+of doing things (e.g. BSD).  My general advice (still not really
+implemented in the source) is to do something like the following.
+Suppose there are two alternative versions, fooPOSIX() and
+fooBSD().
+
+    #ifdef HAS_FOOPOSIX
+	/* use fooPOSIX(); */
+    #else
+    #  ifdef HAS_FOOBSD
+	/* try to emulate fooPOSIX() with fooBSD();
+	   perhaps with the following:  */
+    #    define fooPOSIX fooBSD
+    #  else
+    #  /* Uh, oh.  We have to supply our own. */
+    #    define fooPOSIX Perl_fooPOSIX
+    #  endif
+    #endif
+</pre>
+<dt class="POD_ITEM"><a name="Think_positively">Think positively</a>
+<dd>
+If you need to add an #ifdef test, it is usually easier to follow if you
+think positively, e.g.
+<pre class="POD_VERBATIM">
+	#ifdef HAS_NEATO_FEATURE
+	    /* use neato feature */
+	#else
+	    /* use some fallback mechanism */
+	#endif
+</pre>
+<pre class="POD_TEXT">
+rather than the more impenetrable
+
+	#ifndef MISSING_NEATO_FEATURE
+	    /* Not missing it, so we must have it, so use it */
+	#else
+	    /* Are missing it, so fall back on something else. */
+	#endif
+</pre>
+<pre class="POD_TEXT">
+Of course for this toy example, there's not much difference.  But when
+the #ifdef's start spanning a couple of screen fulls, and the #else's
+are marked something like
+
+	#else /* !MISSING_NEATO_FEATURE */
+</pre>
+<p class="POD_TEXT">
+I find it easy to get lost.
+</p>
+<dt class="POD_ITEM"><a name="Providing_Missing_Fu">Providing Missing Functions -- Problem</a>
+<dd>
+Not all systems have all the neat functions you might want or need, so
+you might decide to be helpful and provide an emulation.  This is
+sound in theory and very kind of you, but please be careful about what
+you name the function.  Let me use the <code>pause()</code> function as an
+illustration.
+<pre class="POD_TEXT">
+Perl5.003 has the following in <code>perl.h</code>
+
+    #ifndef HAS_PAUSE
+    #define pause() sleep((32767&lt;&lt;16)+32767)
+    #endif
+</pre>
+<p class="POD_TEXT">
+Configure sets HAS_PAUSE if the system has the pause() function, so
+this #define only kicks in if the pause() function is missing.
+Nice idea, right?
+</p>
+<p class="POD_TEXT">
+Unfortunately, some systems apparently have a prototype for pause()
+in <code>unistd.h</code>, but don't actually have the function in the library.
+(Or maybe they do have it in a library we're not using.)
+</p>
+<pre class="POD_TEXT">
+Thus, the compiler sees something like
+
+    extern int pause(void);
+    /* . . . */
+    #define pause() sleep((32767&lt;&lt;16)+32767)
+</pre>
+<p class="POD_TEXT">
+and dies with an error message.  (Some compilers don't mind this;
+others apparently do.)
+</p>
+<pre class="POD_TEXT">
+To work around this, 5.003_03 and later have the following in perl.h:
+
+    /* Some unistd.h's give a prototype for pause() even though
+       HAS_PAUSE ends up undefined.  This causes the #define
+       below to be rejected by the compiler.  Sigh.
+    */
+    #ifdef HAS_PAUSE
+    #  define Pause	pause
+    #else
+    #  define Pause() sleep((32767&lt;&lt;16)+32767)
+    #endif
+</pre>
+<p class="POD_TEXT">
+This works.
+</p>
+<pre class="POD_TEXT">
+The curious reader may wonder why I didn't do the following in
+<code>util.c</code> instead:
+
+    #ifndef HAS_PAUSE
+    void pause()
+    {
+    sleep((32767&lt;&lt;16)+32767);
+    }
+    #endif
+</pre>
+<p class="POD_TEXT">
+That is, since the function is missing, just provide it.
+Then things would probably be been alright, it would seem.
+</p>
+<p class="POD_TEXT">
+Well, almost.  It could be made to work.  The problem arises from the
+conflicting needs of dynamic loading and namespace protection.
+</p>
+<p class="POD_TEXT">
+For dynamic loading to work on AIX (and VMS) we need to provide a list
+of symbols to be exported.  This is done by the script <code>perl_exp.SH</code>,
+which reads <code>global.sym</code> and <code>interp.sym</code>.  Thus, the <code>pause</code>
+symbol would have to be added to <code>global.sym</code>  So far, so good.
+</p>
+<pre class="POD_TEXT">
+On the other hand, one of the goals of Perl5 is to make it easy to
+either extend or embed perl and link it with other libraries.  This
+means we have to be careful to keep the visible namespace &quot;clean&quot;.
+That is, we don't want perl's global variables to conflict with
+those in the other application library.  Although this work is still
+in progress, the way it is currently done is via the <code>embed.h</code> file.
+This file is built from the <code>global.sym</code> and <code>interp.sym</code> files,
+since those files already list the globally visible symbols.  If we
+had added <code>pause</code> to global.sym, then <code>embed.h</code> would contain the
+line
+
+    #define pause	Perl_pause
+</pre>
+<p class="POD_TEXT">
+and calls to <code>pause</code> in the perl sources would now point to
+<code>Perl_pause</code>.  Now, when <b>ld</b> is run to build the <code>perl</code> executable,
+it will go looking for <code>perl_pause</code>, which probably won't exist in any
+of the standard libraries.  Thus the build of perl will fail.
+</p>
+<p class="POD_TEXT">
+Those systems where <code>HAS_PAUSE</code> is not defined would be ok, however,
+since they would get a <code>Perl_pause</code> function in util.c.  The rest of
+the world would be in trouble.
+</p>
+<pre class="POD_TEXT">
+And yes, this scenario has happened.  On SCO, the function <code>chsize</code>
+is available.  (I think it's in <code>-lx</code>, the Xenix compatibility
+library.)  Since the perl4 days (and possibly before), Perl has
+included a <code>chsize</code> function that gets called something akin to
+
+    #ifndef HAS_CHSIZE
+    I32 chsize(fd, length)
+    /*  . . . */
+    #endif
+</pre>
+<pre class="POD_TEXT">
+When 5.003 added
+
+    #define chsize	Perl_chsize
+</pre>
+<p class="POD_TEXT">
+to <code>embed.h</code>, the compile started failing on SCO systems.
+</p>
+<pre class="POD_TEXT">
+The &quot;fix&quot; is to give the function a different name.  The one
+implemented in 5.003_05 isn't optimal, but here's what was done:
+
+    #ifdef HAS_CHSIZE
+    # ifdef my_chsize  /* Probably #defined to Perl_my_chsize in embed.h */
+    #   undef my_chsize
+    # endif
+    # define my_chsize chsize
+    #endif
+</pre>
+<pre class="POD_TEXT">
+My explanatory comment in patch 5.003_05 said:
+
+     Undef and then re-define my_chsize from Perl_my_chsize to
+     just plain chsize if this system HAS_CHSIZE.  This probably only
+     applies to SCO.  This shows the perils of having internal
+     functions with the same name as external library functions :-).
+</pre>
+<p class="POD_TEXT">
+Now, we can safely put <code>my_chsize</code> in <code>global.sym</code>, export it, and
+hide it with <code>embed.h</code>.
+</p>
+<p class="POD_TEXT">
+To be consistent with what I did for <code>pause</code>, I probably should have
+called the new function <code>Chsize</code>, rather than <code>my_chsize</code>.
+However, the perl sources are quite inconsistent on this (Consider
+New, Mymalloc, and Myremalloc, to name just a few.)
+</p>
+<p class="POD_TEXT">
+There is a problem with this fix, however, in that <code>Perl_chsize</code>
+was available as a <code>libperl.a</code> library function in 5.003, but it
+isn't available any more (as of 5.003_07).  This means that we've
+broken binary compatibility.  This is not good.
+</p>
+<dt class="POD_ITEM"><a name="Providing_missing_fu">Providing missing functions -- some ideas</a>
+<dd>
+We currently don't have a standard way of handling such missing
+function names.  Right now, I'm effectively thinking aloud about a
+solution.  Some day, I'll try to formally propose a solution.
+<pre class="POD_TEXT">
+Part of the problem is that we want to have some functions listed as
+exported but not have their names mangled by embed.h or possibly
+conflict with names in standard system headers.  We actually already
+have such a list at the end of <code>perl_exp.SH</code> (though that list is
+out-of-date):
+
+    # extra globals not included above.
+    cat &lt;&lt;END &gt;&gt; perl.exp
+    perl_init_ext
+    perl_init_fold
+    perl_init_i18nl14n
+    perl_alloc
+    perl_construct
+    perl_destruct
+    perl_free
+    perl_parse
+    perl_run
+    perl_get_sv
+    perl_get_av
+    perl_get_hv
+    perl_get_cv
+    perl_call_argv
+    perl_call_pv
+    perl_call_method
+    perl_call_sv
+    perl_requirepv
+    safecalloc
+    safemalloc
+    saferealloc
+    safefree
+</pre>
+<p class="POD_TEXT">
+This still needs much thought, but I'm inclined to think that one
+possible solution is to prefix all such functions with <code>perl_</code> in the
+source and list them along with the other <code>perl_*</code> functions in
+<code>perl_exp.SH</code>.
+</p>
+<pre class="POD_TEXT">
+Thus, for <code>chsize</code>, we'd do something like the following:
+
+    /* in perl.h */
+    #ifdef HAS_CHSIZE
+    #  define perl_chsize chsize
+    #endif
+</pre>
+<pre class="POD_TEXT">
+then in some file (e.g. <code>util.c</code> or <code>doio.c</code>) do
+
+    #ifndef HAS_CHSIZE
+    I32 perl_chsize(fd, length)
+    /* implement the function here . . . */
+    #endif
+</pre>
+<p class="POD_TEXT">
+Alternatively, we could just always use <code>chsize</code> everywhere and move
+<code>chsize</code> from <code>global.sym</code> to the end of <code>perl_exp.SH</code>.  That would
+probably be fine as long as our <code>chsize</code> function agreed with all the
+<code>chsize</code> function prototypes in the various systems we'll be using.
+As long as the prototypes in actual use don't vary that much, this is
+probably a good alternative.  (As a counter-example, note how Configure
+and perl have to go through hoops to find and use get Malloc_t and
+Free_t for <code>malloc</code> and <code>free</code>.)
+</p>
+<p class="POD_TEXT">
+At the moment, this latter option is what I tend to prefer.
+</p>
+<dt class="POD_ITEM"><a name="All_the_world_s_a_VA">All the world's a VAX</a>
+<dd>
+Sorry, showing my age:-).  Still, all the world is not BSD 4.[34],
+SVR4, or POSIX.  Be aware that SVR3-derived systems are still quite
+common (do you have any idea how many systems run SCO?)  If you don't
+have a bunch of v7 manuals handy, the metaconfig units (by default
+installed in <code>/usr/local/lib/dist/U</code>) are a good resource to look at
+for portability.
+</dl>
+<h2 class="POD_HEAD1"><a name="Miscellaneous_Topics">Miscellaneous Topics</a></h2>
+<h3 class="POD_HEAD2"><a name="Autoconf">Autoconf</a></h3>
+<p class="POD_TEXT">
+Why does perl use a metaconfig-generated Configure script instead of an
+autoconf-generated configure script?
+</p>
+<p class="POD_TEXT">
+Metaconfig and autoconf are two tools with very similar purposes.
+Metaconfig is actually the older of the two, and was originally written
+by Larry Wall, while autoconf is probably now used in a wider variety of
+packages.  The autoconf info file discusses the history of autoconf and
+how it came to be.  The curious reader is referred there for further
+information.
+</p>
+<p class="POD_TEXT">
+Overall, both tools are quite good, I think, and the choice of which one
+to use could be argued either way.  In March, 1994, when I was just
+starting to work on Configure support for Perl5, I considered both
+autoconf and metaconfig, and eventually decided to use metaconfig for the
+following reasons:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Compatibility_with_P">Compatibility with Perl4</a>
+<dd>
+Perl4 used metaconfig, so many of the #ifdef's were already set up for
+metaconfig.  Of course metaconfig had evolved some since Perl4's days,
+but not so much that it posed any serious problems.
+<dt class="POD_ITEM"><a name="Metaconfig_worked_fo">Metaconfig worked for me</a>
+<dd>
+My system at the time was Interactive 2.2, a SVR3.2/386 derivative that
+also had some POSIX support.  Metaconfig-generated Configure scripts
+worked fine for me on that system.  On the other hand, autoconf-generated
+scripts usually didn't.  (They did come quite close, though, in some
+cases.)  At the time, I actually fetched a large number of GNU packages
+and checked.  Not a single one configured and compiled correctly
+out-of-the-box with the system's cc compiler.
+<dt class="POD_ITEM"><a name="Configure_can_be_int">Configure can be interactive</a>
+<dd>
+With both autoconf and metaconfig, if the script works, everything is
+fine.  However, one of my main problems with autoconf-generated scripts
+was that if it guessed wrong about something, it could be <b>very</b> hard to
+go back and fix it.  For example, autoconf always insisted on passing the
+-Xp flag to cc (to turn on POSIX behavior), even when that wasn't what I
+wanted or needed for that package.  There was no way short of editing the
+configure script to turn this off.  You couldn't just edit the resulting
+Makefile at the end because the -Xp flag influenced a number of other
+configure tests.
+<p class="POD_TEXT">
+Metaconfig's Configure scripts, on the other hand, can be interactive.
+Thus if Configure is guessing things incorrectly, you can go back and fix
+them.  This isn't as important now as it was when we were actively
+developing Configure support for new features such as dynamic loading,
+but it's still useful occasionally.
+</p>
+<dt class="POD_ITEM"><a name="GPL">GPL</a>
+<dd>
+At the time, autoconf-generated scripts were covered under the GNU Public
+License, and hence weren't suitable for inclusion with Perl, which has a
+different licensing policy.  (Autoconf's licensing has since changed.)
+<dt class="POD_ITEM"><a name="Modularity">Modularity</a>
+<dd>
+Metaconfig builds up Configure from a collection of discrete pieces
+called &quot;units&quot;.  You can override the standard behavior by supplying your
+own unit.  With autoconf, you have to patch the standard files instead.
+I find the metaconfig &quot;unit&quot; method easier to work with.  Others
+may find metaconfig's units clumsy to work with.
+</dl>
+<h3 class="POD_HEAD2"><a name="Why_isn_t_there_a_di">Why isn't there a directory to override Perl's library?</a></h3>
+<p class="POD_TEXT">
+Mainly because no one's gotten around to making one.  Note that
+&quot;making one&quot;  involves changing perl.c, Configure, config_h.SH (and
+associated files, see above), and <i>documenting</i> it all in the
+INSTALL file.
+</p>
+<p class="POD_TEXT">
+Apparently, most folks who want to override one of the standard library
+files simply do it by overwriting the standard library files.
+</p>
+<h3 class="POD_HEAD2"><a name="APPLLIB">APPLLIB</a></h3>
+<pre class="POD_TEXT">
+In the perl.c sources, you'll find an undocumented APPLLIB_EXP
+variable, sort of like PRIVLIB_EXP and ARCHLIB_EXP (which are
+documented in config_h.SH).  Here's what APPLLIB_EXP is for, from
+a mail message from Larry:
+
+    The main intent of APPLLIB_EXP is for folks who want to send out a
+    version of Perl embedded in their product.  They would set the symbol
+    to be the name of the library containing the files needed to run or to
+    support their particular application.  This works at the &quot;override&quot;
+    level to make sure they get their own versions of any library code that
+    they absolutely must have configuration control over.
+
+    As such, I don't see any conflict with a sysadmin using it for a
+    override-ish sort of thing, when installing a generic Perl.  It should
+    probably have been named something to do with overriding though.  Since
+    it's undocumented we could still change it...  :-)
+</pre>
+<pre class="POD_TEXT">
+Given that it's already there, you can use it to override
+distribution modules.  If you do
+
+	sh Configure -Dccflags='-DAPPLLIB_EXP=/my/override'
+</pre>
+<p class="POD_TEXT">
+then perl.c will put /my/override ahead of ARCHLIB and PRIVLIB.
+</p>
+<h3 class="POD_HEAD2"><a name="Shared_libperl_so_lo">Shared libperl.so location</a></h3>
+<pre class="POD_TEXT">
+Why isn't the shared libperl.so installed in /usr/lib/ along
+with &quot;all the other&quot; shared libraries?  Instead, it is installed
+in $archlib, which is typically something like
+
+	/usr/local/lib/perl5/archname/5.00404
+</pre>
+<p class="POD_TEXT">
+and is architecture- and version-specific.
+</p>
+<p class="POD_TEXT">
+The basic reason why a shared libperl.so gets put in $archlib is so that
+you can have more than one version of perl on the system at the same time,
+and have each refer to its own libperl.so.
+</p>
+<p class="POD_TEXT">
+Three examples might help.  All of these work now; none would work if you
+put libperl.so in /usr/lib.
+</p>
+<ol class="POD_LIST">
+<li class="POD_ITEM"><a name="_"></a>
+
+Suppose you want to have both threaded and non-threaded perl versions
+around.  Configure will name both perl libraries &quot;libperl.so&quot; (so that
+you can link to them with -lperl).  The perl binaries tell them apart
+by having looking in the appropriate $archlib directories.
+<li class="POD_ITEM"><a name="_1"></a>
+
+Suppose you have perl5.004_04 installed and you want to try to compile
+it again, perhaps with different options or after applying a patch.
+If you already have libperl.so installed in /usr/lib/, then it may be
+either difficult or impossible to get ld.so to find the new libperl.so
+that you're trying to build.  If, instead, libperl.so is tucked away in
+$archlib, then you can always just change $archlib in the current perl
+you're trying to build so that ld.so won't find your old libperl.so.
+(The INSTALL file suggests you do this when building a debugging perl.)
+<li class="POD_ITEM"><a name="_2"></a>
+
+The shared perl library is not a &quot;well-behaved&quot; shared library with
+proper major and minor version numbers, so you can't necessarily
+have perl5.004_04 and perl5.004_05 installed simultaneously.  Suppose
+perl5.004_04 were to install /usr/lib/libperl.so.4.4, and perl5.004_05
+were to install /usr/lib/libperl.so.4.5.  Now, when you try to run
+perl5.004_04, ld.so might try to load libperl.so.4.5, since it has
+the right &quot;major version&quot; number.  If this works at all, it almost
+certainly defeats the reason for keeping perl5.004_04 around.  Worse,
+with development subversions, you certaily can't guarantee that
+libperl.so.4.4 and libperl.so.4.55 will be compatible.
+<p class="POD_TEXT">
+Anyway, all this leads to quite obscure failures that are sure to drive
+casual users crazy.  Even experienced users will get confused :-).  Upon
+reflection, I'd say leave libperl.so in $archlib.
+</p>
+</ol>
+<h2 class="POD_HEAD1"><a name="Upload_Your_Work_to_">Upload Your Work to CPAN</a></h2>
+<p class="POD_TEXT">
+You can upload your work to CPAN if you have a CPAN id.  Check out
+http://www.perl.com/CPAN/modules/04pause.html for information on
+_PAUSE_, the Perl Author's Upload Server.
+</p>
+<p class="POD_TEXT">
+I typically upload both the patch file, e.g. <code>perl5.004_08.pat.gz</code>
+and the full tar file, e.g. <code>perl5.004_08.tar.gz</code>.
+</p>
+<p class="POD_TEXT">
+If you want your patch to appear in the <code>src/5.0/unsupported</code>
+directory on CPAN, send e-mail to the CPAN master librarian.  (Check
+out http://www.perl.com/CPAN/CPAN.html ).
+</p>
+<h2 class="POD_HEAD1"><a name="Help_Save_the_World">Help Save the World</a></h2>
+<p class="POD_TEXT">
+You should definitely announce your patch on the perl5-porters list.
+You should also consider announcing your patch on
+comp.lang.perl.announce, though you should make it quite clear that a
+subversion is not a production release, and be prepared to deal with
+people who will not read your disclaimer.
+</p>
+<h2 class="POD_HEAD1"><a name="Todo1">Todo</a></h2>
+<p class="POD_TEXT">
+Here, in no particular order, are some Configure and build-related
+items that merit consideration.  This list isn't exhaustive, it's just
+what I came up with off the top of my head.
+</p>
+<h3 class="POD_HEAD2"><a name="Good_ideas_waiting_f">Good ideas waiting for round tuits</a></h3>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Configure_Dsrc_blah_">Configure -Dsrc=/blah/blah</a>
+<dd>
+We should be able to emulate <b>configure --srcdir</b>.  Tom Tromey
+tromey@creche.cygnus.com has submitted some patches to
+the dist-users mailing list along these lines.  They have been folded
+back into the main distribution, but various parts of the perl
+Configure/build/install process still assume src='.'.
+<dt class="POD_ITEM"><a name="Hint_file_fixes">Hint file fixes</a>
+<dd>
+Various hint files work around Configure problems.  We ought to fix
+Configure so that most of them aren't needed.
+<dt class="POD_ITEM"><a name="Hint_file_informatio">Hint file information</a>
+<dd>
+Some of the hint file information (particularly dynamic loading stuff)
+ought to be fed back into the main metaconfig distribution.
+</dl>
+<h3 class="POD_HEAD2"><a name="Probably_good_ideas_">Probably good ideas waiting for round tuits</a></h3>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="GNU_configure_option">GNU configure --options</a>
+<dd>
+I've received sensible suggestions for --exec_prefix and other
+GNU configure --options.  It's not always obvious exactly what is
+intended, but this merits investigation.
+<dt class="POD_ITEM"><a name="make_clean">make clean</a>
+<dd>
+Currently, <b>make clean</b> isn't all that useful, though
+<b>make realclean</b> and <b>make distclean</b> are.  This needs a bit of
+thought and documentation before it gets cleaned up.
+<dt class="POD_ITEM"><a name="Try_gcc_if_cc_fails">Try gcc if cc fails</a>
+<dd>
+Currently, we just give up.
+<dt class="POD_ITEM"><a name="bypassing_safe_alloc">bypassing safe*alloc wrappers</a>
+<dd>
+On some systems, it may be safe to call the system malloc directly
+without going through the util.c safe* layers.  (Such systems would
+accept free(0), for example.)  This might be a time-saver for systems
+that already have a good malloc.  (Recent Linux libc's apparently have
+a nice malloc that is well-tuned for the system.)
+</dl>
+<h3 class="POD_HEAD2"><a name="Vague_possibilities">Vague possibilities</a></h3>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="MacPerl">MacPerl</a>
+<dd>
+Get some of the Macintosh stuff folded back into the main distribution.
+<dt class="POD_ITEM"><a name="gconvert_replacement">gconvert replacement</a>
+<dd>
+Maybe include a replacement function that doesn't lose data in rare
+cases of coercion between string and numerical values.
+<dt class="POD_ITEM"><a name="Improve_makedepend">Improve makedepend</a>
+<dd>
+The current makedepend process is clunky and annoyingly slow, but it
+works for most folks.  Alas, it assumes that there is a filename
+$firstmakefile that the <b>make</b> command will try to use before it uses
+<code>Makefile</code>.  Such may not be the case for all <b>make</b> commands,
+particularly those on non-Unix systems.
+<p class="POD_TEXT">
+Probably some variant of the BSD <code>.depend</code> file will be useful.
+We ought to check how other packages do this, if they do it at all.
+We could probably pre-generate the dependencies (with the exception of
+malloc.o, which could probably be determined at <code>Makefile.SH</code>
+extraction time.
+</p>
+<dt class="POD_ITEM"><a name="GNU_Makefile_standar">GNU Makefile standard targets</a>
+<dd>
+GNU software generally has standardized Makefile targets.  Unless we
+have good reason to do otherwise, I see no reason not to support them.
+<dt class="POD_ITEM"><a name="File_locking">File locking</a>
+<dd>
+Somehow, straighten out, document, and implement lockf(), flock(),
+and/or fcntl() file locking.  It's a mess.  See $d_fcntl_can_lock
+in recent config.sh files though.
+</dl>
+<h2 class="POD_HEAD1"><a name="AUTHORS">AUTHORS</a></h2>
+<p class="POD_TEXT">
+Original author:  Andy Dougherty doughera@lafcol.lafayette.edu .
+Additions by Chip Salzenberg chip@perl.com and 
+Tim Bunce Tim.Bunce@ig.co.uk .
+</p>
+<p class="POD_TEXT">
+All opinions expressed herein are those of the author(s).
+</p>
+<h2 class="POD_HEAD1"><a name="LAST_MODIFIED">LAST MODIFIED</a></h2>
+<p class="POD_TEXT">
+$Id: pumpkin.pod,v 1.23 2000/01/13 19:45:13 doughera Released $
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:36:57 2001
+</body>
+</html>
+

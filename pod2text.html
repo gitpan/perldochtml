@@ -1,0 +1,158 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>pod2text</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="pod2usage.html">Next:<br>pod2usage</a></td><td align="left" width="1%"><a  href="pod2man.html">Previous:<br>pod2man</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">pod2text</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#OPTIONS">OPTIONS</a>
+<li><a href="#DIAGNOSTICS">DIAGNOSTICS</a>
+<li><a href="#ENVIRONMENT">ENVIRONMENT</a>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+<li><a href="#AUTHOR">AUTHOR</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+pod2text - Convert POD data to formatted ASCII text
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<p class="POD_TEXT">
+pod2text [<b>-aclost</b>] [<b>-i</b> <i>indent</i>] [<b>-q</b> <i>quotes</i>] [<b>-w</b> <i>width</i>]
+[<i>input</i> [<i>output</i>]]
+</p>
+<p class="POD_TEXT">
+pod2text <b>-h</b>
+</p>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+<b>pod2text</b> is a front-end for Pod::Text and its subclasses.  It uses them
+to generate formatted ASCII text from POD source.  It can optionally use
+either termcap sequences or ANSI color escape sequences to format the text.
+</p>
+<p class="POD_TEXT">
+<i>input</i> is the file to read for POD source (the POD can be embedded in
+code).  If <i>input</i> isn't given, it defaults to STDIN.  <i>output</i>, if given,
+is the file to which to write the formatted output.  If <i>output</i> isn't
+given, the formatted output is written to STDOUT.
+</p>
+<h2 class="POD_HEAD1"><a name="OPTIONS">OPTIONS</a></h2>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_a_alt"><b>-a</b>, <b>--alt</b></a>
+<dd>
+Use an alternate output format that, among other things, uses a different
+heading style and marks <code>=item</code> entries with a colon in the left margin.
+<dt class="POD_ITEM"><a name="_c_color"><b>-c</b>, <b>--color</b></a>
+<dd>
+Format the output with ANSI color escape sequences.  Using this option
+requires that Term::ANSIColor be installed on your system.
+<dt class="POD_ITEM"><a name="_i_indent_indent_ind"><b>-i</b> <i>indent</i>, <b>--indent=</b><i>indent</i></a>
+<dd>
+Set the number of spaces to indent regular text, and the default indentation
+for <code>=over</code> blocks.  Defaults to 4 spaces if this option isn't given.
+<dt class="POD_ITEM"><a name="_h_help"><b>-h</b>, <b>--help</b></a>
+<dd>
+Print out usage information and exit.
+<dt class="POD_ITEM"><a name="_l_loose"><b>-l</b>, <b>--loose</b></a>
+<dd>
+Print a blank line after a <code>=head1</code> heading.  Normally, no blank line is
+printed after <code>=head1</code>, although one is still printed after <code>=head2</code>,
+because this is the expected formatting for manual pages; if you're
+formatting arbitrary text documents, using this option is recommended.
+<dt class="POD_ITEM"><a name="_o_overstrike"><b>-o</b>, <b>--overstrike</b></a>
+<dd>
+Format the output with overstruck printing.  Bold text is rendered as
+character, backspace, character.  Italics and file names are rendered as
+underscore, backspace, character.  Many pagers, such as <b>less</b>, know how
+to convert this to bold or underlined text.
+<dt class="POD_ITEM"><a name="_q_quotes_quotes_quo"><b>-q</b> <i>quotes</i>, <b>--quotes</b>=<i>quotes</i></a>
+<dd>
+Sets the quote marks used to surround C&lt;&gt; text to <i>quotes</i>.  If
+<i>quotes</i> is a single character, it is used as both the left and right
+quote; if <i>quotes</i> is two characters, the first character is used as the
+left quote and the second as the right quoted; and if <i>quotes</i> is four
+characters, the first two are used as the left quote and the second two as
+the right quote.
+<p class="POD_TEXT">
+<i>quotes</i> may also be set to the special value <code>none</code>, in which case no
+quote marks are added around C&lt;&gt; text.
+</p>
+<dt class="POD_ITEM"><a name="_s_sentence"><b>-s</b>, <b>--sentence</b></a>
+<dd>
+Assume each sentence ends with two spaces and try to preserve that spacing.
+Without this option, all consecutive whitespace in non-verbatim paragraphs
+is compressed into a single space.
+<dt class="POD_ITEM"><a name="_t_termcap"><b>-t</b>, <b>--termcap</b></a>
+<dd>
+Try to determine the width of the screen and the bold and underline
+sequences for the terminal from termcap, and use that information in
+formatting the output.  Output will be wrapped at two columns less than the
+width of your terminal device.  Using this option requires that your system
+have a termcap file somewhere where Term::Cap can find it and requires that
+your system support termios.  With this option, the output of <b>pod2text</b>
+will contain terminal control sequences for your current terminal type.
+<dt class="POD_ITEM"><a name="_w_width_width_width"><b>-w</b>, <b>--width=</b><i>width</i>, <b>-</b><i>width</i></a>
+<dd>
+The column at which to wrap text on the right-hand side.  Defaults to 76,
+unless <b>-t</b> is given, in which case it's two columns less than the width of
+your terminal device.
+</dl>
+<h2 class="POD_HEAD1"><a name="DIAGNOSTICS">DIAGNOSTICS</a></h2>
+<p class="POD_TEXT">
+If <b>pod2text</b> fails with errors, see the <a class="POD_LINK" href="Pod/Text.html">Pod::Text</a> manpage and the <a class="POD_LINK" href="Pod/Parser.html">Pod::Parser</a> manpage for
+information about what those errors might mean.  Internally, it can also
+produce the following diagnostics:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_c_color_requires_Te">-c (--color) requires Term::ANSIColor be installed</a>
+<dd>
+(F) <b>-c</b> or <b>--color</b> were given, but Term::ANSIColor could not be
+loaded.
+<dt class="POD_ITEM"><a name="Unknown_option_s">Unknown option: %s</a>
+<dd>
+(F) An unknown command line option was given.
+</dl>
+<p class="POD_TEXT">
+In addition, other <a class="POD_LINK" href="Getopt/Long.html">Getopt::Long</a> error messages may result
+from invalid command-line options.
+</p>
+<h2 class="POD_HEAD1"><a name="ENVIRONMENT">ENVIRONMENT</a></h2>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="COLUMNS">COLUMNS</a>
+<dd>
+If <b>-t</b> is given, <b>pod2text</b> will take the current width of your screen
+from this environment variable, if available.  It overrides terminal width
+information in TERMCAP.
+<dt class="POD_ITEM"><a name="TERMCAP">TERMCAP</a>
+<dd>
+If <b>-t</b> is given, <b>pod2text</b> will use the contents of this environment
+variable if available to determine the correct formatting sequences for your
+current terminal device.
+</dl>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+<a class="POD_LINK" href="Pod/Text.html">Pod::Text</a>, <a class="POD_LINK" href="Pod/Text/Color.html">Pod::Text::Color</a>,
+<a class="POD_LINK" href="Pod/Text/Termcap.html">Pod::Text::Termcap</a>, <a class="POD_LINK" href="Pod/Parser.html">Pod::Parser</a>
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHOR">AUTHOR</a></h2>
+<p class="POD_TEXT">
+Russ Allbery &lt;rra@stanford.edu&gt;.
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:36:47 2001
+</body>
+</html>
+

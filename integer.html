@@ -1,0 +1,110 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>integer</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="IPC/Open2.html">Next:<br>IPC::Open2</a></td><td align="left" width="1%"><a href="I18N/Collate.html">Previous:<br>I18N::Collate</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">integer</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+integer - Perl pragma to use integer arithmetic instead of floating point
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+    use integer;
+    $x = 10/3;
+    # $x is now 3, not 3.33333333333333333
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+This tells the compiler to use integer operations from here to the end
+of the enclosing BLOCK.  On many machines, this doesn't matter a great
+deal for most computations, but on those without floating point
+hardware, it can make a big difference in performance.
+</p>
+<pre class="POD_TEXT">
+Note that this only affects how most of the arithmetic and relational
+<b>operators</b> handle their operands and results, and <b>not</b> how all
+numbers everywhere are treated.  Specifically, <code>use integer;</code> has the
+effect that before computing the results of the arithmetic operators
+(+, -, *, /, %, +=, -=, *=, /=, %=, and unary minus), the comparison
+operators (&lt;, &lt;=, &gt;, &gt;=, ==, !=, &lt;=&gt;), and the bitwise operators (|, &amp;,
+^, &lt;&lt;, &gt;&gt;, |=, &amp;=, ^=, &lt;&lt;=, &gt;&gt;=), the operands have their fractional
+portions truncated (or floored), and the result will have its
+fractional portion truncated as well.  In addition, the range of
+operands and results is restricted to that of familiar two's complement
+integers, i.e., -(2**31) .. (2**31-1) on 32-bit architectures, and
+-(2**63) .. (2**63-1) on 64-bit architectures.  For example, this code
+
+    use integer;
+    $x = 5.8;
+    $y = 2.5;
+    $z = 2.7;
+    $a = 2**31 - 1;  # Largest positive integer on 32-bit machines
+    $, = &quot;, &quot;;
+    print $x, -$x, $x + $y, $x - $y, $x / $y, $x * $y, $y == $z, $a, $a + 1;
+</pre>
+<p class="POD_TEXT">
+will print:  5.8, -5, 7, 3, 2, 10, 1, 2147483647, -2147483648
+</p>
+<pre class="POD_TEXT">
+Note that $x is still printed as having its true non-integer value of
+5.8 since it wasn't operated on.  And note too the wrap-around from the
+largest positive integer to the largest negative one.   Also, arguments
+passed to functions and the values returned by them are <b>not</b> affected
+by <code>use integer;</code>.  E.g.,
+
+    srand(1.5);
+    $, = &quot;, &quot;;
+    print sin(.5), cos(.5), atan2(1,2), sqrt(2), rand(10);
+</pre>
+<p class="POD_TEXT">
+will give the same result with or without <code>use integer;</code>  The power
+operator <code>**</code> is also not affected, so that 2 ** .5 is always the
+square root of 2.  Now, it so happens that the pre- and post- increment
+and decrement operators, ++ and --, are not affected by <code>use integer;</code>
+either.  Some may rightly consider this to be a bug -- but at least it's
+a long-standing one.
+</p>
+<p class="POD_TEXT">
+Finally, <code>use integer;</code> also has an additional affect on the bitwise
+operators.  Normally, the operands and results are treated as
+<b>unsigned</b> integers, but with <code>use integer;</code> the operands and results
+are <b>signed</b>.  This means, among other things, that ~0 is -1, and -2 &amp;
+-5 is -6.
+</p>
+<pre class="POD_TEXT">
+Internally, native integer arithmetic (as provided by your C compiler)
+is used.  This means that Perl's own semantics for arithmetic
+operations may not be preserved.  One common source of trouble is the
+modulus of negative numbers, which Perl does one way, but your hardware
+may do another.
+
+    % perl -le 'print (4 % -3)'
+    -2
+    % perl -Minteger -le 'print (4 % -3)'
+    1
+</pre>
+<p class="POD_TEXT">
+See the section on <a class="POD_LINK" href="perlmodlib.html#Pragmatic_Modules">Pragmatic Modules</a> in the <a class="POD_LINK" href="perlmodlib.html">perlmodlib</a> manpage, the section on <a class="POD_LINK" href="perlop.html#Integer_Arithmetic">Integer Arithmetic</a> in the <a class="POD_LINK" href="perlop.html">perlop</a> manpage
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:34 2001
+</body>
+</html>
+

@@ -1,0 +1,246 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>ExtUtils::MM_VMS</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="../ExtUtils/MM_Win32.html">Next:<br>ExtUtils::MM_Win32</a></td><td align="left" width="1%"><a  href="../ExtUtils/MM_Unix.html">Previous:<br>ExtUtils::MM_Unix</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="../podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="../podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">ExtUtils::MM_VMS</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#Methods_always_loade">Methods always loaded</a>
+<li><a href="#SelfLoaded_methods">SelfLoaded methods</a>
+</ul>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+ExtUtils::MM_VMS - methods to override UN*X behaviour in ExtUtils::MakeMaker
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+ use ExtUtils::MM_VMS; # Done internally by ExtUtils::MakeMaker if needed
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+See ExtUtils::MM_Unix for a documentation of the methods provided
+there. This package overrides the implementation of these methods, not
+the semantics.
+</p>
+<h3 class="POD_HEAD2"><a name="Methods_always_loade">Methods always loaded</a></h3>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="wraplist">wraplist</a>
+<dd>
+Converts a list into a string wrapped at approximately 80 columns.
+<dt class="POD_ITEM"><a name="rootdir_override_">rootdir (override)</a>
+<dd>
+Returns a string representing of the root directory.
+</dl>
+<h3 class="POD_HEAD2"><a name="SelfLoaded_methods">SelfLoaded methods</a></h3>
+<p class="POD_TEXT">
+Those methods which override default MM_Unix methods are marked
+&quot;(override)&quot;, while methods unique to MM_VMS are marked &quot;(specific)&quot;.
+For overridden methods, documentation is limited to an explanation
+of why this method overrides the MM_Unix method; see the ExtUtils::MM_Unix
+documentation for more details.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="guess_name_override_">guess_name (override)</a>
+<dd>
+Try to determine name of extension being built.  We begin with the name
+of the current directory.  Since VMS filenames are case-insensitive,
+however, we look for a <code>.pm</code> file whose name matches that of the current
+directory (presumably the 'main' <code>.pm</code> file for this extension), and try
+to find a <code><a class="POD_LINK" href="../perlfunc.html#package">package</a></code> statement from which to obtain the Mixed::Case
+package name.
+<dt class="POD_ITEM"><a name="find_perl_override_">find_perl (override)</a>
+<dd>
+Use VMS file specification syntax and CLI commands to find and
+invoke Perl images.
+<dt class="POD_ITEM"><a name="path_override_">path (override)</a>
+<dd>
+Translate logical name DCL$PATH as a searchlist, rather than trying
+to <code><a class="POD_LINK" href="../perlfunc.html#split">split</a></code> string value of <code>$ENV{'PATH'}</code>.
+<dt class="POD_ITEM"><a name="maybe_command_overri">maybe_command (override)</a>
+<dd>
+Follows VMS naming conventions for executable files.
+If the name passed in doesn't exactly match an executable file,
+appends <code>.Exe</code> (or equivalent) to check for executable image, and <code>.Com</code>
+to check for DCL procedure.  If this fails, checks directories in DCL$PATH
+and finally <code>Sys$System:</code> for an executable file having the name specified,
+with or without the <code>.Exe</code>-equivalent suffix.
+<dt class="POD_ITEM"><a name="maybe_command_in_dir">maybe_command_in_dirs (override)</a>
+<dd>
+Uses DCL argument quoting on test command line.
+<dt class="POD_ITEM"><a name="perl_script_override">perl_script (override)</a>
+<dd>
+If name passed in doesn't specify a readable file, appends <code>.com</code> or
+<code>.pl</code> and tries again, since it's customary to have file types on all files
+under VMS.
+<dt class="POD_ITEM"><a name="file_name_is_absolut">file_name_is_absolute (override)</a>
+<dd>
+Checks for VMS directory spec as well as Unix separators.
+<dt class="POD_ITEM"><a name="replace_manpage_sepa">replace_manpage_separator</a>
+<dd>
+Use as separator a character which is legal in a VMS-syntax file name.
+<dt class="POD_ITEM"><a name="init_others_override">init_others (override)</a>
+<dd>
+Provide VMS-specific forms of various utility commands, then hand
+off to the default MM_Unix method.
+<dt class="POD_ITEM"><a name="constants_override_">constants (override)</a>
+<dd>
+Fixes up numerous file and directory macros to insure VMS syntax
+regardless of input syntax.  Also adds a few VMS-specific macros
+and makes lists of files comma-separated.
+<dt class="POD_ITEM"><a name="cflags_override_">cflags (override)</a>
+<dd>
+Bypass shell script and produce qualifiers for CC directly (but warn
+user if a shell script for this extension exists).  Fold multiple
+/Defines into one, since some C compilers pay attention to only one
+instance of this qualifier on the command line.
+<dt class="POD_ITEM"><a name="const_cccmd_override">const_cccmd (override)</a>
+<dd>
+Adds directives to point C preprocessor to the right place when
+handling #include &lt;sys/foo.h&gt; directives.  Also constructs CC
+command line a bit differently than MM_Unix method.
+<dt class="POD_ITEM"><a name="pm_to_blib_override_">pm_to_blib (override)</a>
+<dd>
+DCL <i>still</i> accepts a maximum of 255 characters on a command
+line, so we write the (potentially) long list of file names
+to a temp file, then persuade Perl to read it instead of the
+command line to find args.
+<dt class="POD_ITEM"><a name="tool_autosplit_overr">tool_autosplit (override)</a>
+<dd>
+Use VMS-style quoting on command line.
+<dt class="POD_ITEM"><a name="tool_sxubpp_override">tool_sxubpp (override)</a>
+<dd>
+Use VMS-style quoting on xsubpp command line.
+<dt class="POD_ITEM"><a name="xsubpp_version_overr">xsubpp_version (override)</a>
+<dd>
+Test xsubpp exit status according to VMS rules ($sts &amp; 1 ==&gt; good)
+rather than Unix rules ($sts == 0 ==&gt; good).
+<dt class="POD_ITEM"><a name="tools_other_override">tools_other (override)</a>
+<dd>
+Adds a few MM[SK] macros, and shortens some the installatin commands,
+in order to stay under DCL's 255-character limit.  Also changes
+EQUALIZE_TIMESTAMP to set revision date of target file to one second
+later than source file, since MMK interprets precisely equal revision
+dates for a source and target file as a sign that the target needs
+to be updated.
+<dt class="POD_ITEM"><a name="dist_override_">dist (override)</a>
+<dd>
+Provide VMSish defaults for some values, then hand off to
+default MM_Unix method.
+<dt class="POD_ITEM"><a name="c_o_override_">c_o (override)</a>
+<dd>
+Use VMS syntax on command line.  In particular, $(DEFINE) and
+$(PERL_INC) have been pulled into $(CCCMD).  Also use MM[SK] macros.
+<dt class="POD_ITEM"><a name="xs_c_override_">xs_c (override)</a>
+<dd>
+Use MM[SK] macros.
+<dt class="POD_ITEM"><a name="xs_o_override_">xs_o (override)</a>
+<dd>
+Use MM[SK] macros, and VMS command line for C compiler.
+<dt class="POD_ITEM"><a name="top_targets_override">top_targets (override)</a>
+<dd>
+Use VMS quoting on command line for Version_check.
+<dt class="POD_ITEM"><a name="dlsyms_override_">dlsyms (override)</a>
+<dd>
+Create VMS linker options files specifying universal symbols for this
+extension's shareable image, and listing other shareable images or 
+libraries to which it should be linked.
+<dt class="POD_ITEM"><a name="dynamic_lib_override">dynamic_lib (override)</a>
+<dd>
+Use VMS Link command.
+<dt class="POD_ITEM"><a name="dynamic_bs_override_">dynamic_bs (override)</a>
+<dd>
+Use VMS-style quoting on Mkbootstrap command line.
+<dt class="POD_ITEM"><a name="static_lib_override_">static_lib (override)</a>
+<dd>
+Use VMS commands to manipulate object library.
+<dt class="POD_ITEM"><a name="manifypods_override_">manifypods (override)</a>
+<dd>
+Use VMS-style quoting on command line, and VMS logical name
+to specify fallback location at build time if we can't find pod2man.
+<dt class="POD_ITEM"><a name="processPL_override_">processPL (override)</a>
+<dd>
+Use VMS-style quoting on command line.
+<dt class="POD_ITEM"><a name="installbin_override_">installbin (override)</a>
+<dd>
+Stay under DCL's 255 character command line limit once again by
+splitting potentially long list of files across multiple lines
+in <code>realclean</code> target.
+<dt class="POD_ITEM"><a name="subdir_x_override_">subdir_x (override)</a>
+<dd>
+Use VMS commands to change default directory.
+<dt class="POD_ITEM"><a name="clean_override_">clean (override)</a>
+<dd>
+Split potentially long list of files across multiple commands (in
+order to stay under the magic command line limit).  Also use MM[SK]
+commands for handling subdirectories.
+<dt class="POD_ITEM"><a name="realclean_override_">realclean (override)</a>
+<dd>
+Guess what we're working around?  Also, use MM[SK] for subdirectories.
+<dt class="POD_ITEM"><a name="dist_basics_override">dist_basics (override)</a>
+<dd>
+Use VMS-style quoting on command line.
+<dt class="POD_ITEM"><a name="dist_core_override_">dist_core (override)</a>
+<dd>
+Syntax for invoking <code>VMS_Share</code> differs from that for Unix <code>shar</code>,
+so <code>shdist</code> target actions are VMS-specific.
+<dt class="POD_ITEM"><a name="dist_dir_override_">dist_dir (override)</a>
+<dd>
+Use VMS-style quoting on command line.
+<dt class="POD_ITEM"><a name="dist_test_override_">dist_test (override)</a>
+<dd>
+Use VMS commands to change default directory, and use VMS-style
+quoting on command line.
+<dt class="POD_ITEM"><a name="install_override_">install (override)</a>
+<dd>
+Work around DCL's 255 character limit several times,and use
+VMS-style command line quoting in a few cases.
+<dt class="POD_ITEM"><a name="perldepend_override_">perldepend (override)</a>
+<dd>
+Use VMS-style syntax for files; it's cheaper to just do it directly here
+than to have the MM_Unix method call <code>catfile</code> repeatedly.  Also, if
+we have to rebuild Config.pm, use MM[SK] to do it.
+<dt class="POD_ITEM"><a name="makefile_override_">makefile (override)</a>
+<dd>
+Use VMS commands and quoting.
+<dt class="POD_ITEM"><a name="test_override_">test (override)</a>
+<dd>
+Use VMS commands for handling subdirectories.
+<dt class="POD_ITEM"><a name="test_via_harness_ove">test_via_harness (override)</a>
+<dd>
+Use VMS-style quoting on command line.
+<dt class="POD_ITEM"><a name="test_via_script_over">test_via_script (override)</a>
+<dd>
+Use VMS-style quoting on command line.
+<dt class="POD_ITEM"><a name="makeaperl_override_">makeaperl (override)</a>
+<dd>
+Undertake to build a new set of Perl images using VMS commands.  Since
+VMS does dynamic loading, it's not necessary to statically link each
+extension into the Perl image, so this isn't the normal build path.
+Consequently, it hasn't really been tested, and may well be incomplete.
+<dt class="POD_ITEM"><a name="nicetext_override_">nicetext (override)</a>
+<dd>
+Insure that colons marking targets are preceded by space, in order
+to distinguish the target delimiter from a colon appearing as
+part of a filespec.
+</dl>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:26 2001
+</body>
+</html>
+

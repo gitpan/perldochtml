@@ -1,0 +1,172 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>File::Spec::Mac</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="../../File/Spec/OS2.html">Next:<br>File::Spec::OS2</a></td><td align="left" width="1%"><a  href="../../File/Spec/Functions.html">Previous:<br>File::Spec::Functions</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="../../podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="../../podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">File::Spec::Mac</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#METHODS">METHODS</a>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+File::Spec::Mac - File::Spec for MacOS
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+ require File::Spec::Mac; # Done internally by File::Spec if needed
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+Methods for manipulating file specifications.
+</p>
+<h2 class="POD_HEAD1"><a name="METHODS">METHODS</a></h2>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="canonpath">canonpath</a>
+<dd>
+On MacOS, there's nothing to be done.  Returns what it's given.
+<dt class="POD_ITEM"><a name="catdir">catdir</a>
+<dd>
+Concatenate two or more directory names to form a complete path ending with 
+a directory.  Put a trailing : on the end of the complete path if there 
+isn't one, because that's what's done in MacPerl's environment.
+<pre class="POD_TEXT">
+The fundamental requirement of this routine is that
+
+	  File::Spec-&gt;catdir(split(&quot;:&quot;,$path)) eq $path
+</pre>
+<p class="POD_TEXT">
+But because of the nature of Macintosh paths, some additional 
+possibilities are allowed to make using this routine give reasonable results 
+for some common situations.  Here are the rules that are used.  Each 
+argument has its trailing &quot;:&quot; removed.  Each argument, except the first,
+has its leading &quot;:&quot; removed.  They are then joined together by a &quot;:&quot;.
+</p>
+<pre class="POD_TEXT">
+So
+
+	  File::Spec-&gt;catdir(&quot;a&quot;,&quot;b&quot;) = &quot;a:b:&quot;
+	  File::Spec-&gt;catdir(&quot;a:&quot;,&quot;:b&quot;) = &quot;a:b:&quot;
+	  File::Spec-&gt;catdir(&quot;a:&quot;,&quot;b&quot;) = &quot;a:b:&quot;
+	  File::Spec-&gt;catdir(&quot;a&quot;,&quot;:b&quot;) = &quot;a:b&quot;
+	  File::Spec-&gt;catdir(&quot;a&quot;,&quot;&quot;,&quot;b&quot;) = &quot;a::b&quot;
+</pre>
+<p class="POD_TEXT">
+etc.
+</p>
+<p class="POD_TEXT">
+To get a relative path (one beginning with :), begin the first argument with :
+or put a &quot;&quot; as the first argument.
+</p>
+<p class="POD_TEXT">
+If you don't want to worry about these rules, never allow a &quot;:&quot; on the ends 
+of any of the arguments except at the beginning of the first.
+</p>
+<pre class="POD_TEXT">
+Under MacPerl, there is an additional ambiguity.  Does the user intend that
+
+	  File::Spec-&gt;catfile(&quot;LWP&quot;,&quot;Protocol&quot;,&quot;http.pm&quot;)
+</pre>
+<p class="POD_TEXT">
+be relative or absolute?  There's no way of telling except by checking for the
+existence of LWP: or :LWP, and even there he may mean a dismounted volume or
+a relative path in a different directory (like in @INC).   So those checks
+aren't done here. This routine will treat this as absolute.
+</p>
+<dt class="POD_ITEM"><a name="catfile">catfile</a>
+<dd>
+Concatenate one or more directory names and a filename to form a
+complete path ending with a filename.  Since this uses catdir, the
+same caveats apply.  Note that the leading : is removed from the filename,
+so that
+<pre class="POD_VERBATIM">
+	  File::Spec-&gt;catfile($ENV{HOME},&quot;file&quot;);
+</pre>
+<pre class="POD_TEXT">
+and
+
+	  File::Spec-&gt;catfile($ENV{HOME},&quot;:file&quot;);
+</pre>
+<p class="POD_TEXT">
+give the same answer, as one might expect.
+</p>
+<dt class="POD_ITEM"><a name="curdir">curdir</a>
+<dd>
+Returns a string representing the current directory.
+<dt class="POD_ITEM"><a name="devnull">devnull</a>
+<dd>
+Returns a string representing the null device.
+<dt class="POD_ITEM"><a name="rootdir">rootdir</a>
+<dd>
+Returns a string representing the root directory.  Under MacPerl,
+returns the name of the startup volume, since that's the closest in
+concept, although other volumes aren't rooted there.
+<dt class="POD_ITEM"><a name="tmpdir">tmpdir</a>
+<dd>
+Returns a string representation of the first existing directory
+from the following list or '' if none exist:
+<pre class="POD_VERBATIM">
+    $ENV{TMPDIR}
+</pre>
+<dt class="POD_ITEM"><a name="updir">updir</a>
+<dd>
+Returns a string representing the parent directory.
+<dt class="POD_ITEM"><a name="file_name_is_absolut">file_name_is_absolute</a>
+<dd>
+Takes as argument a path and returns true, if it is an absolute path.  In 
+the case where a name can be either relative or absolute (for example, a 
+folder named &quot;HD&quot; in the current working directory on a drive named &quot;HD&quot;), 
+relative wins.  Use &quot;:&quot; in the appropriate place in the path if you want to
+distinguish unambiguously.
+<p class="POD_TEXT">
+As a special case, the file name '' is always considered to be absolute.
+</p>
+<dt class="POD_ITEM"><a name="path">path</a>
+<dd>
+Returns the null list for the MacPerl application, since the concept is 
+usually meaningless under MacOS. But if you're using the MacPerl tool under 
+MPW, it gives back $ENV{Commands} suitably split, as is done in 
+:lib:ExtUtils:MM_Mac.pm.
+<dt class="POD_ITEM"><a name="splitpath">splitpath</a>
+<dt><a name="splitdir">splitdir</a>
+<dt><a name="catpath">catpath</a>
+<dt><a name="abs2rel">abs2rel</a>
+<dd>
+See the <a class="POD_LINK" href="../../File/Spec/Unix.html#abs2rel">abs2rel</a> entry in the <a class="POD_LINK" href="../../File/Spec/Unix.html">File::Spec::Unix</a> manpage for general documentation.
+<p class="POD_TEXT">
+Unlike <code>File::Spec::Unix-</code>abs2rel()&gt;, this function will make
+checks against the local filesystem if necessary.  See
+the <a class="POD_LINK" href="#file_name_is_absolut">file_name_is_absolute</a> entry elsewhere in this document for details.
+</p>
+<dt class="POD_ITEM"><a name="rel2abs">rel2abs</a>
+<dd>
+See the <a class="POD_LINK" href="../../File/Spec/Unix.html#rel2abs">rel2abs</a> entry in the <a class="POD_LINK" href="../../File/Spec/Unix.html">File::Spec::Unix</a> manpage for general documentation.
+<p class="POD_TEXT">
+Unlike <code>File::Spec::Unix-</code>rel2abs()&gt;, this function will make
+checks against the local filesystem if necessary.  See
+the <a class="POD_LINK" href="#file_name_is_absolut">file_name_is_absolute</a> entry elsewhere in this document for details.
+</p>
+</dl>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+the <a class="POD_LINK" href="../../File/Spec.html">File::Spec</a> manpage
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:29 2001
+</body>
+</html>
+

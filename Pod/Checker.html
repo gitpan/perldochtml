@@ -1,0 +1,368 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>Pod::Checker</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="../Pod/Find.html">Next:<br>Pod::Find</a></td><td align="left" width="1%"><a  href="../pod2usage.html">Previous:<br>pod2usage</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="../podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="../podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">Pod::Checker</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#OPTIONS_ARGUMENTS">OPTIONS/ARGUMENTS</a>
+<ul>
+<li><a href="#podchecker_">podchecker()</a>
+</ul>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#DIAGNOSTICS">DIAGNOSTICS</a>
+<ul>
+<li><a href="#Errors">Errors</a>
+<li><a href="#Warnings">Warnings</a>
+<li><a href="#Hyperlinks">Hyperlinks</a>
+</ul>
+<li><a href="#RETURN_VALUE">RETURN VALUE</a>
+<li><a href="#EXAMPLES">EXAMPLES</a>
+<li><a href="#INTERFACE">INTERFACE</a>
+<li><a href="#AUTHOR">AUTHOR</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+Pod::Checker, podchecker() - check pod documents for syntax errors
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+  use Pod::Checker;
+
+  $syntax_okay = podchecker($filepath, $outputpath, %options);
+
+  my $checker = new Pod::Checker %options;
+  $checker-&gt;parse_from_file($filepath, \*STDERR);
+</pre>
+<h2 class="POD_HEAD1"><a name="OPTIONS_ARGUMENTS">OPTIONS/ARGUMENTS</a></h2>
+<p class="POD_TEXT">
+<code>$filepath</code> is the input POD to read and <code>$outputpath</code> is
+where to write POD syntax error messages. Either argument may be a scalar
+indicating a file-path, or else a reference to an open filehandle.
+If unspecified, the input-file it defaults to <code>\*STDIN</code>, and
+the output-file defaults to <code>\*STDERR</code>.
+</p>
+<h3 class="POD_HEAD2"><a name="podchecker_">podchecker()</a></h3>
+<p class="POD_TEXT">
+This function can take a hash of options:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_warnings_val"><b>-warnings</b> =&gt; <i>val</i></a>
+<dd>
+Turn warnings on/off. <i>val</i> is usually 1 for on, but higher values
+trigger additional warnings. See the section on <a class="POD_LINK" href="#Warnings">Warnings</a> elsewhere in this document.
+</dl>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+<b>podchecker</b> will perform syntax checking of Perl5 POD format documentation.
+</p>
+<p class="POD_TEXT">
+<i>NOTE THAT THIS MODULE IS CURRENTLY IN THE BETA STAGE!</i>
+</p>
+<p class="POD_TEXT">
+It is hoped that curious/ambitious user will help flesh out and add the
+additional features they wish to see in <b>Pod::Checker</b> and <b>podchecker</b>
+and verify that the checks are consistent with the <a class="POD_LINK" href="../perlpod.html">perlpod</a> manpage.
+</p>
+<p class="POD_TEXT">
+The following checks are currently preformed:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_"></a>
+
+Unknown '=xxxx' commands, unknown 'X&lt;...&gt;' interior-sequences,
+and unterminated interior sequences.
+<li class="POD_ITEM"><a name="_1"></a>
+
+Check for proper balancing of <code>=begin</code> and <code>=end</code>. The contents of such
+a block are generally ignored, i.e. no syntax checks are performed.
+<li class="POD_ITEM"><a name="_2"></a>
+
+Check for proper nesting and balancing of <code>=over</code>, <code>=item</code> and <code>=back</code>.
+<li class="POD_ITEM"><a name="_3"></a>
+
+Check for same nested interior-sequences (e.g. 
+<code>L&lt;...L&lt;...&gt;...&gt;</code>).
+<li class="POD_ITEM"><a name="_4"></a>
+
+Check for malformed or nonexisting entities <code>E&lt;...&gt;</code>.
+<li class="POD_ITEM"><a name="_5"></a>
+
+Check for correct syntax of hyperlinks <code>L&lt;...&gt;</code>. See the <a class="POD_LINK" href="../perlpod.html">perlpod</a> manpage
+for details.
+<li class="POD_ITEM"><a name="_6"></a>
+
+Check for unresolved document-internal links. This check may also reveal
+misspelled links that seem to be internal links but should be links
+to something else.
+</ul>
+<h2 class="POD_HEAD1"><a name="DIAGNOSTICS">DIAGNOSTICS</a></h2>
+<h3 class="POD_HEAD2"><a name="Errors">Errors</a></h3>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="empty_headn">empty =headn</a>
+
+A heading (<code>=head1</code> or <code>=head2</code>) without any text? That ain't no
+heading!
+<li class="POD_ITEM"><a name="_over_on_line_N_with">=over on line <i>N</i> without closing =back</a>
+
+The <code>=over</code> command does not have a corresponding <code>=back</code> before the
+next heading (<code>=head1</code> or <code>=head2</code>) or the end of the file.
+<li class="POD_ITEM"><a name="_item_without_previo">=item without previous =over</a>
+<li class="POD_ITEM"><a name="_back_without_previo">=back without previous =over</a>
+
+An <code>=item</code> or <code>=back</code> command has been found outside a
+<code>=over</code>/<code>=back</code> block.
+<li class="POD_ITEM"><a name="No_argument_for_begi">No argument for =begin</a>
+
+A <code>=begin</code> command was found that is not followed by the formatter
+specification.
+<li class="POD_ITEM"><a name="_end_without_begin">=end without =begin</a>
+
+A standalone <code>=end</code> command was found.
+<li class="POD_ITEM"><a name="Nested_begin_s">Nested =begin's</a>
+
+There were at least two consecutive <code>=begin</code> commands without
+the corresponding <code>=end</code>. Only one <code>=begin</code> may be active at
+a time.
+<li class="POD_ITEM"><a name="_for_without_formatt">=for without formatter specification</a>
+
+There is no specification of the formatter after the <code>=for</code> command.
+<li class="POD_ITEM"><a name="unresolved_internal_">unresolved internal link <i>NAME</i></a>
+
+The given link to <i>NAME</i> does not have a matching node in the current
+POD. This also happend when a single word node name is not enclosed in
+<code>&quot;&quot;</code>.
+<li class="POD_ITEM"><a name="Unknown_command_CMD_">Unknown command &quot;<i>CMD</i>&quot;</a>
+
+An invalid POD command has been found. Valid are <code>=head1</code>, <code>=head2</code>,
+<code>=over</code>, <code>=item</code>, <code>=back</code>, <code>=begin</code>, <code>=end</code>, <code>=for</code>, <code>=pod</code>,
+<code>=cut</code>
+<li class="POD_ITEM"><a name="Unknown_interior_seq">Unknown interior-sequence &quot;<i>SEQ</i>&quot;</a>
+
+An invalid markup command has been encountered. Valid are:
+<code>B&lt;&gt;</code>, <code>C&lt;&gt;</code>, <code>E&lt;&gt;</code>, <code>F&lt;&gt;</code>, 
+<code>I&lt;&gt;</code>, <code>L&lt;&gt;</code>, <code>S&lt;&gt;</code>, <code>X&lt;&gt;</code>, 
+<code>Z&lt;&gt;</code>
+<li class="POD_ITEM"><a name="nested_commands_CMD_">nested commands <i>CMD</i>&lt;...<i>CMD</i>&lt;...&gt;...&gt;</a>
+
+Two nested identical markup commands have been found. Generally this
+does not make sense.
+<li class="POD_ITEM"><a name="garbled_entity_STRIN">garbled entity <i>STRING</i></a>
+
+The <i>STRING</i> found cannot be interpreted as a character entity.
+<li class="POD_ITEM"><a name="Entity_number_out_of">Entity number out of range</a>
+
+An entity specified by number (dec, hex, oct) is out of range (1-255).
+<li class="POD_ITEM"><a name="malformed_link_L_">malformed link L&lt;&gt;</a>
+
+The link found cannot be parsed because it does not conform to the
+syntax described in the <a class="POD_LINK" href="../perlpod.html">perlpod</a> manpage.
+<li class="POD_ITEM"><a name="nonempty_Z_">nonempty Z&lt;&gt;</a>
+
+The <code>Z&lt;&gt;</code> sequence is supposed to be empty.
+<li class="POD_ITEM"><a name="empty_X_">empty X&lt;&gt;</a>
+
+The index entry specified contains nothing but whitespace.
+<li class="POD_ITEM"><a name="Spurious_text_after_">Spurious text after =pod / =cut</a>
+
+The commands <code>=pod</code> and <code>=cut</code> do not take any arguments.
+<li class="POD_ITEM"><a name="Spurious_character_s">Spurious character(s) after =back</a>
+
+The <code>=back</code> command does not take any arguments.
+</ul>
+<h3 class="POD_HEAD2"><a name="Warnings">Warnings</a></h3>
+<p class="POD_TEXT">
+These may not necessarily cause trouble, but indicate mediocre style.
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="multiple_occurence_o">multiple occurence of link target <i>name</i></a>
+
+The POD file has some <code>=item</code> and/or <code>=head</code> commands that have
+the same text. Potential hyperlinks to such a text cannot be unique then.
+<li class="POD_ITEM"><a name="line_containing_noth">line containing nothing but whitespace in paragraph</a>
+
+There is some whitespace on a seemingly empty line. POD is very sensitive
+to such things, so this is flagged. <b>vi</b> users switch on the <b>list</b>
+option to avoid this problem.
+<li class="POD_ITEM"><a name="file_does_not_start_">file does not start with =head</a>
+<li class="POD_ITEM"><a name="previous_item_has_no">previous =item has no contents</a>
+
+There is a list <code>=item</code> right above the flagged line that has no
+text contents. You probably want to delete empty items.
+<li class="POD_ITEM"><a name="preceding_non_item_p">preceding non-item paragraph(s)</a>
+
+A list introduced by <code>=over</code> starts with a text or verbatim paragraph,
+but continues with <code>=item</code>s. Move the non-item paragraph out of the
+<code>=over</code>/<code>=back</code> block.
+<li class="POD_ITEM"><a name="_item_type_mismatch_">=item type mismatch (<i>one</i> vs. <i>two</i>)</a>
+
+A list started with e.g. a bulletted <code>=item</code> and continued with a
+numbered one. This is obviously inconsistent. For most translators the
+type of the <i>first</i> <code>=item</code> determines the type of the list.
+<li class="POD_ITEM"><a name="N_unescaped_in_parag"><i>N</i> unescaped <code>&lt;&gt;</code> in paragraph</a>
+
+Angle brackets not written as <code>&lt;lt&gt;</code> and <code>&lt;gt&gt;</code>
+can potentially cause errors as they could be misinterpreted as
+markup commands. This is only printed when the -warnings level is
+greater than 1.
+<li class="POD_ITEM"><a name="Unknown_entity">Unknown entity</a>
+
+A character entity was found that does not belong to the standard
+ISO set or the POD specials <code>verbar</code> and <code>sol</code>.
+<li class="POD_ITEM"><a name="No_items_in_over">No items in =over</a>
+
+The list opened with <code>=over</code> does not contain any items.
+<li class="POD_ITEM"><a name="No_argument_for_item">No argument for =item</a>
+
+<code>=item</code> without any parameters is deprecated. It should either be followed
+by <code>*</code> to indicate an unordered list, by a number (optionally followed
+by a dot) to indicate an ordered (numbered) list or simple text for a
+definition list.
+<li class="POD_ITEM"><a name="empty_section_in_pre">empty section in previous paragraph</a>
+
+The previous section (introduced by a <code>=head</code> command) does not contain
+any text. This usually indicates that something is missing. Note: A 
+<code>=head1</code> followed immediately by <code>=head2</code> does not trigger this warning.
+<li class="POD_ITEM"><a name="Verbatim_paragraph_i">Verbatim paragraph in NAME section</a>
+
+The NAME section (<code>=head1 NAME</code>) should consist of a single paragraph
+with the script/module name, followed by a dash `-' and a very short
+description of what the thing is good for.
+</ul>
+<h3 class="POD_HEAD2"><a name="Hyperlinks">Hyperlinks</a></h3>
+<p class="POD_TEXT">
+There are some warnings wrt. malformed hyperlinks.
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="ignoring_leading_tra">ignoring leading/trailing whitespace in link</a>
+
+There is whitespace at the beginning or the end of the contents of 
+L&lt;...&gt;.
+<li class="POD_ITEM"><a name="_section_in_page_dep">(section) in '$page' deprecated</a>
+
+There is a section detected in the page name of L&lt;...&gt;, e.g.
+<code>L&gt;passwd(2)&gt;</code>. POD hyperlinks may point to POD documents only.
+Please write <code>C&lt;passwd(2)&gt;</code> instead. Some formatters are able
+to expand this to appropriate code. For links to (builtin) functions,
+please say <code>L&lt;perlfunc/mkdir&gt;</code>, without ().
+<li class="POD_ITEM"><a name="alternative_text_nod">alternative text/node '%s' contains non-escaped | or /</a>
+
+The characters <code>|</code> and <code>/</code> are special in the L&lt;...&gt; context.
+Although the hyperlink parser does its best to determine which &quot;/&quot; is
+text and which is a delimiter in case of doubt, one ought to escape
+these literal characters like this:
+<pre class="POD_VERBATIM">
+  /     E&lt;sol&gt;
+  |     E&lt;verbar&gt;
+</pre>
+</ul>
+<h2 class="POD_HEAD1"><a name="RETURN_VALUE">RETURN VALUE</a></h2>
+<p class="POD_TEXT">
+<b>podchecker</b> returns the number of POD syntax errors found or -1 if
+there were no POD commands at all found in the file.
+</p>
+<h2 class="POD_HEAD1"><a name="EXAMPLES">EXAMPLES</a></h2>
+<p class="POD_TEXT">
+<i>[T.B.D.]</i>
+</p>
+<h2 class="POD_HEAD1"><a name="INTERFACE">INTERFACE</a></h2>
+<p class="POD_TEXT">
+While checking, this module collects document properties, e.g. the nodes
+for hyperlinks (<code>=headX</code>, <code>=item</code>) and index entries (<code>X&lt;&gt;</code>).
+POD translators can use this feature to syntax-check and get the nodes in
+a first pass before actually starting to convert. This is expensive in terms
+of execution time, but allows for very robust conversions.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Pod_Checker_new_opti"><code>Pod::Checker-&gt;new( %options )</code></a>
+<dd>
+Return a reference to a new Pod::Checker object that inherits from
+Pod::Parser and is used for calling the required methods later. The
+following options are recognized:
+<p class="POD_TEXT">
+<code>-warnings =&gt; num</code><br>&nbsp;&nbsp;Print warnings if <code>num</code> is true. The higher the value of <code>num</code>,
+the more warnings are printed. Currently there are only levels 1 and 2.
+</p>
+<p class="POD_TEXT">
+<code>-quiet =&gt; num</code><br>&nbsp;&nbsp;If <code>num</code> is true, do not print any errors/warnings. This is useful
+when Pod::Checker is used to munge POD code into plain text from within
+POD formatters.
+</p>
+<dt class="POD_ITEM"><a name="_checker_poderror_ar"><code>$checker-&gt;poderror( @args )</code></a>
+<dt><a name="_checker_poderror_op"><code>$checker-&gt;poderror( {%opts}, @args )</code></a>
+<dd>
+Internal method for printing errors and warnings. If no options are
+given, simply prints &quot;@_&quot;. The following options are recognized and used
+to form the output:
+<pre class="POD_VERBATIM">
+  -msg
+</pre>
+<pre class="POD_TEXT">
+A message to print prior to <code>@args</code>.
+
+  -line
+</pre>
+<pre class="POD_TEXT">
+The line number the error occurred in.
+
+  -file
+</pre>
+<pre class="POD_TEXT">
+The file (name) the error occurred in.
+
+  -severity
+</pre>
+<p class="POD_TEXT">
+The error level, should be 'WARNING' or 'ERROR'.
+</p>
+<dt class="POD_ITEM"><a name="_checker_num_errors_"><code>$checker-&gt;num_errors()</code></a>
+<dd>
+Set (if argument specified) and retrieve the number of errors found.
+<dt class="POD_ITEM"><a name="_checker_name_"><code>$checker-&gt;name()</code></a>
+<dd>
+Set (if argument specified) and retrieve the canonical name of POD as
+found in the <code>=head1 NAME</code> section.
+<dt class="POD_ITEM"><a name="_checker_node_"><code>$checker-&gt;node()</code></a>
+<dd>
+Add (if argument specified) and retrieve the nodes (as defined by <code>=headX</code>
+and <code>=item</code>) of the current POD. The nodes are returned in the order of
+their occurence. They consist of plain text, each piece of whitespace is
+collapsed to a single blank.
+<dt class="POD_ITEM"><a name="_checker_idx_"><code>$checker-&gt;idx()</code></a>
+<dd>
+Add (if argument specified) and retrieve the index entries (as defined by
+<code>X&lt;&gt;</code>) of the current POD. They consist of plain text, each piece
+of whitespace is collapsed to a single blank.
+<dt class="POD_ITEM"><a name="_checker_hyperlink_"><code>$checker-&gt;hyperlink()</code></a>
+<dd>
+Add (if argument specified) and retrieve the hyperlinks (as defined by
+<code>L&lt;&gt;</code>) of the current POD. They consist of an 2-item array: line
+number and <code>Pod::Hyperlink</code> object.
+</dl>
+<h2 class="POD_HEAD1"><a name="AUTHOR">AUTHOR</a></h2>
+<p class="POD_TEXT">
+Brad Appleton &lt;bradapp@enteract.com&gt; (initial version),
+Marek Rouchal &lt;marek@saftsack.fs.uni-bayreuth.de&gt;
+</p>
+<p class="POD_TEXT">
+Based on code for <b>Pod::Text::pod2text()</b> written by
+Tom Christiansen &lt;tchrist@mox.perl.com&gt;
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:36:48 2001
+</body>
+</html>
+

@@ -1,0 +1,218 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>diagnostics</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="DirHandle.html">Next:<br>DirHandle</a></td><td align="left" width="1%"><a href="Devel/SelfStubber.html">Previous:<br>Devel::SelfStubber</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">diagnostics</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#The_diagnostics_Prag">The <code>diagnostics</code> Pragma</a>
+<li><a href="#The_splain_Program">The <i>splain</i> Program</a>
+</ul>
+<li><a href="#EXAMPLES">EXAMPLES</a>
+<li><a href="#INTERNALS">INTERNALS</a>
+<li><a href="#BUGS">BUGS</a>
+<li><a href="#AUTHOR">AUTHOR</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+diagnostics - Perl compiler pragma to force verbose warning diagnostics
+</p>
+<p class="POD_TEXT">
+splain - standalone program to do the same thing
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_TEXT">
+As a pragma:
+
+    use diagnostics;
+    use diagnostics -verbose;
+
+    enable  diagnostics;
+    disable diagnostics;
+</pre>
+<pre class="POD_TEXT">
+Aa a program:
+
+    perl program 2&gt;diag.out
+    splain [-v] [-p] diag.out
+</pre>
+<p></p>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<h3 class="POD_HEAD2"><a name="The_diagnostics_Prag">The <code>diagnostics</code> Pragma</a></h3>
+<p class="POD_TEXT">
+This module extends the terse diagnostics normally emitted by both the
+perl compiler and the perl interpreter, augmenting them with the more
+explicative and endearing descriptions found in the <a class="POD_LINK" href="perldiag.html">perldiag</a> manpage.  Like the
+other pragmata, it affects the compilation phase of your program rather
+than merely the execution phase.
+</p>
+<pre class="POD_TEXT">
+To use in your program as a pragma, merely invoke
+
+    use diagnostics;
+</pre>
+<p class="POD_TEXT">
+at the start (or near the start) of your program.  (Note 
+that this <i>does</i> enable perl's <b>-w</b> flag.)  Your whole
+compilation will then be subject(ed :-) to the enhanced diagnostics.
+These still go out <b>STDERR</b>.
+</p>
+<p class="POD_TEXT">
+Due to the interaction between runtime and compiletime issues,
+and because it's probably not a very good idea anyway,
+you may not use <code>no diagnostics</code> to turn them off at compiletime.
+However, you may control their behaviour at runtime using the 
+disable() and enable() methods to turn them off and on respectively.
+</p>
+<p class="POD_TEXT">
+The <b>-verbose</b> flag first prints out the the <a class="POD_LINK" href="perldiag.html">perldiag</a> manpage introduction before
+any other diagnostics.  The $diagnostics::PRETTY variable can generate nicer
+escape sequences for pagers.
+</p>
+<p class="POD_TEXT">
+Warnings dispatched from perl itself (or more accurately, those that match
+descriptions found in the <a class="POD_LINK" href="perldiag.html">perldiag</a> manpage) are only displayed once (no duplicate
+descriptions).  User code generated warnings ala warn() are unaffected,
+allowing duplicate user messages to be displayed.
+</p>
+<h3 class="POD_HEAD2"><a name="The_splain_Program">The <i>splain</i> Program</a></h3>
+<p class="POD_TEXT">
+While apparently a whole nuther program, <i>splain</i> is actually nothing
+more than a link to the (executable) <code>diagnostics.pm</code> module, as well as
+a link to the <code>diagnostics.pod</code> documentation.  The <b>-v</b> flag is like
+the <code>use diagnostics -verbose</code> directive.
+The <b>-p</b> flag is like the
+$diagnostics::PRETTY variable.  Since you're post-processing with 
+<i>splain</i>, there's no sense in being able to enable() or disable() processing.
+</p>
+<p class="POD_TEXT">
+Output from <i>splain</i> is directed to <b>STDOUT</b>, unlike the pragma.
+</p>
+<h2 class="POD_HEAD1"><a name="EXAMPLES">EXAMPLES</a></h2>
+<pre class="POD_TEXT">
+The following file is certain to trigger a few errors at both
+runtime and compiletime:
+
+    use diagnostics;
+    print NOWHERE &quot;nothing\n&quot;;
+    print STDERR &quot;\n\tThis message should be unadorned.\n&quot;;
+    warn &quot;\tThis is a user warning&quot;;
+    print &quot;\nDIAGNOSTIC TESTER: Please enter a &lt;CR&gt; here: &quot;;
+    my $a, $b = scalar &lt;STDIN&gt;;
+    print &quot;\n&quot;;
+    print $x/$y;
+</pre>
+<pre class="POD_TEXT">
+If you prefer to run your program first and look at its problem
+afterwards, do this:
+
+    perl -w test.pl 2&gt;test.out
+    ./splain &lt; test.out
+</pre>
+<pre class="POD_TEXT">
+Note that this is not in general possible in shells of more dubious heritage, 
+as the theoretical
+
+    (perl -w test.pl &gt;/dev/tty) &gt;&amp; test.out
+    ./splain &lt; test.out
+</pre>
+<p class="POD_TEXT">
+Because you just moved the existing <b>stdout</b> to somewhere else.
+</p>
+<pre class="POD_TEXT">
+If you don't want to modify your source code, but still have on-the-fly
+warnings, do this:
+
+    exec 3&gt;&amp;1; perl -w test.pl 2&gt;&amp;1 1&gt;&amp;3 3&gt;&amp;- | splain 1&gt;&amp;2 3&gt;&amp;-
+</pre>
+<p class="POD_TEXT">
+Nifty, eh?
+</p>
+<pre class="POD_TEXT">
+If you want to control warnings on the fly, do something like this.
+Make sure you do the <code><a class="POD_LINK" href="perlfunc.html#use_Module_LIST">use</a></code> first, or you won't be able to get
+at the enable() or disable() methods.
+
+    use diagnostics; # checks entire compilation phase 
+	print &quot;\ntime for 1st bogus diags: SQUAWKINGS\n&quot;;
+	print BOGUS1 'nada';
+	print &quot;done with 1st bogus\n&quot;;
+
+    disable diagnostics; # only turns off runtime warnings
+	print &quot;\ntime for 2nd bogus: (squelched)\n&quot;;
+	print BOGUS2 'nada';
+	print &quot;done with 2nd bogus\n&quot;;
+
+    enable diagnostics; # turns back on runtime warnings
+	print &quot;\ntime for 3rd bogus: SQUAWKINGS\n&quot;;
+	print BOGUS3 'nada';
+	print &quot;done with 3rd bogus\n&quot;;
+
+    disable diagnostics;
+	print &quot;\ntime for 4th bogus: (squelched)\n&quot;;
+	print BOGUS4 'nada';
+	print &quot;done with 4th bogus\n&quot;;
+</pre>
+<h2 class="POD_HEAD1"><a name="INTERNALS">INTERNALS</a></h2>
+<p class="POD_TEXT">
+Diagnostic messages derive from the <code>perldiag.pod</code> file when available at
+runtime.  Otherwise, they may be embedded in the file itself when the
+splain package is built.   See the <code>Makefile</code> for details.
+</p>
+<p class="POD_TEXT">
+If an extant $SIG{__WARN__} handler is discovered, it will continue
+to be honored, but only after the diagnostics::splainthis() function 
+(the module's $SIG{__WARN__} interceptor) has had its way with your
+warnings.
+</p>
+<pre class="POD_TEXT">
+There is a $diagnostics::DEBUG variable you may set if you're desperately
+curious what sorts of things are being intercepted.
+
+    BEGIN { $diagnostics::DEBUG = 1 }
+</pre>
+<p></p>
+<h2 class="POD_HEAD1"><a name="BUGS">BUGS</a></h2>
+<p class="POD_TEXT">
+Not being able to say &quot;no diagnostics&quot; is annoying, but may not be
+insurmountable.
+</p>
+<pre class="POD_TEXT">
+The <code>-pretty</code> directive is called too late to affect matters.
+You have to do this instead, and <i>before</i> you load the module.
+
+    BEGIN { $diagnostics::PRETTY = 1 }
+</pre>
+<p class="POD_TEXT">
+I could start up faster by delaying compilation until it should be
+needed, but this gets a &quot;panic: top_level&quot; when using the pragma form
+in Perl 5.001e.
+</p>
+<p class="POD_TEXT">
+While it's true that this documentation is somewhat subserious, if you use
+a program named <i>splain</i>, you should expect a bit of whimsy.
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHOR">AUTHOR</a></h2>
+<p class="POD_TEXT">
+Tom Christiansen &lt;<code>tchrist@mox.perl.com</code>&gt;, 25 June 1995.
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:20 2001
+</body>
+</html>
+

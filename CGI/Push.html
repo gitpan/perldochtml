@@ -1,0 +1,255 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>CGI::Push</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="../CGI/Switch.html">Next:<br>CGI::Switch</a></td><td align="left" width="1%"><a  href="../CGI/Pretty.html">Previous:<br>CGI::Pretty</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="../podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="../podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">CGI::Push</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#USING_CGI_Push">USING CGI::Push</a>
+<ul>
+<li><a href="#Heterogeneous_Pages">Heterogeneous Pages</a>
+<li><a href="#Changing_the_Page_De">Changing the Page Delay on the Fly</a>
+</ul>
+<li><a href="#INSTALLING_CGI_Push_">INSTALLING CGI::Push SCRIPTS</a>
+<li><a href="#AUTHOR_INFORMATION">AUTHOR INFORMATION</a>
+<li><a href="#BUGS">BUGS</a>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+CGI::Push - Simple Interface to Server Push
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+    use CGI::Push qw(:standard);
+
+    do_push(-next_page=&gt;\&amp;next_page,
+            -last_page=&gt;\&amp;last_page,
+            -delay=&gt;0.5);
+
+    sub next_page {
+        my($q,$counter) = @_;
+        return undef if $counter &gt;= 10;
+        return start_html('Test'),
+               h1('Visible'),&quot;\n&quot;,
+               &quot;This page has been called &quot;, strong($counter),&quot; times&quot;,
+               end_html();
+    }
+
+    sub last_page {
+        my($q,$counter) = @_;
+        return start_html('Done'),
+               h1('Finished'),
+               strong($counter - 1),' iterations.',
+               end_html;
+    }
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+CGI::Push is a subclass of the CGI object created by CGI.pm.  It is
+specialized for server push operations, which allow you to create
+animated pages whose content changes at regular intervals.
+</p>
+<p class="POD_TEXT">
+You provide CGI::Push with a pointer to a subroutine that will draw
+one page.  Every time your subroutine is called, it generates a new
+page.  The contents of the page will be transmitted to the browser
+in such a way that it will replace what was there beforehand.  The
+technique will work with HTML pages as well as with graphics files, 
+allowing you to create animated GIFs.
+</p>
+<p class="POD_TEXT">
+Only Netscape Navigator supports server push.  Internet Explorer
+browsers do not.
+</p>
+<h2 class="POD_HEAD1"><a name="USING_CGI_Push">USING CGI::Push</a></h2>
+<p class="POD_TEXT">
+CGI::Push adds one new method to the standard CGI suite, do_push().
+When you call this method, you pass it a reference to a subroutine
+that is responsible for drawing each new page, an interval delay, and
+an optional subroutine for drawing the last page.  Other optional
+parameters include most of those recognized by the CGI header()
+method.
+</p>
+<pre class="POD_TEXT">
+You may call do_push() in the object oriented manner or not, as you
+prefer:
+
+    use CGI::Push;
+    $q = new CGI::Push;
+    $q-&gt;do_push(-next_page=&gt;\&amp;draw_a_page);
+
+        -or-
+
+    use CGI::Push qw(:standard);
+    do_push(-next_page=&gt;\&amp;draw_a_page);
+</pre>
+<p class="POD_TEXT">
+Parameters are as follows:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_next_page">-next_page</a>
+<dd><pre class="POD_VERBATIM">
+    do_push(-next_page=&gt;\&amp;my_draw_routine);
+</pre>
+
+This required parameter points to a reference to a subroutine responsible for
+drawing each new page.  The subroutine should expect two parameters
+consisting of the CGI object and a counter indicating the number
+of times the subroutine has been called.  It should return the
+contents of the page as an <b>array</b> of one or more items to print.  
+It can return a false value (or an empty array) in order to abort the
+redrawing loop and print out the final page (if any)
+<pre class="POD_VERBATIM">
+    sub my_draw_routine {
+        my($q,$counter) = @_;
+        return undef if $counter &gt; 100;
+        return start_html('testing'),
+               h1('testing'),
+               &quot;This page called $counter times&quot;;
+    }
+</pre>
+<p class="POD_TEXT">
+You are of course free to refer to create and use global variables
+within your draw routine in order to achieve special effects.
+</p>
+<dt class="POD_ITEM"><a name="_last_page">-last_page</a>
+<dd>
+This optional parameter points to a reference to the subroutine
+responsible for drawing the last page of the series.  It is called
+after the -next_page routine returns a false value.  The subroutine
+itself should have exactly the same calling conventions as the
+-next_page routine.
+<dt class="POD_ITEM"><a name="_type">-type</a>
+<dd>
+This optional parameter indicates the content type of each page.  It
+defaults to &quot;text/html&quot;.  Normally the module assumes that each page
+is of a homogenous MIME type.  However if you provide either of the
+magic values &quot;heterogeneous&quot; or &quot;dynamic&quot; (the latter provided for the
+convenience of those who hate long parameter names), you can specify
+the MIME type -- and other header fields -- on a per-page basis.  See 
+&quot;heterogeneous pages&quot; for more details.
+<dt class="POD_ITEM"><a name="_delay">-delay</a>
+<dd>
+This indicates the delay, in seconds, between frames.  Smaller delays
+refresh the page faster.  Fractional values are allowed.
+<p class="POD_TEXT">
+<b>If not specified, -delay will default to 1 second</b>
+</p>
+<dt class="POD_ITEM"><a name="_cookie_target_expir">-cookie, -target, -expires, -nph</a>
+<dd>
+These have the same meaning as the like-named parameters in
+CGI::header().
+<p class="POD_TEXT">
+If not specified, -nph will default to 1 (as needed for many servers, see below).
+</p>
+</dl>
+<h3 class="POD_HEAD2"><a name="Heterogeneous_Pages">Heterogeneous Pages</a></h3>
+<p class="POD_TEXT">
+Ordinarily all pages displayed by CGI::Push share a common MIME type.
+However by providing a value of &quot;heterogeneous&quot; or &quot;dynamic&quot; in the
+do_push() -type parameter, you can specify the MIME type of each page
+on a case-by-case basis.
+</p>
+<pre class="POD_TEXT">
+If you use this option, you will be responsible for producing the
+HTTP header for each page.  Simply modify your draw routine to
+look like this:
+
+    sub my_draw_routine {
+        my($q,$counter) = @_;
+        return header('text/html'),   # note we're producing the header here
+               start_html('testing'),
+               h1('testing'),
+               &quot;This page called $counter times&quot;;
+    }
+</pre>
+<pre class="POD_TEXT">
+You can add any header fields that you like, but some (cookies and
+status fields included) may not be interpreted by the browser.  One
+interesting effect is to display a series of pages, then, after the
+last page, to redirect the browser to a new URL.  Because redirect() 
+does b&lt;not&gt; work, the easiest way is with a -refresh header field,
+as shown below:
+
+    sub my_draw_routine {
+        my($q,$counter) = @_;
+        return undef if $counter &gt; 10;
+        return header('text/html'),   # note we're producing the header here
+               start_html('testing'),
+               h1('testing'),
+               &quot;This page called $counter times&quot;;
+    }
+
+    sub my_last_page {
+        return header(-refresh=&gt;'5; URL=http://somewhere.else/finished.html',
+                      -type=&gt;'text/html'),
+               start_html('Moved'),
+               h1('This is the last page'),
+               'Goodbye!'
+               hr,
+               end_html; 
+    }
+</pre>
+<h3 class="POD_HEAD2"><a name="Changing_the_Page_De">Changing the Page Delay on the Fly</a></h3>
+<p class="POD_TEXT">
+If you would like to control the delay between pages on a page-by-page
+basis, call push_delay() from within your draw routine.  push_delay()
+takes a single numeric argument representing the number of seconds you
+wish to delay after the current page is displayed and before
+displaying the next one.  The delay may be fractional.  Without
+parameters, push_delay() just returns the current delay.
+</p>
+<h2 class="POD_HEAD1"><a name="INSTALLING_CGI_Push_">INSTALLING CGI::Push SCRIPTS</a></h2>
+<p class="POD_TEXT">
+Server push scripts must be installed as no-parsed-header (NPH)
+scripts in order to work correctly on many servers.  On Unix systems,
+this is most often accomplished by prefixing the script's name with &quot;nph-&quot;.  
+Recognition of NPH scripts happens automatically with WebSTAR and 
+Microsoft IIS.  Users of other servers should see their documentation
+for help.
+</p>
+<p class="POD_TEXT">
+Apache web server from version 1.3b2 on does not need server
+push scripts installed as NPH scripts: the -nph parameter to do_push()
+may be set to a false value to disable the extra headers needed by an
+NPH script.
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHOR_INFORMATION">AUTHOR INFORMATION</a></h2>
+<p class="POD_TEXT">
+Copyright 1995-1998, Lincoln D. Stein.  All rights reserved.
+</p>
+<p class="POD_TEXT">
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+</p>
+<p class="POD_TEXT">
+Address bug reports and comments to: lstein@cshl.org
+</p>
+<h2 class="POD_HEAD1"><a name="BUGS">BUGS</a></h2>
+<p class="POD_TEXT">
+This section intentionally left blank.
+</p>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+the <a class="POD_LINK" href="../CGI/Carp.html">CGI::Carp</a> manpage, the <a class="POD_LINK" href="../CGI.html">CGI</a> manpage
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:16 2001
+</body>
+</html>
+

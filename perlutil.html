@@ -1,0 +1,196 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>perlutil</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="perlvar.html">Next:<br>perlvar</a></td><td align="left" width="1%"><a  href="perlunicode.html">Previous:<br>perlunicode</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">perlutil</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#DOCUMENTATION">DOCUMENTATION</a>
+<li><a href="#CONVERTORS">CONVERTORS</a>
+<li><a href="#Development">Development</a>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+</ul>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+perlutil - utilities packaged with the Perl distribution
+</p>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+Along with the Perl interpreter itself, the Perl distribution installs a
+range of utilities on your system. There are also several utilities
+which are used by the Perl distribution itself as part of the install
+process. This document exists to list all of these utilities, explain
+what they are for and provide pointers to each module's documentation,
+if appropriate.
+</p>
+<h3 class="POD_HEAD2"><a name="DOCUMENTATION">DOCUMENTATION</a></h3>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="perldoc"><a class="POD_LINK" href="perldoc.html">perldoc</a></a>
+<dd>
+The main interface to Perl's documentation is <code>perldoc</code>, although
+if you're reading this, it's more than likely that you've already found
+it. <code>perldoc</code> will extract and format the documentation from any file
+in the current directory, any Perl module installed on the system, or
+any of the standard documentation pages, such as this one. Use 
+<code>perldoc &lt;name&gt;</code> to get information on any of the utilities
+described in this document.
+<dt class="POD_ITEM"><a name="pod2man_and_pod2text"><a class="POD_LINK" href="pod2man.html">pod2man</a> and <a class="POD_LINK" href="pod2text.html">pod2text</a></a>
+<dd>
+If it's run from a terminal, <code>perldoc</code> will usually call <code>pod2man</code> to
+translate POD (Plain Old Documentation - see the <a class="POD_LINK" href="perlpod.html">perlpod</a> manpage for an
+explanation) into a man page, and then run <code>man</code> to display it; if
+<code>man</code> isn't available, <code>pod2text</code> will be used instead and the output
+piped through your favourite pager.
+<dt class="POD_ITEM"><a name="pod2html_and_pod2lat"><a class="POD_LINK" href="pod2html.html">pod2html</a> and <a class="POD_LINK" href="pod2latex.html">pod2latex</a></a>
+<dd>
+As well as these two, there are two other converters: <code>pod2html</code> will
+produce HTML pages from POD, and <code>pod2latex</code>, which produces LaTeX
+files.
+<dt class="POD_ITEM"><a name="pod2usage"><a class="POD_LINK" href="pod2usage.html">pod2usage</a></a>
+<dd>
+If you just want to know how to use the utilities described here,
+<code>pod2usage</code> will just extract the &quot;USAGE&quot; section; some of
+the utilities will automatically call <code>pod2usage</code> on themselves when
+you call them with <code>-help</code>.
+<dt class="POD_ITEM"><a name="podselect"><a class="POD_LINK" href="podselect.html">podselect</a></a>
+<dd>
+<code>pod2usage</code> is a special case of <code>podselect</code>, a utility to extract
+named sections from documents written in POD. For instance, while
+utilities have &quot;USAGE&quot; sections, Perl modules usually have &quot;SYNOPSIS&quot;
+sections: <code>podselect -s &quot;SYNOPSIS&quot; ...</code> will extract this section for
+a given file.
+<dt class="POD_ITEM"><a name="podchecker"><a class="POD_LINK" href="podchecker.html">podchecker</a></a>
+<dd>
+If you're writing your own documentation in POD, the <code>podchecker</code>
+utility will look for errors in your markup.
+<dt class="POD_ITEM"><a name="splain"><u>splain</u></a>
+<dd>
+<code>splain</code> is an interface to the <a class="POD_LINK" href="perldiag.html">perldiag</a> manpage - paste in your error message
+to it, and it'll explain it for you.
+<dt class="POD_ITEM"><a name="roffitall"><u>roffitall</u></a>
+<dd>
+The <code>roffitall</code> utility is not installed on your system but lives in
+the <code>pod/</code> directory of your Perl source kit; it converts all the
+documentation from the distribution to <code>*roff</code> format, and produces a
+typeset PostScript or text file of the whole lot.
+</dl>
+<h3 class="POD_HEAD2"><a name="CONVERTORS">CONVERTORS</a></h3>
+<p class="POD_TEXT">
+To help you convert legacy programs to Perl, we've included three
+conversion filters:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="a2p"><u>a2p</u></a>
+<dd>
+<code>a2p</code> converts <code>awk</code> scripts to Perl programs; for example, <code>a2p -F:</code>
+on the simple <code>awk</code> script <code>{print $2}</code> will produce a Perl program
+based around this code:
+<pre class="POD_VERBATIM">
+    while (&lt;&gt;) {
+        ($Fld1,$Fld2) = split(/[:\n]/, $_, 9999);
+        print $Fld2;
+    }
+</pre>
+<dt class="POD_ITEM"><a name="s2p"><u>s2p</u></a>
+<dd>
+Similarly, <code>s2p</code> converts <code>sed</code> scripts to Perl programs. <code>s2p</code> run
+on <code>s/foo/bar</code> will produce a Perl program based around this:
+<pre class="POD_VERBATIM">
+    while (&lt;&gt;) {
+        chomp;
+        s/foo/bar/g;
+        print if $printit;
+    }
+</pre>
+<dt class="POD_ITEM"><a name="find2perl"><u>find2perl</u></a>
+<dd>
+Finally, <code>find2perl</code> translates <code>find</code> commands to Perl equivalents which 
+use the <a class="POD_LINK" href="File/Find.html">File::Find</a> module. As an example, 
+<code>find2perl . -user root -perm 4000 -print</code> produces the following callback
+subroutine for <code>File::Find</code>:
+<pre class="POD_VERBATIM">
+    sub wanted {
+        my ($dev,$ino,$mode,$nlink,$uid,$gid);
+        (($dev,$ino,$mode,$nlink,$uid,$gid) = lstat($_)) &amp;&amp;
+        $uid == $uid{'root'}) &amp;&amp;
+        (($mode &amp; 0777) == 04000);
+        print(&quot;$name\n&quot;);
+    }
+</pre>
+</dl>
+<p class="POD_TEXT">
+As well as these filters for converting other languages, the
+<a class="POD_LINK" href="pl2pm.html">pl2pm</a> utility will help you convert old-style Perl 4 libraries to 
+new-style Perl5 modules.
+</p>
+<h3 class="POD_HEAD2"><a name="Development">Development</a></h3>
+<p class="POD_TEXT">
+There are a set of utilities which help you in developing Perl programs, 
+and in particular, extending Perl with C.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="perlbug"><a class="POD_LINK" href="perlbug.html">perlbug</a></a>
+<dd>
+<code>perlbug</code> is the recommended way to report bugs in the perl interpreter
+itself or any of the standard library modules back to the developers;
+please read through the documentation for <code>perlbug</code> thoroughly before
+using it to submit a bug report.
+<dt class="POD_ITEM"><a name="h2ph"><a class="POD_LINK" href="h2ph.html">h2ph</a></a>
+<dd>
+Back before Perl had the XS system for connecting with C libraries,
+programmers used to get library constants by reading through the C
+header files. You may still see <code>require 'syscall.ph'</code> or similar
+around - the <code>.ph</code> file should be created by running <code>h2ph</code> on the
+corresponding <code>.h</code> file. See the <code>h2ph</code> documentation for more on how
+to convert a whole bunch of header files at ones.
+<dt class="POD_ITEM"><a name="c2ph_and_pstruct"><a class="POD_LINK" href="c2ph.html">c2ph</a> and <u>pstruct</u></a>
+<dd>
+<code>c2ph</code> and <code>pstruct</code>, which are actually the same program but behave
+differently depending on how they are called, provide another way of
+getting at C with Perl - they'll convert C structures and union declarations
+to Perl code. This is deprecated in favour of <code>h2xs</code> these days.
+<dt class="POD_ITEM"><a name="h2xs"><a class="POD_LINK" href="h2xs.html">h2xs</a></a>
+<dd>
+<code>h2xs</code> converts C header files into XS modules, and will try and write
+as much glue between C libraries and Perl modules as it can. It's also
+very useful for creating skeletons of pure Perl modules.
+<dt class="POD_ITEM"><a name="dprofpp"><a class="POD_LINK" href="dprofpp.html">dprofpp</a></a>
+<dd>
+Perl comes with a profiler, the <code>Devel::Dprof</code> module. The
+<code>dprofpp</code> utility analyzes the output of this profiler and tells you
+which subroutines are taking up the most run time. See the <u>Devel::Dprof</u> manpage
+for more information.
+<dt class="POD_ITEM"><a name="perlcc"><a class="POD_LINK" href="perlcc.html">perlcc</a></a>
+<dd>
+<code>perlcc</code> is the interface to the experimental Perl compiler suite.
+</dl>
+<h3 class="POD_HEAD2"><a name="SEE_ALSO">SEE ALSO</a></h3>
+<p class="POD_TEXT">
+<a class="POD_LINK" href="perldoc.html">perldoc</a>, <a class="POD_LINK" href="pod2man.html">pod2man</a>, the <a class="POD_LINK" href="perlpod.html">perlpod</a> manpage,
+<a class="POD_LINK" href="pod2html.html">pod2html</a>, <a class="POD_LINK" href="pod2usage.html">pod2usage</a>, <a class="POD_LINK" href="podselect.html">podselect</a>,
+<a class="POD_LINK" href="podchecker.html">podchecker</a>, <u>splain</u>, the <a class="POD_LINK" href="perldiag.html">perldiag</a> manpage,
+<u>roffitall</u>, <u>a2p</u>, <u>s2p</u>, <u>find2perl</u>,
+<a class="POD_LINK" href="File/Find.html">File::Find</a>, <a class="POD_LINK" href="pl2pm.html">pl2pm</a>, <a class="POD_LINK" href="perlbug.html">perlbug</a>,
+<a class="POD_LINK" href="h2ph.html">h2ph</a>, <a class="POD_LINK" href="c2ph.html">c2ph</a>, <a class="POD_LINK" href="h2xs.html">h2xs</a>, <a class="POD_LINK" href="dprofpp.html">dprofpp</a>,
+the <u>Devel::Dprof</u> manpage, <a class="POD_LINK" href="perlcc.html">perlcc</a>
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:36:40 2001
+</body>
+</html>
+

@@ -1,0 +1,311 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>perlnewmod</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="perlnumber.html">Next:<br>perlnumber</a></td><td align="left" width="1%"><a  href="perlmodlib.html">Previous:<br>perlmodlib</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">perlnewmod</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#Warning">Warning</a>
+<li><a href="#What_should_I_make_i">What should I make into a module?</a>
+<li><a href="#Step_by_step_Prepari">Step-by-step: Preparing the ground</a>
+<li><a href="#Step_by_step_Making_">Step-by-step: Making the module</a>
+<li><a href="#Step_by_step_Distrib">Step-by-step: Distributing your module</a>
+</ul>
+<li><a href="#AUTHOR">AUTHOR</a>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+perlnewmod - preparing a new module for distribution
+</p>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+This document gives you some suggestions about how to go about writing
+Perl modules, preparing them for distribution, and making them available
+via CPAN.
+</p>
+<p class="POD_TEXT">
+One of the things that makes Perl really powerful is the fact that Perl
+hackers tend to want to share the solutions to problems they've faced,
+so you and I don't have to battle with the same problem again.
+</p>
+<p class="POD_TEXT">
+The main way they do this is by abstracting the solution into a Perl
+module. If you don't know what one of these is, the rest of this
+document isn't going to be much use to you. You're also missing out on
+an awful lot of useful code; consider having a look at the <a class="POD_LINK" href="perlmod.html">perlmod</a> manpage,
+the <a class="POD_LINK" href="perlmodlib.html">perlmodlib</a> manpage and the <a class="POD_LINK" href="perlmodinstall.html">perlmodinstall</a> manpage before coming back here.
+</p>
+<p class="POD_TEXT">
+When you've found that there isn't a module available for what you're
+trying to do, and you've had to write the code yourself, consider
+packaging up the solution into a module and uploading it to CPAN so that
+others can benefit.
+</p>
+<h3 class="POD_HEAD2"><a name="Warning">Warning</a></h3>
+<p class="POD_TEXT">
+We're going to primarily concentrate on Perl-only modules here, rather
+than XS modules. XS modules serve a rather different purpose, and
+you should consider different things before distributing them - the
+popularity of the library you are gluing, the portability to other
+operating systems, and so on. However, the notes on preparing the Perl
+side of the module and packaging and distributing it will apply equally
+well to an XS module as a pure-Perl one.
+</p>
+<h3 class="POD_HEAD2"><a name="What_should_I_make_i">What should I make into a module?</a></h3>
+<p class="POD_TEXT">
+You should make a module out of any code that you think is going to be
+useful to others. Anything that's likely to fill a hole in the communal
+library and which someone else can slot directly into their program. Any
+part of your code which you can isolate and extract and plug into
+something else is a likely candidate.
+</p>
+<p class="POD_TEXT">
+Let's take an example. Suppose you're reading in data from a local
+format into a hash-of-hashes in Perl, turning that into a tree, walking
+the tree and then piping each node to an Acme Transmogrifier Server.
+</p>
+<p class="POD_TEXT">
+Now, quite a few people have the Acme Transmogrifier, and you've had to
+write something to talk the protocol from scratch - you'd almost
+certainly want to make that into a module. The level at which you pitch
+it is up to you: you might want protocol-level modules analogous to
+<u>Net::SMTP</u> which then talk to higher level modules analogous
+to <u>Mail::Send</u>. The choice is yours, but you do want to get
+a module out for that server protocol.
+</p>
+<p class="POD_TEXT">
+Nobody else on the planet is going to talk your local data format, so we
+can ignore that. But what about the thing in the middle? Building tree
+structures from Perl variables and then traversing them is a nice,
+general problem, and if nobody's already written a module that does
+that, you might want to modularise that code too.
+</p>
+<p class="POD_TEXT">
+So hopefully you've now got a few ideas about what's good to modularise.
+Let's now see how it's done.
+</p>
+<h3 class="POD_HEAD2"><a name="Step_by_step_Prepari">Step-by-step: Preparing the ground</a></h3>
+<p class="POD_TEXT">
+Before we even start scraping out the code, there are a few things we'll
+want to do in advance.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Look_around">Look around</a>
+<dd>
+Dig into a bunch of modules to see how they're written. I'd suggest
+starting with <a class="POD_LINK" href="Text/Tabs.html">Text::Tabs</a>, since it's in the standard
+library and is nice and simple, and then looking at something like
+<u>Time::Zone</u>, <a class="POD_LINK" href="File/Copy.html">File::Copy</a> and then some of the
+<code>Mail::*</code> modules if you're planning on writing object oriented code.
+<p class="POD_TEXT">
+These should give you an overall feel for how modules are laid out and
+written.
+</p>
+<dt class="POD_ITEM"><a name="Check_it_s_new">Check it's new</a>
+<dd>
+There are a lot of modules on CPAN, and it's easy to miss one that's
+similar to what you're planning on contributing. Have a good plough
+through the modules list and the <code>by-module</code> directories, and make sure
+you're not the one reinventing the wheel!
+<dt class="POD_ITEM"><a name="Discuss_the_need">Discuss the need</a>
+<dd>
+You might love it. You might feel that everyone else needs it. But there
+might not actually be any real demand for it out there. If you're unsure
+about the demand you're module will have, consider sending out feelers
+on the <code>comp.lang.perl.modules</code> newsgroup, or as a last resort, ask the
+modules list at <code>modules@perl.org</code>. Remember that this is a closed list
+with a very long turn-around time - be prepared to wait a good while for
+a response from them.
+<dt class="POD_ITEM"><a name="Choose_a_name">Choose a name</a>
+<dd>
+Perl modules included on CPAN have a naming hierarchy you should try to
+fit in with. See the <a class="POD_LINK" href="perlmodlib.html">perlmodlib</a> manpage for more details on how this works, and
+browse around CPAN and the modules list to get a feel of it. At the very
+least, remember this: modules should be title capitalised, (This::Thing)
+fit in with a category, and explain their purpose succinctly.
+<dt class="POD_ITEM"><a name="Check_again">Check again</a>
+<dd>
+While you're doing that, make really sure you haven't missed a module
+similar to the one you're about to write.
+<p class="POD_TEXT">
+When you've got your name sorted out and you're sure that your module is
+wanted and not currently available, it's time to start coding.
+</p>
+</dl>
+<h3 class="POD_HEAD2"><a name="Step_by_step_Making_">Step-by-step: Making the module</a></h3>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Start_with_h2xs">Start with <code>h2xs</code></a>
+<dd>
+Originally a utility to convert C header files into XS modules,
+<a class="POD_LINK" href="h2xs.html">h2xs</a> has become a useful utility for churning out skeletons for
+Perl-only modules as well. If you don't want to use the
+<u>Autoloader</u> which splits up big modules into smaller
+subroutine-sized chunks, you'll say something like this:
+<pre class="POD_VERBATIM">
+    h2xs -AX -n Net::Acme
+</pre>
+<p class="POD_TEXT">
+The <code>-A</code> omits the Autoloader code, <code><a class="POD_LINK" href="perlfunc.html#_X">-X</a></code> omits XS elements, and <code><a class="POD_LINK" href="perlrun.html#_n">-n</a></code>
+specifies the name of the module.
+</p>
+<dt class="POD_ITEM"><a name="Use_strict_and_warni">Use <a class="POD_LINK" href="strict.html">strict</a> and <a class="POD_LINK" href="warnings.html">warnings</a></a>
+<dd>
+A module's code has to be warning and strict-clean, since you can't
+guarantee the conditions that it'll be used under. Besides, you wouldn't
+want to distribute code that wasn't warning or strict-clean anyway,
+right?
+<dt class="POD_ITEM"><a name="Use_Carp">Use <a class="POD_LINK" href="Carp.html">Carp</a></a>
+<dd>
+The <a class="POD_LINK" href="Carp.html">Carp</a> module allows you to present your error messages from
+the caller's perspective; this gives you a way to signal a problem with
+the caller and not your module. For instance, if you say this:
+<pre class="POD_VERBATIM">
+    warn &quot;No hostname given&quot;;
+</pre>
+<pre class="POD_TEXT">
+the user will see something like this:
+
+    No hostname given at /usr/local/lib/perl5/site_perl/5.6.0/Net/Acme.pm
+    line 123.
+</pre>
+<pre class="POD_TEXT">
+which looks like your module is doing something wrong. Instead, you want
+to put the blame on the user, and say this:
+
+    No hostname given at bad_code, line 10.
+</pre>
+<p class="POD_TEXT">
+You do this by using <a class="POD_LINK" href="Carp.html">Carp</a> and replacing your <code><a class="POD_LINK" href="perlfunc.html#warn_LIST">warn</a></code>s with
+<code>carp</code>s. If you need to <code><a class="POD_LINK" href="perlfunc.html#die_LIST">die</a></code>, say <code>croak</code> instead. However, keep
+<code><a class="POD_LINK" href="perlfunc.html#warn_LIST">warn</a></code> and <code><a class="POD_LINK" href="perlfunc.html#die_LIST">die</a></code> in place for your sanity checks - where it really is
+your module at fault.
+</p>
+<dt class="POD_ITEM"><a name="Use_Exporter_wisely_">Use <a class="POD_LINK" href="Exporter.html">Exporter</a> - wisely!</a>
+<dd>
+<code>h2xs</code> provides stubs for <a class="POD_LINK" href="Exporter.html">Exporter</a>, which gives you a
+standard way of exporting symbols and subroutines from your module into
+the caller's namespace. For instance, saying <code>use Net::Acme qw(&amp;frob)</code>
+would import the <code>frob</code> subroutine.
+<p class="POD_TEXT">
+The package variable <code>@EXPORT</code> will determine which symbols will get
+exported when the caller simply says <code>use Net::Acme</code> - you will hardly
+ever want to put anything in there. <code>@EXPORT_OK</code>, on the other hand,
+specifies which symbols you're willing to export. If you do want to
+export a bunch of symbols, use the <code>%EXPORT_TAGS</code> and define a standard
+export set - look at the <a class="POD_LINK" href="Exporter.html">Exporter</a> manpage for more details.
+</p>
+<dt class="POD_ITEM"><a name="Use_plain_old_docume">Use <a class="POD_LINK" href="perlpod.html">plain old documentation</a></a>
+<dd>
+The work isn't over until the paperwork is done, and you're going to
+need to put in some time writing some documentation for your module.
+<code>h2xs</code> will provide a stub for you to fill in; if you're not sure about
+the format, look at the <a class="POD_LINK" href="perlpod.html">perlpod</a> manpage for an introduction. Provide a good
+synopsis of how your module is used in code, a description, and then
+notes on the syntax and function of the individual subroutines or
+methods. Use Perl comments for developer notes and POD for end-user
+notes.
+<dt class="POD_ITEM"><a name="Write_tests">Write tests</a>
+<dd>
+You're encouraged to create self-tests for your module to ensure it's
+working as intended on the myriad platforms Perl supports; if you upload
+your module to CPAN, a host of testers will build your module and send
+you the results of the tests. Again, <code>h2xs</code> provides a test framework
+which you can extend - you should do something more than just checking
+your module will compile.
+<dt class="POD_ITEM"><a name="Write_the_README">Write the README</a>
+<dd>
+If you're uploading to CPAN, the automated gremlins will extract the
+README file and place that in your CPAN directory. It'll also appear in
+the main <code>by-module</code> and <code>by-category</code> directories if you make it onto
+the modules list. It's a good idea to put here what the module actually
+does in detail, and the user-visible changes since the last release.
+</dl>
+<h3 class="POD_HEAD2"><a name="Step_by_step_Distrib">Step-by-step: Distributing your module</a></h3>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Get_a_CPAN_user_ID">Get a CPAN user ID</a>
+<dd>
+Every developer publishing modules on CPAN needs a CPAN ID. See the
+instructions at <code>http://www.cpan.org/modules/04pause.html</code> (or
+equivalent on your nearest mirror) to find out how to do this.
+<dt class="POD_ITEM"><a name="perl_Makefile_PL_mak"><code>perl Makefile.PL; make test; make dist</code></a>
+<dd>
+Once again, <code>h2xs</code> has done all the work for you. It produces the
+standard <code>Makefile.PL</code> you'll have seen when you downloaded and
+installs modules, and this produces a Makefile with a <code>dist</code> target.
+<p class="POD_TEXT">
+Once you've ensured that your module passes its own tests - always a
+good thing to make sure - you can <code>make dist</code>, and the Makefile will
+hopefully produce you a nice tarball of your module, ready for upload.
+</p>
+<dt class="POD_ITEM"><a name="Upload_the_tarball">Upload the tarball</a>
+<dd>
+The email you got when you received your CPAN ID will tell you how to
+log in to PAUSE, the Perl Authors Upload SErver. From the menus there,
+you can upload your module to CPAN.
+<dt class="POD_ITEM"><a name="Announce_to_the_modu">Announce to the modules list</a>
+<dd>
+Once uploaded, it'll sit unnoticed in your author directory. If you want
+it connected to the rest of the CPAN, you'll need to tell the modules
+list about it. The best way to do this is to email them a line in the
+style of the modules list, like this:
+<pre class="POD_VERBATIM">
+    Net::Acme bdpO  Interface to Acme Frobnicator servers         FOOBAR
+    ^         ^^^^  ^                                             ^
+    |         ||||  Module description                            Your ID
+    |         ||||
+    |         |||\- Interface: (O)OP, (r)eferences, (h)ybrid, (f)unctions
+    |         |||
+    |         ||\-- Language: (p)ure Perl, C(+)+, (h)ybrid, (C), (o)ther
+    |         ||
+    Module    |\--- Support: (d)eveloper, (m)ailing list, (u)senet, (n)one
+    Name      |
+              \---- Maturity: (i)dea, (c)onstructions, (a)lpha, (b)eta,
+                              (R)eleased, (M)ature, (S)tandard
+</pre>
+<p class="POD_TEXT">
+plus a description of the module and why you think it should be
+included. If you hear nothing back, that means your module will
+probably appear on the modules list at the next update. Don't try
+subscribing to <code>modules@perl.org</code>; it's not another mailing list. Just
+have patience.
+</p>
+<dt class="POD_ITEM"><a name="Announce_to_clpa">Announce to clpa</a>
+<dd>
+If you have a burning desire to tell the world about your release, post
+an announcement to the moderated <code>comp.lang.perl.announce</code> newsgroup.
+<dt class="POD_ITEM"><a name="Fix_bugs_">Fix bugs!</a>
+<dd>
+Once you start accumulating users, they'll send you bug reports. If
+you're lucky, they'll even send you patches. Welcome to the joys of
+maintaining a software project...
+</dl>
+<h2 class="POD_HEAD1"><a name="AUTHOR">AUTHOR</a></h2>
+<p class="POD_TEXT">
+Simon Cozens, <code>simon@cpan.org</code>
+</p>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+the <a class="POD_LINK" href="perlmod.html">perlmod</a> manpage, the <a class="POD_LINK" href="perlmodlib.html">perlmodlib</a> manpage, the <a class="POD_LINK" href="perlmodinstall.html">perlmodinstall</a> manpage, the <a class="POD_LINK" href="h2xs.html">h2xs</a> manpage, the <a class="POD_LINK" href="strict.html">strict</a> manpage,
+the <a class="POD_LINK" href="Carp.html">Carp</a> manpage, the <a class="POD_LINK" href="Exporter.html">Exporter</a> manpage, the <a class="POD_LINK" href="perlpod.html">perlpod</a> manpage, the <a class="POD_LINK" href="Test.html">Test</a> manpage, the <a class="POD_LINK" href="ExtUtils/MakeMaker.html">ExtUtils::MakeMaker</a> manpage,
+http://www.cpan.org/
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:35:50 2001
+</body>
+</html>
+

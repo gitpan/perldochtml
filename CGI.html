@@ -1,0 +1,3398 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>CGI</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="CGI/Apache.html">Next:<br>CGI::Apache</a></td><td align="left" width="1%"><a href="Carp/Heavy.html">Previous:<br>Carp::Heavy</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">CGI</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#ABSTRACT">ABSTRACT</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#PROGRAMMING_STYLE">PROGRAMMING STYLE</a>
+<li><a href="#CALLING_CGI_PM_ROUTI">CALLING CGI.PM ROUTINES</a>
+<li><a href="#CREATING_A_NEW_QUERY">CREATING A NEW QUERY OBJECT (OBJECT-ORIENTED STYLE):</a>
+<li><a href="#CREATING_A_NEW_QUERY1">CREATING A NEW QUERY OBJECT FROM AN INPUT FILE</a>
+<li><a href="#FETCHING_A_LIST_OF_K">FETCHING A LIST OF KEYWORDS FROM THE QUERY:</a>
+<li><a href="#FETCHING_THE_NAMES_O">FETCHING THE NAMES OF ALL THE PARAMETERS PASSED TO YOUR SCRIPT:</a>
+<li><a href="#FETCHING_THE_VALUE_O">FETCHING THE VALUE OR VALUES OF A SINGLE NAMED PARAMETER:</a>
+<li><a href="#SETTING_THE_VALUE_S_">SETTING THE VALUE(S) OF A NAMED PARAMETER:</a>
+<li><a href="#APPENDING_ADDITIONAL">APPENDING ADDITIONAL VALUES TO A NAMED PARAMETER:</a>
+<li><a href="#IMPORTING_ALL_PARAME">IMPORTING ALL PARAMETERS INTO A NAMESPACE:</a>
+<li><a href="#DELETING_A_PARAMETER">DELETING A PARAMETER COMPLETELY:</a>
+<li><a href="#DELETING_ALL_PARAMET">DELETING ALL PARAMETERS:</a>
+<li><a href="#DIRECT_ACCESS_TO_THE">DIRECT ACCESS TO THE PARAMETER LIST:</a>
+<li><a href="#FETCHING_THE_PARAMET">FETCHING THE PARAMETER LIST AS A HASH:</a>
+<li><a href="#SAVING_THE_STATE_OF_">SAVING THE STATE OF THE SCRIPT TO A FILE:</a>
+<li><a href="#RETRIEVING_CGI_ERROR">RETRIEVING CGI ERRORS</a>
+<li><a href="#USING_THE_FUNCTION_O">USING THE FUNCTION-ORIENTED INTERFACE</a>
+<li><a href="#PRAGMAS">PRAGMAS</a>
+<li><a href="#SPECIAL_FORMS_FOR_IM">SPECIAL FORMS FOR IMPORTING HTML-TAG FUNCTIONS</a>
+</ul>
+<li><a href="#GENERATING_DYNAMIC_D">GENERATING DYNAMIC DOCUMENTS</a>
+<ul>
+<li><a href="#CREATING_A_STANDARD_">CREATING A STANDARD HTTP HEADER:</a>
+<li><a href="#GENERATING_A_REDIREC">GENERATING A REDIRECTION HEADER</a>
+<li><a href="#CREATING_THE_HTML_DO">CREATING THE HTML DOCUMENT HEADER</a>
+<li><a href="#ENDING_THE_HTML_DOCU">ENDING THE HTML DOCUMENT:</a>
+<li><a href="#CREATING_A_SELF_REFE">CREATING A SELF-REFERENCING URL THAT PRESERVES STATE INFORMATION:</a>
+<li><a href="#OBTAINING_THE_SCRIPT">OBTAINING THE SCRIPT'S URL</a>
+<li><a href="#MIXING_POST_AND_URL_">MIXING POST AND URL PARAMETERS</a>
+</ul>
+<li><a href="#CREATING_STANDARD_HT">CREATING STANDARD HTML ELEMENTS:</a>
+<ul>
+<li><a href="#PROVIDING_ARGUMENTS_">PROVIDING ARGUMENTS TO HTML SHORTCUTS</a>
+<li><a href="#THE_DISTRIBUTIVE_PRO">THE DISTRIBUTIVE PROPERTY OF HTML SHORTCUTS</a>
+<li><a href="#HTML_SHORTCUTS_AND_L">HTML SHORTCUTS AND LIST INTERPOLATION</a>
+<li><a href="#NON_STANDARD_HTML_SH">NON-STANDARD HTML SHORTCUTS</a>
+<li><a href="#AUTOESCAPING_HTML">AUTOESCAPING HTML</a>
+<li><a href="#PRETTY_PRINTING_HTML">PRETTY-PRINTING HTML</a>
+</ul>
+<li><a href="#CREATING_FILL_OUT_FO">CREATING FILL-OUT FORMS:</a>
+<ul>
+<li><a href="#CREATING_AN_ISINDEX_">CREATING AN ISINDEX TAG</a>
+<li><a href="#STARTING_AND_ENDING_">STARTING AND ENDING A FORM</a>
+<li><a href="#CREATING_A_TEXT_FIEL">CREATING A TEXT FIELD</a>
+<li><a href="#CREATING_A_BIG_TEXT_">CREATING A BIG TEXT FIELD</a>
+<li><a href="#CREATING_A_PASSWORD_">CREATING A PASSWORD FIELD</a>
+<li><a href="#CREATING_A_FILE_UPLO">CREATING A FILE UPLOAD FIELD</a>
+<li><a href="#CREATING_A_POPUP_MEN">CREATING A POPUP MENU</a>
+<li><a href="#CREATING_A_SCROLLING">CREATING A SCROLLING LIST</a>
+<li><a href="#CREATING_A_GROUP_OF_">CREATING A GROUP OF RELATED CHECKBOXES</a>
+<li><a href="#CREATING_A_STANDALON">CREATING A STANDALONE CHECKBOX</a>
+<li><a href="#CREATING_A_RADIO_BUT">CREATING A RADIO BUTTON GROUP</a>
+<li><a href="#CREATING_A_SUBMIT_BU">CREATING A SUBMIT BUTTON</a>
+<li><a href="#CREATING_A_RESET_BUT">CREATING A RESET BUTTON</a>
+<li><a href="#CREATING_A_DEFAULT_B">CREATING A DEFAULT BUTTON</a>
+<li><a href="#CREATING_A_HIDDEN_FI">CREATING A HIDDEN FIELD</a>
+<li><a href="#CREATING_A_CLICKABLE">CREATING A CLICKABLE IMAGE BUTTON</a>
+<li><a href="#CREATING_A_JAVASCRIP">CREATING A JAVASCRIPT ACTION BUTTON</a>
+</ul>
+<li><a href="#HTTP_COOKIES">HTTP COOKIES</a>
+<li><a href="#WORKING_WITH_FRAMES">WORKING WITH FRAMES</a>
+<li><a href="#LIMITED_SUPPORT_FOR_">LIMITED SUPPORT FOR CASCADING STYLE SHEETS</a>
+<li><a href="#DEBUGGING">DEBUGGING</a>
+<ul>
+<li><a href="#DUMPING_OUT_ALL_THE_">DUMPING OUT ALL THE NAME/VALUE PAIRS</a>
+</ul>
+<li><a href="#FETCHING_ENVIRONMENT">FETCHING ENVIRONMENT VARIABLES</a>
+<li><a href="#USING_NPH_SCRIPTS">USING NPH SCRIPTS</a>
+<li><a href="#Server_Push">Server Push</a>
+<li><a href="#Avoiding_Denial_of_S">Avoiding Denial of Service Attacks</a>
+<li><a href="#COMPATIBILITY_WITH_C">COMPATIBILITY WITH CGI-LIB.PL</a>
+<li><a href="#AUTHOR_INFORMATION">AUTHOR INFORMATION</a>
+<li><a href="#CREDITS">CREDITS</a>
+<li><a href="#A_COMPLETE_EXAMPLE_O">A COMPLETE EXAMPLE OF A SIMPLE FORM-BASED SCRIPT</a>
+<li><a href="#BUGS">BUGS</a>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+CGI - Simple Common Gateway Interface Class
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+  # CGI script that creates a fill-out form
+  # and echoes back its values.
+
+  use CGI qw/:standard/;
+  print header,
+        start_html('A Simple Example'),
+        h1('A Simple Example'),
+        start_form,
+        &quot;What's your name? &quot;,textfield('name'),p,
+        &quot;What's the combination?&quot;, p,
+        checkbox_group(-name=&gt;'words',
+		       -values=&gt;['eenie','meenie','minie','moe'],
+		       -defaults=&gt;['eenie','minie']), p,
+        &quot;What's your favorite color? &quot;,
+        popup_menu(-name=&gt;'color',
+	           -values=&gt;['red','green','blue','chartreuse']),p,
+        submit,
+        end_form,
+        hr;
+
+   if (param()) {
+       print &quot;Your name is&quot;,em(param('name')),p,
+	     &quot;The keywords are: &quot;,em(join(&quot;, &quot;,param('words'))),p,
+	     &quot;Your favorite color is &quot;,em(param('color')),
+	     hr;
+   }
+</pre>
+<h2 class="POD_HEAD1"><a name="ABSTRACT">ABSTRACT</a></h2>
+<p class="POD_TEXT">
+This perl library uses perl5 objects to make it easy to create Web
+fill-out forms and parse their contents.  This package defines CGI
+objects, entities that contain the values of the current query string
+and other state variables.  Using a CGI object's methods, you can
+examine keywords and parameters passed to your script, and create
+forms whose initial values are taken from the current query (thereby
+preserving state information).  The module provides shortcut functions
+that produce boilerplate HTML, reducing typing and coding errors. It
+also provides functionality for some of the more advanced features of
+CGI scripting, including support for file uploads, cookies, cascading
+style sheets, server push, and frames.
+</p>
+<p class="POD_TEXT">
+CGI.pm also provides a simple function-oriented programming style for
+those who don't need its object-oriented features.
+</p>
+<pre class="POD_TEXT">
+The current version of CGI.pm is available at
+
+  http://www.genome.wi.mit.edu/ftp/pub/software/WWW/cgi_docs.html
+  ftp://ftp-genome.wi.mit.edu/pub/software/WWW/
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<h3 class="POD_HEAD2"><a name="PROGRAMMING_STYLE">PROGRAMMING STYLE</a></h3>
+<p class="POD_TEXT">
+There are two styles of programming with CGI.pm, an object-oriented
+style and a function-oriented style.  In the object-oriented style you
+create one or more CGI objects and then use object methods to create
+the various elements of the page.  Each CGI object starts out with the
+list of named parameters that were passed to your CGI script by the
+server.  You can modify the objects, save them to a file or database
+and recreate them.  Because each object corresponds to the &quot;state&quot; of
+the CGI script, and because each object's parameter list is
+independent of the others, this allows you to save the state of the
+script and restore it later.
+</p>
+<pre class="POD_TEXT">
+For example, using the object oriented style, here is how you create
+a simple &quot;Hello World&quot; HTML page:
+
+   #!/usr/local/bin/perl -w
+   use CGI;                             # load CGI routines
+   $q = new CGI;                        # create new CGI object
+   print $q-&gt;header,                    # create the HTTP header
+         $q-&gt;start_html('hello world'), # start the HTML
+         $q-&gt;h1('hello world'),         # level 1 header
+         $q-&gt;end_html;                  # end the HTML
+</pre>
+<pre class="POD_TEXT">
+In the function-oriented style, there is one default CGI object that
+you rarely deal with directly.  Instead you just call functions to
+retrieve CGI parameters, create HTML tags, manage cookies, and so
+on.  This provides you with a cleaner programming interface, but
+limits you to using one CGI object at a time.  The following example
+prints the same page, but uses the function-oriented interface.
+The main differences are that we now need to import a set of functions
+into our name space (usually the &quot;standard&quot; functions), and we don't
+need to create the CGI object.
+
+   #!/usr/local/bin/perl
+   use CGI qw/:standard/;           # load standard CGI routines
+   print header,                    # create the HTTP header
+         start_html('hello world'), # start the HTML
+         h1('hello world'),         # level 1 header
+         end_html;                  # end the HTML
+</pre>
+<p class="POD_TEXT">
+The examples in this document mainly use the object-oriented style.
+See HOW TO IMPORT FUNCTIONS for important information on
+function-oriented programming in CGI.pm
+</p>
+<h3 class="POD_HEAD2"><a name="CALLING_CGI_PM_ROUTI">CALLING CGI.PM ROUTINES</a></h3>
+<pre class="POD_TEXT">
+Most CGI.pm routines accept several arguments, sometimes as many as 20
+optional ones!  To simplify this interface, all routines use a named
+argument calling style that looks like this:
+
+   print $q-&gt;header(-type=&gt;'image/gif',-expires=&gt;'+3d');
+</pre>
+<p class="POD_TEXT">
+Each argument name is preceded by a dash.  Neither case nor order
+matters in the argument list.  -type, -Type, and -TYPE are all
+acceptable.  In fact, only the first argument needs to begin with a
+dash.  If a dash is present in the first argument, CGI.pm assumes
+dashes for the subsequent ones.
+</p>
+<pre class="POD_TEXT">
+Several routines are commonly called with just one argument.  In the
+case of these routines you can provide the single argument without an
+argument name.  header() happens to be one of these routines.  In this
+case, the single argument is the document type.
+
+   print $q-&gt;header('text/html');
+</pre>
+<p class="POD_TEXT">
+Other such routines are documented below.
+</p>
+<pre class="POD_TEXT">
+Sometimes named arguments expect a scalar, sometimes a reference to an
+array, and sometimes a reference to a hash.  Often, you can pass any
+type of argument and the routine will do whatever is most appropriate.
+For example, the param() routine is used to set a CGI parameter to a
+single or a multi-valued value.  The two cases are shown below:
+
+   $q-&gt;param(-name=&gt;'veggie',-value=&gt;'tomato');
+   $q-&gt;param(-name=&gt;'veggie',-value=&gt;['tomato','tomahto','potato','potahto']);
+</pre>
+<pre class="POD_TEXT">
+A large number of routines in CGI.pm actually aren't specifically
+defined in the module, but are generated automatically as needed.
+These are the &quot;HTML shortcuts,&quot; routines that generate HTML tags for
+use in dynamically-generated pages.  HTML tags have both attributes
+(the attribute=&quot;value&quot; pairs within the tag itself) and contents (the
+part between the opening and closing pairs.)  To distinguish between
+attributes and contents, CGI.pm uses the convention of passing HTML
+attributes as a hash reference as the first argument, and the
+contents, if any, as any subsequent arguments.  It works out like
+this:
+
+   Code                           Generated HTML
+   ----                           --------------
+   h1()                           &lt;H1&gt;
+   h1('some','contents');         &lt;H1&gt;some contents&lt;/H1&gt;
+   h1({-align=&gt;left});            &lt;H1 ALIGN=&quot;LEFT&quot;&gt;
+   h1({-align=&gt;left},'contents'); &lt;H1 ALIGN=&quot;LEFT&quot;&gt;contents&lt;/H1&gt;
+</pre>
+<p class="POD_TEXT">
+HTML tags are described in more detail later.
+</p>
+<pre class="POD_TEXT">
+Many newcomers to CGI.pm are puzzled by the difference between the
+calling conventions for the HTML shortcuts, which require curly braces
+around the HTML tag attributes, and the calling conventions for other
+routines, which manage to generate attributes without the curly
+brackets.  Don't be confused.  As a convenience the curly braces are
+optional in all but the HTML shortcuts.  If you like, you can use
+curly braces when calling any routine that takes named arguments.  For
+example:
+
+   print $q-&gt;header( {-type=&gt;'image/gif',-expires=&gt;'+3d'} );
+</pre>
+<p class="POD_TEXT">
+If you use the <b>-w</b> switch, you will be warned that some CGI.pm argument
+names conflict with built-in Perl functions.  The most frequent of
+these is the -values argument, used to create multi-valued menus,
+radio button clusters and the like.  To get around this warning, you
+have several choices:
+</p>
+<ol class="POD_LIST">
+<li class="POD_ITEM"><a name="_"></a>
+
+Use another name for the argument, if one is available. 
+For example, -value is an alias for -values.
+<li class="POD_ITEM"><a name="_1"></a>
+
+Change the capitalization, e.g. -Values
+<li class="POD_ITEM"><a name="_2"></a>
+
+Put quotes around the argument name, e.g. '-values'
+</ol>
+<pre class="POD_TEXT">
+Many routines will do something useful with a named argument that it
+doesn't recognize.  For example, you can produce non-standard HTTP
+header fields by providing them as named arguments:
+
+  print $q-&gt;header(-type  =&gt;  'text/html',
+                   -cost  =&gt;  'Three smackers',
+                   -annoyance_level =&gt; 'high',
+                   -complaints_to   =&gt; 'bit bucket');
+</pre>
+<pre class="POD_TEXT">
+This will produce the following nonstandard HTTP header:
+
+   HTTP/1.0 200 OK
+   Cost: Three smackers
+   Annoyance-level: high
+   Complaints-to: bit bucket
+   Content-type: text/html
+</pre>
+<p class="POD_TEXT">
+Notice the way that underscores are translated automatically into
+hyphens.  HTML-generating routines perform a different type of
+translation.
+</p>
+<p class="POD_TEXT">
+This feature allows you to keep up with the rapidly changing HTTP and
+HTML &quot;standards&quot;.
+</p>
+<h3 class="POD_HEAD2"><a name="CREATING_A_NEW_QUERY">CREATING A NEW QUERY OBJECT (OBJECT-ORIENTED STYLE):</a></h3>
+<pre class="POD_VERBATIM">
+     $query = new CGI;
+</pre>
+<p class="POD_TEXT">
+This will parse the input (from both POST and GET methods) and store
+it into a perl5 object called $query.
+</p>
+<h3 class="POD_HEAD2"><a name="CREATING_A_NEW_QUERY1">CREATING A NEW QUERY OBJECT FROM AN INPUT FILE</a></h3>
+<pre class="POD_VERBATIM">
+     $query = new CGI(INPUTFILE);
+</pre>
+<p class="POD_TEXT">
+If you provide a file handle to the new() method, it will read
+parameters from the file (or STDIN, or whatever).  The file can be in
+any of the forms describing below under debugging (i.e. a series of
+newline delimited TAG=VALUE pairs will work).  Conveniently, this type
+of file is created by the save() method (see below).  Multiple records
+can be saved and restored.
+</p>
+<pre class="POD_TEXT">
+Perl purists will be pleased to know that this syntax accepts
+references to file handles, or even references to filehandle globs,
+which is the &quot;official&quot; way to pass a filehandle:
+
+    $query = new CGI(\*STDIN);
+</pre>
+<p class="POD_TEXT">
+You can also initialize the CGI object with a FileHandle or IO::File
+object.
+</p>
+<pre class="POD_TEXT">
+If you are using the function-oriented interface and want to
+initialize CGI state from a file handle, the way to do this is with
+<b>restore_parameters()</b>.  This will (re)initialize the
+default CGI object from the indicated file handle.
+
+    open (IN,&quot;test.in&quot;) || die;
+    restore_parameters(IN);
+    close IN;
+</pre>
+<pre class="POD_TEXT">
+You can also initialize the query object from an associative array
+reference:
+
+    $query = new CGI( {'dinosaur'=&gt;'barney',
+		       'song'=&gt;'I love you',
+		       'friends'=&gt;[qw/Jessica George Nancy/]}
+		    );
+</pre>
+<pre class="POD_TEXT">
+or from a properly formatted, URL-escaped query string:
+
+    $query = new CGI('dinosaur=barney&amp;color=purple');
+</pre>
+<pre class="POD_TEXT">
+or from a previously existing CGI object (currently this clones the
+parameter list, but none of the other object-specific fields, such as
+autoescaping):
+
+    $old_query = new CGI;
+    $new_query = new CGI($old_query);
+</pre>
+<pre class="POD_TEXT">
+To create an empty query, initialize it from an empty string or hash:
+
+   $empty_query = new CGI(&quot;&quot;);
+
+       -or-
+
+   $empty_query = new CGI({});
+</pre>
+<h3 class="POD_HEAD2"><a name="FETCHING_A_LIST_OF_K">FETCHING A LIST OF KEYWORDS FROM THE QUERY:</a></h3>
+<pre class="POD_VERBATIM">
+     @keywords = $query-&gt;keywords
+</pre>
+<p class="POD_TEXT">
+If the script was invoked as the result of an &lt;ISINDEX&gt; search, the
+parsed keywords can be obtained as an array using the keywords() method.
+</p>
+<h3 class="POD_HEAD2"><a name="FETCHING_THE_NAMES_O">FETCHING THE NAMES OF ALL THE PARAMETERS PASSED TO YOUR SCRIPT:</a></h3>
+<pre class="POD_VERBATIM">
+     @names = $query-&gt;param
+</pre>
+<p class="POD_TEXT">
+If the script was invoked with a parameter list
+(e.g. &quot;name1=value1&amp;name2=value2&amp;name3=value3&quot;), the param() method
+will return the parameter names as a list.  If the script was invoked
+as an &lt;ISINDEX&gt; script and contains a string without ampersands
+(e.g. &quot;value1+value2+value3&quot;) , there will be a single parameter named
+&quot;keywords&quot; containing the &quot;+&quot;-delimited keywords.
+</p>
+<p class="POD_TEXT">
+NOTE: As of version 1.5, the array of parameter names returned will
+be in the same order as they were submitted by the browser.
+Usually this order is the same as the order in which the 
+parameters are defined in the form (however, this isn't part
+of the spec, and so isn't guaranteed).
+</p>
+<h3 class="POD_HEAD2"><a name="FETCHING_THE_VALUE_O">FETCHING THE VALUE OR VALUES OF A SINGLE NAMED PARAMETER:</a></h3>
+<pre class="POD_VERBATIM">
+    @values = $query-&gt;param('foo');
+
+	      -or-
+
+    $value = $query-&gt;param('foo');
+</pre>
+<p class="POD_TEXT">
+Pass the param() method a single argument to fetch the value of the
+named parameter. If the parameter is multivalued (e.g. from multiple
+selections in a scrolling list), you can ask to receive an array.  Otherwise
+the method will return a single value.
+</p>
+<p class="POD_TEXT">
+If a value is not given in the query string, as in the queries
+&quot;name1=&amp;name2=&quot; or &quot;name1&amp;name2&quot;, it will be returned as an empty
+string.  This feature is new in 2.63.
+</p>
+<h3 class="POD_HEAD2"><a name="SETTING_THE_VALUE_S_">SETTING THE VALUE(S) OF A NAMED PARAMETER:</a></h3>
+<pre class="POD_VERBATIM">
+    $query-&gt;param('foo','an','array','of','values');
+</pre>
+<p class="POD_TEXT">
+This sets the value for the named parameter 'foo' to an array of
+values.  This is one way to change the value of a field AFTER
+the script has been invoked once before.  (Another way is with
+the -override parameter accepted by all methods that generate
+form elements.)
+</p>
+<pre class="POD_TEXT">
+param() also recognizes a named parameter style of calling described
+in more detail later:
+
+    $query-&gt;param(-name=&gt;'foo',-values=&gt;['an','array','of','values']);
+
+			      -or-
+
+    $query-&gt;param(-name=&gt;'foo',-value=&gt;'the value');
+</pre>
+<h3 class="POD_HEAD2"><a name="APPENDING_ADDITIONAL">APPENDING ADDITIONAL VALUES TO A NAMED PARAMETER:</a></h3>
+<pre class="POD_VERBATIM">
+   $query-&gt;append(-name=&gt;'foo',-values=&gt;['yet','more','values']);
+</pre>
+<p class="POD_TEXT">
+This adds a value or list of values to the named parameter.  The
+values are appended to the end of the parameter if it already exists.
+Otherwise the parameter is created.  Note that this method only
+recognizes the named argument calling syntax.
+</p>
+<h3 class="POD_HEAD2"><a name="IMPORTING_ALL_PARAME">IMPORTING ALL PARAMETERS INTO A NAMESPACE:</a></h3>
+<pre class="POD_VERBATIM">
+   $query-&gt;import_names('R');
+</pre>
+<p class="POD_TEXT">
+This creates a series of variables in the 'R' namespace.  For example,
+$R::foo, @R:foo.  For keyword lists, a variable @R::keywords will appear.
+If no namespace is given, this method will assume 'Q'.
+WARNING:  don't import anything into 'main'; this is a major security
+risk!!!!
+</p>
+<p class="POD_TEXT">
+In older versions, this method was called <b>import()</b>.  As of version 2.20, 
+this name has been removed completely to avoid conflict with the built-in
+Perl module <b>import</b> operator.
+</p>
+<h3 class="POD_HEAD2"><a name="DELETING_A_PARAMETER">DELETING A PARAMETER COMPLETELY:</a></h3>
+<pre class="POD_VERBATIM">
+    $query-&gt;delete('foo');
+</pre>
+<p class="POD_TEXT">
+This completely clears a parameter.  It sometimes useful for
+resetting parameters that you don't want passed down between
+script invocations.
+</p>
+<p class="POD_TEXT">
+If you are using the function call interface, use &quot;Delete()&quot; instead
+to avoid conflicts with Perl's built-in delete operator.
+</p>
+<h3 class="POD_HEAD2"><a name="DELETING_ALL_PARAMET">DELETING ALL PARAMETERS:</a></h3>
+<pre class="POD_VERBATIM">
+   $query-&gt;delete_all();
+</pre>
+<p class="POD_TEXT">
+This clears the CGI object completely.  It might be useful to ensure
+that all the defaults are taken when you create a fill-out form.
+</p>
+<p class="POD_TEXT">
+Use Delete_all() instead if you are using the function call interface.
+</p>
+<h3 class="POD_HEAD2"><a name="DIRECT_ACCESS_TO_THE">DIRECT ACCESS TO THE PARAMETER LIST:</a></h3>
+<pre class="POD_VERBATIM">
+   $q-&gt;param_fetch('address')-&gt;[1] = '1313 Mockingbird Lane';
+   unshift @{$q-&gt;param_fetch(-name=&gt;'address')},'George Munster';
+</pre>
+<p class="POD_TEXT">
+If you need access to the parameter list in a way that isn't covered
+by the methods above, you can obtain a direct reference to it by
+calling the <b>param_fetch()</b> method with the name of the .  This
+will return an array reference to the named parameters, which you then
+can manipulate in any way you like.
+</p>
+<p class="POD_TEXT">
+You can also use a named argument style using the <b>-name</b> argument.
+</p>
+<h3 class="POD_HEAD2"><a name="FETCHING_THE_PARAMET">FETCHING THE PARAMETER LIST AS A HASH:</a></h3>
+<pre class="POD_VERBATIM">
+    $params = $q-&gt;Vars;
+    print $params-&gt;{'address'};
+    @foo = split(&quot;\0&quot;,$params-&gt;{'foo'});
+    %params = $q-&gt;Vars;
+
+    use CGI ':cgi-lib';
+    $params = Vars;
+</pre>
+<p class="POD_TEXT">
+Many people want to fetch the entire parameter list as a hash in which
+the keys are the names of the CGI parameters, and the values are the
+parameters' values.  The Vars() method does this.  Called in a scalar
+context, it returns the parameter list as a tied hash reference.
+Changing a key changes the value of the parameter in the underlying
+CGI parameter list.  Called in a list context, it returns the
+parameter list as an ordinary hash.  This allows you to read the
+contents of the parameter list, but not to change it.
+</p>
+<p class="POD_TEXT">
+When using this, the thing you must watch out for are multivalued CGI
+parameters.  Because a hash cannot distinguish between scalar and
+list context, multivalued parameters will be returned as a packed
+string, separated by the &quot;\0&quot; (null) character.  You must split this
+packed string in order to get at the individual values.  This is the
+convention introduced long ago by Steve Brenner in his cgi-lib.pl
+module for Perl version 4.
+</p>
+<p class="POD_TEXT">
+If you wish to use Vars() as a function, import the <i>:cgi-lib</i> set of
+function calls (also see the section on CGI-LIB compatibility).
+</p>
+<h3 class="POD_HEAD2"><a name="SAVING_THE_STATE_OF_">SAVING THE STATE OF THE SCRIPT TO A FILE:</a></h3>
+<pre class="POD_VERBATIM">
+    $query-&gt;save(FILEHANDLE)
+</pre>
+<p class="POD_TEXT">
+This will write the current state of the form to the provided
+filehandle.  You can read it back in by providing a filehandle
+to the new() method.  Note that the filehandle can be a file, a pipe,
+or whatever!
+</p>
+<pre class="POD_TEXT">
+The format of the saved file is:
+
+	NAME1=VALUE1
+	NAME1=VALUE1'
+	NAME2=VALUE2
+	NAME3=VALUE3
+	=
+</pre>
+<pre class="POD_TEXT">
+Both name and value are URL escaped.  Multi-valued CGI parameters are
+represented as repeated names.  A session record is delimited by a
+single = symbol.  You can write out multiple records and read them
+back in with several calls to <b>new</b>.  You can do this across several
+sessions by opening the file in append mode, allowing you to create
+primitive guest books, or to keep a history of users' queries.  Here's
+a short example of creating multiple session records:
+
+   use CGI;
+
+   open (OUT,&quot;&gt;&gt;test.out&quot;) || die;
+   $records = 5;
+   foreach (0..$records) {
+       my $q = new CGI;
+       $q-&gt;param(-name=&gt;'counter',-value=&gt;$_);
+       $q-&gt;save(OUT);
+   }
+   close OUT;
+
+   # reopen for reading
+   open (IN,&quot;test.out&quot;) || die;
+   while (!eof(IN)) {
+       my $q = new CGI(IN);
+       print $q-&gt;param('counter'),&quot;\n&quot;;
+   }
+</pre>
+<pre class="POD_TEXT">
+The file format used for save/restore is identical to that used by the
+Whitehead Genome Center's data exchange format &quot;Boulderio&quot;, and can be
+manipulated and even databased using Boulderio utilities.  See
+
+  http://stein.cshl.org/boulder/
+</pre>
+<p class="POD_TEXT">
+for further details.
+</p>
+<p class="POD_TEXT">
+If you wish to use this method from the function-oriented (non-OO)
+interface, the exported name for this method is <b>save_parameters()</b>.
+</p>
+<h3 class="POD_HEAD2"><a name="RETRIEVING_CGI_ERROR">RETRIEVING CGI ERRORS</a></h3>
+<pre class="POD_TEXT">
+Errors can occur while processing user input, particularly when
+processing uploaded files.  When these errors occur, CGI will stop
+processing and return an empty parameter list.  You can test for
+the existence and nature of errors using the <i>cgi_error()</i> function.
+The error messages are formatted as HTTP status codes. You can either
+incorporate the error text into an HTML page, or use it as the value
+of the HTTP status:
+
+    my $error = $q-&gt;cgi_error;
+    if ($error) {
+	print $q-&gt;header(-status=&gt;$error),
+	      $q-&gt;start_html('Problems'),
+              $q-&gt;h2('Request not processed'),
+	      $q-&gt;strong($error);
+        exit 0;
+    }
+</pre>
+<p class="POD_TEXT">
+When using the function-oriented interface (see the next section),
+errors may only occur the first time you call <i>param()</i>. Be ready
+for this!
+</p>
+<h3 class="POD_HEAD2"><a name="USING_THE_FUNCTION_O">USING THE FUNCTION-ORIENTED INTERFACE</a></h3>
+<pre class="POD_TEXT">
+To use the function-oriented interface, you must specify which CGI.pm
+routines or sets of routines to import into your script's namespace.
+There is a small overhead associated with this importation, but it
+isn't much.
+
+   use CGI &lt;list of methods&gt;;
+</pre>
+<pre class="POD_TEXT">
+The listed methods will be imported into the current package; you can
+call them directly without creating a CGI object first.  This example
+shows how to import the <b>param()</b> and <b>header()</b>
+methods, and then use them directly:
+
+   use CGI 'param','header';
+   print header('text/plain');
+   $zipcode = param('zipcode');
+</pre>
+<p class="POD_TEXT">
+More frequently, you'll import common sets of functions by referring
+to the groups by name.  All function sets are preceded with a &quot;:&quot;
+character as in &quot;:html3&quot; (for tags defined in the HTML 3 standard).
+</p>
+<p class="POD_TEXT">
+Here is a list of the function sets you can import:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_cgi"><b>:cgi</b></a>
+<dd>
+Import all CGI-handling methods, such as <b>param()</b>, <b>path_info()</b>
+and the like.
+<dt class="POD_ITEM"><a name="_form"><b>:form</b></a>
+<dd>
+Import all fill-out form generating methods, such as <b>textfield()</b>.
+<dt class="POD_ITEM"><a name="_html2"><b>:html2</b></a>
+<dd>
+Import all methods that generate HTML 2.0 standard elements.
+<dt class="POD_ITEM"><a name="_html3"><b>:html3</b></a>
+<dd>
+Import all methods that generate HTML 3.0 proposed elements (such as
+&lt;table&gt;, &lt;super&gt; and &lt;sub&gt;).
+<dt class="POD_ITEM"><a name="_netscape"><b>:netscape</b></a>
+<dd>
+Import all methods that generate Netscape-specific HTML extensions.
+<dt class="POD_ITEM"><a name="_html"><b>:html</b></a>
+<dd>
+Import all HTML-generating shortcuts (i.e. 'html2' + 'html3' +
+'netscape')...
+<dt class="POD_ITEM"><a name="_standard"><b>:standard</b></a>
+<dd>
+Import &quot;standard&quot; features, 'html2', 'html3', 'form' and 'cgi'.
+<dt class="POD_ITEM"><a name="_all"><b>:all</b></a>
+<dd>
+Import all the available methods.  For the full list, see the CGI.pm
+code, where the variable %EXPORT_TAGS is defined.
+</dl>
+<pre class="POD_TEXT">
+If you import a function name that is not part of CGI.pm, the module
+will treat it as a new HTML tag and generate the appropriate
+subroutine.  You can then use it like any other HTML tag.  This is to
+provide for the rapidly-evolving HTML &quot;standard.&quot;  For example, say
+Microsoft comes out with a new tag called &lt;GRADIENT&gt; (which causes the
+user's desktop to be flooded with a rotating gradient fill until his
+machine reboots).  You don't need to wait for a new version of CGI.pm
+to start using it immediately:
+
+   use CGI qw/:standard :html3 gradient/;
+   print gradient({-start=&gt;'red',-end=&gt;'blue'});
+</pre>
+<p class="POD_TEXT">
+Note that in the interests of execution speed CGI.pm does <b>not</b> use
+the standard the <a class="POD_LINK" href="Exporter.html">Exporter</a> manpage syntax for specifying load symbols.  This may
+change in the future.
+</p>
+<pre class="POD_TEXT">
+If you import any of the state-maintaining CGI or form-generating
+methods, a default CGI object will be created and initialized
+automatically the first time you use any of the methods that require
+one to be present.  This includes <b>param()</b>, <b>textfield()</b>,
+<b>submit()</b> and the like.  (If you need direct access to the CGI
+object, you can find it in the global variable <b>$CGI::Q</b>).  By
+importing CGI.pm methods, you can create visually elegant scripts:
+
+   use CGI qw/:standard/;
+   print 
+       header,
+       start_html('Simple Script'),
+       h1('Simple Script'),
+       start_form,
+       &quot;What's your name? &quot;,textfield('name'),p,
+       &quot;What's the combination?&quot;,
+       checkbox_group(-name=&gt;'words',
+		      -values=&gt;['eenie','meenie','minie','moe'],
+		      -defaults=&gt;['eenie','moe']),p,
+       &quot;What's your favorite color?&quot;,
+       popup_menu(-name=&gt;'color',
+		  -values=&gt;['red','green','blue','chartreuse']),p,
+       submit,
+       end_form,
+       hr,&quot;\n&quot;;
+
+    if (param) {
+       print 
+	   &quot;Your name is &quot;,em(param('name')),p,
+	   &quot;The keywords are: &quot;,em(join(&quot;, &quot;,param('words'))),p,
+	   &quot;Your favorite color is &quot;,em(param('color')),&quot;.\n&quot;;
+    }
+    print end_html;
+</pre>
+<h3 class="POD_HEAD2"><a name="PRAGMAS">PRAGMAS</a></h3>
+<pre class="POD_TEXT">
+In addition to the function sets, there are a number of pragmas that
+you can import.  Pragmas, which are always preceded by a hyphen,
+change the way that CGI.pm functions in various ways.  Pragmas,
+function sets, and individual functions can all be imported in the
+same use() line.  For example, the following use statement imports the
+standard set of functions and enables debugging mode (pragma
+-debug):
+
+   use CGI qw/:standard -debug/;
+</pre>
+<p class="POD_TEXT">
+The current list of pragmas is as follows:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_any">-any</a>
+<dd>
+When you <i>use CGI -any</i>, then any method that the query object
+doesn't recognize will be interpreted as a new HTML tag.  This allows
+you to support the next <i>ad hoc</i> Netscape or Microsoft HTML
+extension.  This lets you go wild with new and unsupported tags:
+<pre class="POD_VERBATIM">
+   use CGI qw(-any);
+   $q=new CGI;
+   print $q-&gt;gradient({speed=&gt;'fast',start=&gt;'red',end=&gt;'blue'});
+</pre>
+<p class="POD_TEXT">
+Since using &lt;cite&gt;any&lt;/cite&gt; causes any mistyped method name
+to be interpreted as an HTML tag, use it with care or not at
+all.
+</p>
+<dt class="POD_ITEM"><a name="_compile">-compile</a>
+<dd>
+This causes the indicated autoloaded methods to be compiled up front,
+rather than deferred to later.  This is useful for scripts that run
+for an extended period of time under FastCGI or mod_perl, and for
+those destined to be crunched by Malcom Beattie's Perl compiler.  Use
+it in conjunction with the methods or method families you plan to use.
+<pre class="POD_VERBATIM">
+   use CGI qw(-compile :standard :html3);
+</pre>
+<pre class="POD_TEXT">
+or even
+
+   use CGI qw(-compile :all);
+</pre>
+<p class="POD_TEXT">
+Note that using the -compile pragma in this way will always have
+the effect of importing the compiled functions into the current
+namespace.  If you want to compile without importing use the
+compile() method instead (see below).
+</p>
+<dt class="POD_ITEM"><a name="_nosticky">-nosticky</a>
+<dd>
+This makes CGI.pm not generating the hidden fields .submit
+and .cgifields. It is very useful if you don't want to
+have the hidden fields appear in the querystring in a GET method.
+For example, a search script generated this way will have
+a very nice url with search parameters for bookmarking.
+<dt class="POD_ITEM"><a name="_no_xhtml">-no_xhtml</a>
+<dd>
+By default, CGI.pm versions 2.69 and higher emit XHTML
+(http://www.w3.org/TR/xhtml1/).  The -no_xhtml pragma disables this
+feature.  Thanks to Michalis Kabrianis &lt;kabrianis@hellug.gr&gt; for this
+feature.
+<dt class="POD_ITEM"><a name="_nph">-nph</a>
+<dd>
+This makes CGI.pm produce a header appropriate for an NPH (no
+parsed header) script.  You may need to do other things as well
+to tell the server that the script is NPH.  See the discussion
+of NPH scripts below.
+<dt class="POD_ITEM"><a name="_newstyle_urls">-newstyle_urls</a>
+<dd>
+Separate the name=value pairs in CGI parameter query strings with
+semicolons rather than ampersands.  For example:
+<pre class="POD_VERBATIM">
+   ?name=fred;age=24;favorite_color=3
+</pre>
+<p class="POD_TEXT">
+Semicolon-delimited query strings are always accepted, but will not be
+emitted by self_url() and query_string() unless the -newstyle_urls
+pragma is specified.
+</p>
+<p class="POD_TEXT">
+This became the default in version 2.64.
+</p>
+<dt class="POD_ITEM"><a name="_oldstyle_urls">-oldstyle_urls</a>
+<dd>
+Separate the name=value pairs in CGI parameter query strings with
+ampersands rather than semicolons.  This is no longer the default.
+<dt class="POD_ITEM"><a name="_autoload">-autoload</a>
+<dd>
+This overrides the autoloader so that any function in your program
+that is not recognized is referred to CGI.pm for possible evaluation.
+This allows you to use all the CGI.pm functions without adding them to
+your symbol table, which is of concern for mod_perl users who are
+worried about memory consumption.  <i>Warning:</i> when
+<i>-autoload</i> is in effect, you cannot use &quot;poetry mode&quot;
+(functions without the parenthesis).  Use <i>hr()</i> rather
+than <i>hr</i>, or add something like <i>use subs qw/hr p header/</i> 
+to the top of your script.
+<dt class="POD_ITEM"><a name="_no_debug">-no_debug</a>
+<dd>
+This turns off the command-line processing features.  If you want to
+run a CGI.pm script from the command line to produce HTML, and you
+don't want it to read CGI parameters from the command line or STDIN,
+then use this pragma:
+<pre class="POD_VERBATIM">
+   use CGI qw(-no_debug :standard);
+</pre>
+<dt class="POD_ITEM"><a name="_debug">-debug</a>
+<dd>
+This turns on full debugging.  In addition to reading CGI arguments
+from the command-line processing, CGI.pm will pause and try to read
+arguments from STDIN, producing the message &quot;(offline mode: enter
+name=value pairs on standard input)&quot; features.
+<p class="POD_TEXT">
+See the section on debugging for more details.
+</p>
+<dt class="POD_ITEM"><a name="_private_tempfiles">-private_tempfiles</a>
+<dd>
+CGI.pm can process uploaded file. Ordinarily it spools the uploaded
+file to a temporary directory, then deletes the file when done.
+However, this opens the risk of eavesdropping as described in the file
+upload section.  Another CGI script author could peek at this data
+during the upload, even if it is confidential information. On Unix
+systems, the -private_tempfiles pragma will cause the temporary file
+to be unlinked as soon as it is opened and before any data is written
+into it, reducing, but not eliminating the risk of eavesdropping
+(there is still a potential race condition).  To make life harder for
+the attacker, the program chooses tempfile names by calculating a 32
+bit checksum of the incoming HTTP headers.
+<p class="POD_TEXT">
+To ensure that the temporary file cannot be read by other CGI scripts,
+use suEXEC or a CGI wrapper program to run your script.  The temporary
+file is created with mode 0600 (neither world nor group readable).
+</p>
+<pre class="POD_TEXT">
+The temporary directory is selected using the following algorithm:
+
+    1. if the current user (e.g. &quot;nobody&quot;) has a directory named
+    &quot;tmp&quot; in its home directory, use that (Unix systems only).
+
+    2. if the environment variable TMPDIR exists, use the location
+    indicated.
+
+    3. Otherwise try the locations /usr/tmp, /var/tmp, C:\temp,
+    /tmp, /temp, ::Temporary Items, and \WWW_ROOT.
+</pre>
+<p class="POD_TEXT">
+Each of these locations is checked that it is a directory and is
+writable.  If not, the algorithm tries the next choice.
+</p>
+</dl>
+<h3 class="POD_HEAD2"><a name="SPECIAL_FORMS_FOR_IM">SPECIAL FORMS FOR IMPORTING HTML-TAG FUNCTIONS</a></h3>
+<pre class="POD_TEXT">
+Many of the methods generate HTML tags.  As described below, tag
+functions automatically generate both the opening and closing tags.
+For example:
+
+  print h1('Level 1 Header');
+</pre>
+<pre class="POD_TEXT">
+produces
+
+  &lt;H1&gt;Level 1 Header&lt;/H1&gt;
+</pre>
+<pre class="POD_TEXT">
+There will be some times when you want to produce the start and end
+tags yourself.  In this case, you can use the form start_<i>tag_name</i>
+and end_<i>tag_name</i>, as in:
+
+  print start_h1,'Level 1 Header',end_h1;
+</pre>
+<p class="POD_TEXT">
+With a few exceptions (described below), start_<i>tag_name</i> and
+end_<i>tag_name</i> functions are not generated automatically when you
+<i>use CGI</i>.  However, you can specify the tags you want to generate
+<i>start/end</i> functions for by putting an asterisk in front of their
+name, or, alternatively, requesting either &quot;start_<i>tag_name</i>&quot; or
+&quot;end_<i>tag_name</i>&quot; in the import list.
+</p>
+<pre class="POD_TEXT">
+Example:
+
+  use CGI qw/:standard *table start_ul/;
+</pre>
+<p class="POD_TEXT">
+In this example, the following functions are generated in addition to
+the standard ones:
+</p>
+<ol class="POD_LIST">
+<li class="POD_ITEM"><a name="start_table_">start_table() (generates a &lt;TABLE&gt; tag)</a>
+<li class="POD_ITEM"><a name="end_table_">end_table() (generates a &lt;/TABLE&gt; tag)</a>
+<li class="POD_ITEM"><a name="start_ul_">start_ul() (generates a &lt;UL&gt; tag)</a>
+<li class="POD_ITEM"><a name="end_ul_">end_ul() (generates a &lt;/UL&gt; tag)</a>
+</ol>
+<h2 class="POD_HEAD1"><a name="GENERATING_DYNAMIC_D">GENERATING DYNAMIC DOCUMENTS</a></h2>
+
+Most of CGI.pm's functions deal with creating documents on the fly.
+Generally you will produce the HTTP header first, followed by the
+document itself.  CGI.pm provides functions for generating HTTP
+headers of various types as well as for generating HTML.  For creating
+GIF images, see the GD.pm module.
+<p class="POD_TEXT">
+Each of these functions produces a fragment of HTML or HTTP which you
+can print out directly so that it displays in the browser window,
+append to a string, or save to a file for later use.
+</p>
+<h3 class="POD_HEAD2"><a name="CREATING_A_STANDARD_">CREATING A STANDARD HTTP HEADER:</a></h3>
+<pre class="POD_TEXT">
+Normally the first thing you will do in any CGI script is print out an
+HTTP header.  This tells the browser what type of document to expect,
+and gives other optional information, such as the language, expiration
+date, and whether to cache the document.  The header can also be
+manipulated for special purposes, such as server push and pay per view
+pages.
+
+	print $query-&gt;header;
+
+	     -or-
+
+	print $query-&gt;header('image/gif');
+
+	     -or-
+
+	print $query-&gt;header('text/html','204 No response');
+
+	     -or-
+
+	print $query-&gt;header(-type=&gt;'image/gif',
+			     -nph=&gt;1,
+			     -status=&gt;'402 Payment required',
+			     -expires=&gt;'+3d',
+			     -cookie=&gt;$cookie,
+                             -charset=&gt;'utf-7',
+                             -attachment=&gt;'foo.gif',
+			     -Cost=&gt;'$2.00');
+</pre>
+<p class="POD_TEXT">
+header() returns the Content-type: header.  You can provide your own
+MIME type if you choose, otherwise it defaults to text/html.  An
+optional second parameter specifies the status code and a human-readable
+message.  For example, you can specify 204, &quot;No response&quot; to create a
+script that tells the browser to do nothing at all.
+</p>
+<pre class="POD_TEXT">
+The last example shows the named argument style for passing arguments
+to the CGI methods using named parameters.  Recognized parameters are
+<b>-type</b>, <b>-status</b>, <b>-expires</b>, and <b>-cookie</b>.  Any other named
+parameters will be stripped of their initial hyphens and turned into
+header fields, allowing you to specify any HTTP header you desire.
+Internal underscores will be turned into hyphens:
+
+    print $query-&gt;header(-Content_length=&gt;3002);
+</pre>
+<pre class="POD_TEXT">
+Most browsers will not cache the output from CGI scripts.  Every time
+the browser reloads the page, the script is invoked anew.  You can
+change this behavior with the <b>-expires</b> parameter.  When you specify
+an absolute or relative expiration interval with this parameter, some
+browsers and proxy servers will cache the script's output until the
+indicated expiration date.  The following forms are all valid for the
+-expires field:
+
+	+30s                              30 seconds from now
+	+10m                              ten minutes from now
+	+1h                               one hour from now
+	-1d                               yesterday (i.e. &quot;ASAP!&quot;)
+	now                               immediately
+	+3M                               in three months
+	+10y                              in ten years time
+	Thursday, 25-Apr-1999 00:40:33 GMT  at the indicated time &amp; date
+</pre>
+<p class="POD_TEXT">
+The <b>-cookie</b> parameter generates a header that tells the browser to provide
+a &quot;magic cookie&quot; during all subsequent transactions with your script.
+Netscape cookies have a special format that includes interesting attributes
+such as expiration time.  Use the cookie() method to create and retrieve
+session cookies.
+</p>
+<p class="POD_TEXT">
+The <b>-nph</b> parameter, if set to a true value, will issue the correct
+headers to work with a NPH (no-parse-header) script.  This is important
+to use with certain servers that expect all their scripts to be NPH.
+</p>
+<p class="POD_TEXT">
+The <b>-charset</b> parameter can be used to control the character set
+sent to the browser.  If not provided, defaults to ISO-8859-1.  As a
+side effect, this sets the charset() method as well.
+</p>
+<p class="POD_TEXT">
+The <b>-attachment</b> parameter can be used to turn the page into an
+attachment.  Instead of displaying the page, some browsers will prompt
+the user to save it to disk.  The value of the argument is the
+suggested name for the saved file.  In order for this to work, you may
+have to set the <b>-type</b> to &quot;application/octet-stream&quot;.
+</p>
+<h3 class="POD_HEAD2"><a name="GENERATING_A_REDIREC">GENERATING A REDIRECTION HEADER</a></h3>
+<pre class="POD_VERBATIM">
+   print $query-&gt;redirect('http://somewhere.else/in/movie/land');
+</pre>
+<p class="POD_TEXT">
+Sometimes you don't want to produce a document yourself, but simply
+redirect the browser elsewhere, perhaps choosing a URL based on the
+time of day or the identity of the user.
+</p>
+<p class="POD_TEXT">
+The redirect() function redirects the browser to a different URL.  If
+you use redirection like this, you should <b>not</b> print out a header as
+well.
+</p>
+<p class="POD_TEXT">
+One hint I can offer is that relative links may not work correctly
+when you generate a redirection to another document on your site.
+This is due to a well-intentioned optimization that some servers use.
+The solution to this is to use the full URL (including the http: part)
+of the document you are redirecting to.
+</p>
+<pre class="POD_TEXT">
+You can also use named arguments:
+
+    print $query-&gt;redirect(-uri=&gt;'http://somewhere.else/in/movie/land',
+			   -nph=&gt;1);
+</pre>
+<p class="POD_TEXT">
+The <b>-nph</b> parameter, if set to a true value, will issue the correct
+headers to work with a NPH (no-parse-header) script.  This is important
+to use with certain servers, such as Microsoft Internet Explorer, which
+expect all their scripts to be NPH.
+</p>
+<h3 class="POD_HEAD2"><a name="CREATING_THE_HTML_DO">CREATING THE HTML DOCUMENT HEADER</a></h3>
+<pre class="POD_VERBATIM">
+   print $query-&gt;start_html(-title=&gt;'Secrets of the Pyramids',
+			    -author=&gt;'fred@capricorn.org',
+			    -base=&gt;'true',
+			    -target=&gt;'_blank',
+			    -meta=&gt;{'keywords'=&gt;'pharaoh secret mummy',
+				    'copyright'=&gt;'copyright 1996 King Tut'},
+			    -style=&gt;{'src'=&gt;'/styles/style1.css'},
+			    -BGCOLOR=&gt;'blue');
+</pre>
+<p class="POD_TEXT">
+After creating the HTTP header, most CGI scripts will start writing
+out an HTML document.  The start_html() routine creates the top of the
+page, along with a lot of optional information that controls the
+page's appearance and behavior.
+</p>
+<p class="POD_TEXT">
+This method returns a canned HTML header and the opening &lt;BODY&gt; tag.
+All parameters are optional.  In the named parameter form, recognized
+parameters are -title, -author, -base, -xbase, -dtd, -lang and -target
+(see below for the explanation).  Any additional parameters you
+provide, such as the Netscape unofficial BGCOLOR attribute, are added
+to the &lt;BODY&gt; tag.  Additional parameters must be proceeded by a
+hyphen.
+</p>
+<pre class="POD_TEXT">
+The argument <b>-xbase</b> allows you to provide an HREF for the &lt;BASE&gt; tag
+different from the current location, as in
+
+    -xbase=&gt;&quot;http://home.mcom.com/&quot;
+</pre>
+<p class="POD_TEXT">
+All relative links will be interpreted relative to this tag.
+</p>
+<pre class="POD_TEXT">
+The argument <b>-target</b> allows you to provide a default target frame
+for all the links and fill-out forms on the page.  <b>This is a
+non-standard HTTP feature which only works with Netscape browsers!</b>
+See the Netscape documentation on frames for details of how to
+manipulate this.
+
+    -target=&gt;&quot;answer_window&quot;
+</pre>
+<pre class="POD_TEXT">
+All relative links will be interpreted relative to this tag.
+You add arbitrary meta information to the header with the <b>-meta</b>
+argument.  This argument expects a reference to an associative array
+containing name/value pairs of meta information.  These will be turned
+into a series of header &lt;META&gt; tags that look something like this:
+
+    &lt;META NAME=&quot;keywords&quot; CONTENT=&quot;pharaoh secret mummy&quot;&gt;
+    &lt;META NAME=&quot;description&quot; CONTENT=&quot;copyright 1996 King Tut&quot;&gt;
+</pre>
+<p class="POD_TEXT">
+To create an HTTP-EQUIV type of &lt;META&gt; tag, use <b>-head</b>, described
+below.
+</p>
+<p class="POD_TEXT">
+The <b>-style</b> argument is used to incorporate cascading stylesheets
+into your code.  See the section on CASCADING STYLESHEETS for more
+information.
+</p>
+<pre class="POD_TEXT">
+The <b>-lang</b> argument is used to incorporate a language attribute into
+the &lt;HTML&gt; tag.  The default if not specified is &quot;en-US&quot; for US
+English.  For example:
+
+    print $q-&gt;start_html(-lang=&gt;'fr-CA');
+</pre>
+<pre class="POD_TEXT">
+You can place other arbitrary HTML elements to the &lt;HEAD&gt; section with the
+<b>-head</b> tag.  For example, to place the rarely-used &lt;LINK&gt; element in the
+head section, use this:
+
+    print start_html(-head=&gt;Link({-rel=&gt;'next',
+		                  -href=&gt;'http://www.capricorn.com/s2.html'}));
+</pre>
+<pre class="POD_TEXT">
+To incorporate multiple HTML elements into the &lt;HEAD&gt; section, just pass an
+array reference:
+
+    print start_html(-head=&gt;[ 
+                             Link({-rel=&gt;'next',
+				   -href=&gt;'http://www.capricorn.com/s2.html'}),
+		             Link({-rel=&gt;'previous',
+				   -href=&gt;'http://www.capricorn.com/s1.html'})
+			     ]
+		     );
+</pre>
+<pre class="POD_TEXT">
+And here's how to create an HTTP-EQUIV &lt;META&gt; tag:
+
+      print start_html(-head=&gt;meta({-http_equiv =&gt; 'Content-Type',
+                                    -content    =&gt; 'text/html'}))
+</pre>
+<p></p>
+<p class="POD_TEXT">
+JAVASCRIPTING: The <b>-script</b>, <b>-noScript</b>, <b>-onLoad</b>,
+<b>-onMouseOver</b>, <b>-onMouseOut</b> and <b>-onUnload</b> parameters are used
+to add Netscape JavaScript calls to your pages.  <b>-script</b> should
+point to a block of text containing JavaScript function definitions.
+This block will be placed within a &lt;SCRIPT&gt; block inside the HTML (not
+HTTP) header.  The block is placed in the header in order to give your
+page a fighting chance of having all its JavaScript functions in place
+even if the user presses the stop button before the page has loaded
+completely.  CGI.pm attempts to format the script in such a way that
+JavaScript-naive browsers will not choke on the code: unfortunately
+there are some browsers, such as Chimera for Unix, that get confused
+by it nevertheless.
+</p>
+<pre class="POD_TEXT">
+The <b>-onLoad</b> and <b>-onUnload</b> parameters point to fragments of JavaScript
+code to execute when the page is respectively opened and closed by the
+browser.  Usually these parameters are calls to functions defined in the
+<b>-script</b> field:
+
+      $query = new CGI;
+      print $query-&gt;header;
+      $JSCRIPT=&lt;&lt;END;
+      // Ask a silly question
+      function riddle_me_this() {
+	 var r = prompt(&quot;What walks on four legs in the morning, &quot; +
+		       &quot;two legs in the afternoon, &quot; +
+		       &quot;and three legs in the evening?&quot;);
+	 response(r);
+      }
+      // Get a silly answer
+      function response(answer) {
+	 if (answer == &quot;man&quot;)
+	    alert(&quot;Right you are!&quot;);
+	 else
+	    alert(&quot;Wrong!  Guess again.&quot;);
+      }
+      END
+      print $query-&gt;start_html(-title=&gt;'The Riddle of the Sphinx',
+			       -script=&gt;$JSCRIPT);
+</pre>
+<p class="POD_TEXT">
+Use the <b>-noScript</b> parameter to pass some HTML text that will be displayed on 
+browsers that do not have JavaScript (or browsers where JavaScript is turned
+off).
+</p>
+<pre class="POD_TEXT">
+Netscape 3.0 recognizes several attributes of the &lt;SCRIPT&gt; tag,
+including LANGUAGE and SRC.  The latter is particularly interesting,
+as it allows you to keep the JavaScript code in a file or CGI script
+rather than cluttering up each page with the source.  To use these
+attributes pass a HASH reference in the <b>-script</b> parameter containing
+one or more of -language, -src, or -code:
+
+    print $q-&gt;start_html(-title=&gt;'The Riddle of the Sphinx',
+			 -script=&gt;{-language=&gt;'JAVASCRIPT',
+                                   -src=&gt;'/javascript/sphinx.js'}
+			 );
+
+    print $q-&gt;(-title=&gt;'The Riddle of the Sphinx',
+	       -script=&gt;{-language=&gt;'PERLSCRIPT',
+			 -code=&gt;'print &quot;hello world!\n;&quot;'}
+	       );
+</pre>
+<p></p>
+<pre class="POD_TEXT">
+A final feature allows you to incorporate multiple &lt;SCRIPT&gt; sections into the
+header.  Just pass the list of script sections as an array reference.
+this allows you to specify different source files for different dialects
+of JavaScript.  Example:
+
+     print $q-&gt;start_html(-title=&gt;'The Riddle of the Sphinx',
+                          -script=&gt;[
+                                    { -language =&gt; 'JavaScript1.0',
+                                      -src      =&gt; '/javascript/utilities10.js'
+                                    },
+                                    { -language =&gt; 'JavaScript1.1',
+                                      -src      =&gt; '/javascript/utilities11.js'
+                                    },
+                                    { -language =&gt; 'JavaScript1.2',
+                                      -src      =&gt; '/javascript/utilities12.js'
+                                    },
+                                    { -language =&gt; 'JavaScript28.2',
+                                      -src      =&gt; '/javascript/utilities219.js'
+                                    }
+                                 ]
+                             );
+     &lt;/pre&gt;
+</pre>
+<p class="POD_TEXT">
+If this looks a bit extreme, take my advice and stick with straight CGI scripting.
+</p>
+<pre class="POD_TEXT">
+See
+
+   http://home.netscape.com/eng/mozilla/2.0/handbook/javascript/
+</pre>
+<p class="POD_TEXT">
+for more information about JavaScript.
+</p>
+<p class="POD_TEXT">
+The old-style positional parameters are as follows:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Parameters_"><b>Parameters:</b></a>
+<dt><a name="_3">1.</a>
+<dd>
+The title
+<dt class="POD_ITEM"><a name="_4">2.</a>
+<dd>
+The author's e-mail address (will create a &lt;LINK REV=&quot;MADE&quot;&gt; tag if present
+<dt class="POD_ITEM"><a name="_5">3.</a>
+<dd>
+A 'true' flag if you want to include a &lt;BASE&gt; tag in the header.  This
+helps resolve relative addresses to absolute ones when the document is moved, 
+but makes the document hierarchy non-portable.  Use with care!
+<dt class="POD_ITEM"><a name="_6">4, 5, 6...</a>
+<dd>
+Any other parameters you want to include in the &lt;BODY&gt; tag.  This is a good
+place to put Netscape extensions, such as colors and wallpaper patterns.
+</dl>
+<h3 class="POD_HEAD2"><a name="ENDING_THE_HTML_DOCU">ENDING THE HTML DOCUMENT:</a></h3>
+<pre class="POD_VERBATIM">
+	print $query-&gt;end_html
+</pre>
+<p class="POD_TEXT">
+This ends an HTML document by printing the &lt;/BODY&gt;&lt;/HTML&gt; tags.
+</p>
+<h3 class="POD_HEAD2"><a name="CREATING_A_SELF_REFE">CREATING A SELF-REFERENCING URL THAT PRESERVES STATE INFORMATION:</a></h3>
+<pre class="POD_VERBATIM">
+    $myself = $query-&gt;self_url;
+    print q(&lt;A HREF=&quot;$myself&quot;&gt;I'm talking to myself.&lt;/A&gt;);
+</pre>
+<pre class="POD_TEXT">
+self_url() will return a URL, that, when selected, will reinvoke
+this script with all its state information intact.  This is most
+useful when you want to jump around within the document using
+internal anchors but you don't want to disrupt the current contents
+of the form(s).  Something like this will do the trick.
+
+     $myself = $query-&gt;self_url;
+     print &quot;&lt;A HREF=$myself#table1&gt;See table 1&lt;/A&gt;&quot;;
+     print &quot;&lt;A HREF=$myself#table2&gt;See table 2&lt;/A&gt;&quot;;
+     print &quot;&lt;A HREF=$myself#yourself&gt;See for yourself&lt;/A&gt;&quot;;
+</pre>
+<p class="POD_TEXT">
+If you want more control over what's returned, using the <b>url()</b>
+method instead.
+</p>
+<pre class="POD_TEXT">
+You can also retrieve the unprocessed query string with query_string():
+
+    $the_string = $query-&gt;query_string;
+</pre>
+<h3 class="POD_HEAD2"><a name="OBTAINING_THE_SCRIPT">OBTAINING THE SCRIPT'S URL</a></h3>
+<pre class="POD_VERBATIM">
+    $full_url      = $query-&gt;url();
+    $full_url      = $query-&gt;url(-full=&gt;1);  #alternative syntax
+    $relative_url  = $query-&gt;url(-relative=&gt;1);
+    $absolute_url  = $query-&gt;url(-absolute=&gt;1);
+    $url_with_path = $query-&gt;url(-path_info=&gt;1);
+    $url_with_path_and_query = $query-&gt;url(-path_info=&gt;1,-query=&gt;1);
+    $netloc        = $query-&gt;url(-base =&gt; 1);
+</pre>
+<pre class="POD_TEXT">
+<b>url()</b> returns the script's URL in a variety of formats.  Called
+without any arguments, it returns the full form of the URL, including
+host name and port number
+
+    http://your.host.com/path/to/script.cgi
+</pre>
+<p class="POD_TEXT">
+You can modify this format with the following named arguments:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_absolute"><b>-absolute</b></a>
+<dd>
+If true, produce an absolute URL, e.g.
+<pre class="POD_VERBATIM">
+    /path/to/script.cgi
+</pre>
+<dt class="POD_ITEM"><a name="_relative"><b>-relative</b></a>
+<dd>
+Produce a relative URL.  This is useful if you want to reinvoke your
+script with different parameters. For example:
+<pre class="POD_VERBATIM">
+    script.cgi
+</pre>
+<dt class="POD_ITEM"><a name="_full"><b>-full</b></a>
+<dd>
+Produce the full URL, exactly as if called without any arguments.
+This overrides the -relative and -absolute arguments.
+<dt class="POD_ITEM"><a name="_path_path_info_"><b>-path</b> (<b>-path_info</b>)</a>
+<dd>
+Append the additional path information to the URL.  This can be
+combined with <b>-full</b>, <b>-absolute</b> or <b>-relative</b>.  <b>-path_info</b>
+is provided as a synonym.
+<dt class="POD_ITEM"><a name="_query_query_string_"><b>-query</b> (<b>-query_string</b>)</a>
+<dd>
+Append the query string to the URL.  This can be combined with
+<b>-full</b>, <b>-absolute</b> or <b>-relative</b>.  <b>-query_string</b> is provided
+as a synonym.
+<dt class="POD_ITEM"><a name="_base"><b>-base</b></a>
+<dd>
+Generate just the protocol and net location, as in http://www.foo.com:8000
+</dl>
+<h3 class="POD_HEAD2"><a name="MIXING_POST_AND_URL_">MIXING POST AND URL PARAMETERS</a></h3>
+<pre class="POD_VERBATIM">
+   $color = $query-&amp;gt;url_param('color');
+</pre>
+<p class="POD_TEXT">
+It is possible for a script to receive CGI parameters in the URL as
+well as in the fill-out form by creating a form that POSTs to a URL
+containing a query string (a &quot;?&quot; mark followed by arguments).  The
+<b>param()</b> method will always return the contents of the POSTed
+fill-out form, ignoring the URL's query string.  To retrieve URL
+parameters, call the <b>url_param()</b> method.  Use it in the same way as
+<b>param()</b>.  The main difference is that it allows you to read the
+parameters, but not set them.
+</p>
+<p></p>
+<p class="POD_TEXT">
+Under no circumstances will the contents of the URL query string
+interfere with similarly-named CGI parameters in POSTed forms.  If you
+try to mix a URL query string with a form submitted with the GET
+method, the results will not be what you expect.
+</p>
+<h2 class="POD_HEAD1"><a name="CREATING_STANDARD_HT">CREATING STANDARD HTML ELEMENTS:</a></h2>
+<p class="POD_TEXT">
+CGI.pm defines general HTML shortcut methods for most, if not all of
+the HTML 3 and HTML 4 tags.  HTML shortcuts are named after a single
+HTML element and return a fragment of HTML text that you can then
+print or manipulate as you like.  Each shortcut returns a fragment of
+HTML code that you can append to a string, save to a file, or, most
+commonly, print out so that it displays in the browser window.
+</p>
+<pre class="POD_TEXT">
+This example shows how to use the HTML methods:
+
+   $q = new CGI;
+   print $q-&gt;blockquote(
+		     &quot;Many years ago on the island of&quot;,
+		     $q-&gt;a({href=&gt;&quot;http://crete.org/&quot;},&quot;Crete&quot;),
+		     &quot;there lived a Minotaur named&quot;,
+		     $q-&gt;strong(&quot;Fred.&quot;),
+		    ),
+       $q-&gt;hr;
+</pre>
+<pre class="POD_TEXT">
+This results in the following HTML code (extra newlines have been
+added for readability):
+
+   &lt;blockquote&gt;
+   Many years ago on the island of
+   &lt;a HREF=&quot;http://crete.org/&quot;&gt;Crete&lt;/a&gt; there lived
+   a minotaur named &lt;strong&gt;Fred.&lt;/strong&gt; 
+   &lt;/blockquote&gt;
+   &lt;hr&gt;
+</pre>
+<pre class="POD_TEXT">
+If you find the syntax for calling the HTML shortcuts awkward, you can
+import them into your namespace and dispense with the object syntax
+completely (see the next section for more details):
+
+   use CGI ':standard';
+   print blockquote(
+      &quot;Many years ago on the island of&quot;,
+      a({href=&gt;&quot;http://crete.org/&quot;},&quot;Crete&quot;),
+      &quot;there lived a minotaur named&quot;,
+      strong(&quot;Fred.&quot;),
+      ),
+      hr;
+</pre>
+<h3 class="POD_HEAD2"><a name="PROVIDING_ARGUMENTS_">PROVIDING ARGUMENTS TO HTML SHORTCUTS</a></h3>
+<pre class="POD_TEXT">
+The HTML methods will accept zero, one or multiple arguments.  If you
+provide no arguments, you get a single tag:
+
+   print hr;  	#  &lt;HR&gt;
+</pre>
+<pre class="POD_TEXT">
+If you provide one or more string arguments, they are concatenated
+together with spaces and placed between opening and closing tags:
+
+   print h1(&quot;Chapter&quot;,&quot;1&quot;); # &lt;H1&gt;Chapter 1&lt;/H1&gt;&quot;
+</pre>
+<pre class="POD_TEXT">
+If the first argument is an associative array reference, then the keys
+and values of the associative array become the HTML tag's attributes:
+
+   print a({-href=&gt;'fred.html',-target=&gt;'_new'},
+      &quot;Open a new frame&quot;);
+
+	    &lt;A HREF=&quot;fred.html&quot;,TARGET=&quot;_new&quot;&gt;Open a new frame&lt;/A&gt;
+</pre>
+<pre class="POD_TEXT">
+You may dispense with the dashes in front of the attribute names if
+you prefer:
+
+   print img {src=&gt;'fred.gif',align=&gt;'LEFT'};
+
+	   &lt;IMG ALIGN=&quot;LEFT&quot; SRC=&quot;fred.gif&quot;&gt;
+</pre>
+<pre class="POD_TEXT">
+Sometimes an HTML tag attribute has no argument.  For example, ordered
+lists can be marked as COMPACT.  The syntax for this is an argument that
+that points to an undef string:
+
+   print ol({compact=&gt;undef},li('one'),li('two'),li('three'));
+</pre>
+<pre class="POD_TEXT">
+Prior to CGI.pm version 2.41, providing an empty ('') string as an
+attribute argument was the same as providing undef.  However, this has
+changed in order to accommodate those who want to create tags of the form 
+&lt;IMG ALT=&quot;&quot;&gt;.  The difference is shown in these two pieces of code:
+
+   CODE                   RESULT
+   img({alt=&gt;undef})      &lt;IMG ALT&gt;
+   img({alt=&gt;''})         &lt;IMT ALT=&quot;&quot;&gt;
+</pre>
+<h3 class="POD_HEAD2"><a name="THE_DISTRIBUTIVE_PRO">THE DISTRIBUTIVE PROPERTY OF HTML SHORTCUTS</a></h3>
+<pre class="POD_TEXT">
+One of the cool features of the HTML shortcuts is that they are
+distributive.  If you give them an argument consisting of a
+<b>reference</b> to a list, the tag will be distributed across each
+element of the list.  For example, here's one way to make an ordered
+list:
+
+   print ul(
+             li({-type=&gt;'disc'},['Sneezy','Doc','Sleepy','Happy'])
+           );
+</pre>
+<pre class="POD_TEXT">
+This example will result in HTML output that looks like this:
+
+   &lt;UL&gt;
+     &lt;LI TYPE=&quot;disc&quot;&gt;Sneezy&lt;/LI&gt;
+     &lt;LI TYPE=&quot;disc&quot;&gt;Doc&lt;/LI&gt;
+     &lt;LI TYPE=&quot;disc&quot;&gt;Sleepy&lt;/LI&gt;
+     &lt;LI TYPE=&quot;disc&quot;&gt;Happy&lt;/LI&gt;
+   &lt;/UL&gt;
+</pre>
+<pre class="POD_TEXT">
+This is extremely useful for creating tables.  For example:
+
+   print table({-border=&gt;undef},
+           caption('When Should You Eat Your Vegetables?'),
+           Tr({-align=&gt;CENTER,-valign=&gt;TOP},
+           [
+              th(['Vegetable', 'Breakfast','Lunch','Dinner']),
+              td(['Tomatoes' , 'no', 'yes', 'yes']),
+              td(['Broccoli' , 'no', 'no',  'yes']),
+              td(['Onions'   , 'yes','yes', 'yes'])
+           ]
+           )
+        );
+</pre>
+<h3 class="POD_HEAD2"><a name="HTML_SHORTCUTS_AND_L">HTML SHORTCUTS AND LIST INTERPOLATION</a></h3>
+<pre class="POD_TEXT">
+Consider this bit of code:
+
+   print blockquote(em('Hi'),'mom!'));
+</pre>
+<pre class="POD_TEXT">
+It will ordinarily return the string that you probably expect, namely:
+
+   &lt;BLOCKQUOTE&gt;&lt;EM&gt;Hi&lt;/EM&gt; mom!&lt;/BLOCKQUOTE&gt;
+</pre>
+<pre class="POD_TEXT">
+Note the space between the element &quot;Hi&quot; and the element &quot;mom!&quot;.
+CGI.pm puts the extra space there using array interpolation, which is
+controlled by the magic $&quot; variable.  Sometimes this extra space is
+not what you want, for example, when you are trying to align a series
+of images.  In this case, you can simply change the value of $&quot; to an
+empty string.
+
+   {
+      local($&quot;) = '';
+      print blockquote(em('Hi'),'mom!'));
+    }
+</pre>
+<p class="POD_TEXT">
+I suggest you put the code in a block as shown here.  Otherwise the
+change to $&quot; will affect all subsequent code until you explicitly
+reset it.
+</p>
+<h3 class="POD_HEAD2"><a name="NON_STANDARD_HTML_SH">NON-STANDARD HTML SHORTCUTS</a></h3>
+<p class="POD_TEXT">
+A few HTML tags don't follow the standard pattern for various
+reasons.
+</p>
+<pre class="POD_TEXT">
+<b>comment()</b> generates an HTML comment (&lt;!-- comment --&gt;).  Call it
+like
+
+    print comment('here is my comment');
+</pre>
+<pre class="POD_TEXT">
+Because of conflicts with built-in Perl functions, the following functions
+begin with initial caps:
+
+    Select
+    Tr
+    Link
+    Delete
+    Accept
+    Sub
+</pre>
+<p class="POD_TEXT">
+In addition, start_html(), end_html(), start_form(), end_form(),
+start_multipart_form() and all the fill-out form tags are special.
+See their respective sections.
+</p>
+<h3 class="POD_HEAD2"><a name="AUTOESCAPING_HTML">AUTOESCAPING HTML</a></h3>
+<p class="POD_TEXT">
+By default, all HTML that is emitted by the form-generating functions
+is passed through a function called escapeHTML():
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_escaped_string_esca">$escaped_string = escapeHTML(&quot;unescaped string&quot;);</a>
+<dd>
+Escape HTML formatting characters in a string.
+</dl>
+<p class="POD_TEXT">
+Provided that you have specified a character set of ISO-8859-1 (the
+default), the standard HTML escaping rules will be used.  The &quot;&lt;&quot;
+character becomes &quot;&amp;lt;&quot;, &quot;&gt;&quot; becomes &quot;&amp;gt;&quot;, &quot;&amp;&quot; becomes &quot;&amp;amp;&quot;, and
+the quote character becomes &quot;&amp;quot;&quot;.  In addition, the hexadecimal
+0x8b and 0x9b characters, which many windows-based browsers interpret
+as the left and right angle-bracket characters, are replaced by their
+numeric HTML entities (&quot;&amp;#139&quot; and &quot;&amp;#155;&quot;).  If you manually change
+the charset, either by calling the charset() method explicitly or by
+passing a -charset argument to header(), then <b>all</b> characters will
+be replaced by their numeric entities, since CGI.pm has no lookup
+table for all the possible encodings.
+</p>
+<p class="POD_TEXT">
+The automatic escaping does not apply to other shortcuts, such as
+h1().  You should call escapeHTML() yourself on untrusted data in
+order to protect your pages against nasty tricks that people may enter
+into guestbooks, etc..  To change the character set, use charset().
+To turn autoescaping off completely, use autoescape():
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_charset_charset_cha">$charset = charset([$charset]);</a>
+<dd>
+Get or set the current character set.
+<dt class="POD_ITEM"><a name="_flag_autoEscape_fla">$flag = autoEscape([$flag]);</a>
+<dd>
+Get or set the value of the autoescape flag.
+</dl>
+<h3 class="POD_HEAD2"><a name="PRETTY_PRINTING_HTML">PRETTY-PRINTING HTML</a></h3>
+<p class="POD_TEXT">
+By default, all the HTML produced by these functions comes out as one
+long line without carriage returns or indentation. This is yuck, but
+it does reduce the size of the documents by 10-20%.  To get
+pretty-printed output, please use the <a class="POD_LINK" href="CGI/Pretty.html">CGI::Pretty</a> manpage, a subclass
+contributed by Brian Paulsen.
+</p>
+<h2 class="POD_HEAD1"><a name="CREATING_FILL_OUT_FO">CREATING FILL-OUT FORMS:</a></h2>
+<p class="POD_TEXT">
+<i>General note</i>  The various form-creating methods all return strings
+to the caller, containing the tag or tags that will create the requested
+form element.  You are responsible for actually printing out these strings.
+It's set up this way so that you can place formatting tags
+around the form elements.
+</p>
+<p class="POD_TEXT">
+<i>Another note</i> The default values that you specify for the forms are only
+used the <b>first</b> time the script is invoked (when there is no query
+string).  On subsequent invocations of the script (when there is a query
+string), the former values are used even if they are blank.
+</p>
+<p class="POD_TEXT">
+If you want to change the value of a field from its previous value, you have two
+choices:
+</p>
+<p class="POD_TEXT">
+(1) call the param() method to set it.
+</p>
+<pre class="POD_TEXT">
+(2) use the -override (alias -force) parameter (a new feature in version 2.15).
+This forces the default value to be used, regardless of the previous value:
+
+   print $query-&gt;textfield(-name=&gt;'field_name',
+			   -default=&gt;'starting value',
+			   -override=&gt;1,
+			   -size=&gt;50,
+			   -maxlength=&gt;80);
+</pre>
+<pre class="POD_TEXT">
+<i>Yet another note</i> By default, the text and labels of form elements are
+escaped according to HTML rules.  This means that you can safely use
+&quot;&lt;CLICK ME&gt;&quot; as the label for a button.  However, it also interferes with
+your ability to incorporate special HTML character sequences, such as &amp;Aacute;,
+into your fields.  If you wish to turn off automatic escaping, call the
+autoEscape() method with a false value immediately after creating the CGI object:
+
+   $query = new CGI;
+   $query-&gt;autoEscape(undef);
+</pre>
+<h3 class="POD_HEAD2"><a name="CREATING_AN_ISINDEX_">CREATING AN ISINDEX TAG</a></h3>
+<pre class="POD_VERBATIM">
+   print $query-&gt;isindex(-action=&gt;$action);
+
+	 -or-
+
+   print $query-&gt;isindex($action);
+</pre>
+<p class="POD_TEXT">
+Prints out an &lt;ISINDEX&gt; tag.  Not very exciting.  The parameter
+-action specifies the URL of the script to process the query.  The
+default is to process the query with the current script.
+</p>
+<h3 class="POD_HEAD2"><a name="STARTING_AND_ENDING_">STARTING AND ENDING A FORM</a></h3>
+<pre class="POD_VERBATIM">
+    print $query-&gt;start_form(-method=&gt;$method,
+			    -action=&gt;$action,
+			    -enctype=&gt;$encoding);
+      &lt;... various form stuff ...&gt;
+    print $query-&gt;endform;
+
+	-or-
+
+    print $query-&gt;start_form($method,$action,$encoding);
+      &lt;... various form stuff ...&gt;
+    print $query-&gt;endform;
+</pre>
+<pre class="POD_TEXT">
+start_form() will return a &lt;FORM&gt; tag with the optional method,
+action and form encoding that you specify.  The defaults are:
+
+    method: POST
+    action: this script
+    enctype: application/x-www-form-urlencoded
+</pre>
+<p class="POD_TEXT">
+endform() returns the closing &lt;/FORM&gt; tag.
+</p>
+<p class="POD_TEXT">
+Start_form()'s enctype argument tells the browser how to package the various
+fields of the form before sending the form to the server.  Two
+values are possible:
+</p>
+<p class="POD_TEXT">
+<b>Note:</b> This method was previously named startform(), and startform()
+is still recognized as an alias.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="application_x_www_fo"><b>application/x-www-form-urlencoded</b></a>
+<dd>
+This is the older type of encoding used by all browsers prior to
+Netscape 2.0.  It is compatible with many CGI scripts and is
+suitable for short fields containing text data.  For your
+convenience, CGI.pm stores the name of this encoding
+type in <b>&amp;CGI::URL_ENCODED</b>.
+<dt class="POD_ITEM"><a name="multipart_form_data"><b>multipart/form-data</b></a>
+<dd>
+This is the newer type of encoding introduced by Netscape 2.0.
+It is suitable for forms that contain very large fields or that
+are intended for transferring binary data.  Most importantly,
+it enables the &quot;file upload&quot; feature of Netscape 2.0 forms.  For
+your convenience, CGI.pm stores the name of this encoding type
+in <b>&amp;CGI::MULTIPART</b>
+<p class="POD_TEXT">
+Forms that use this type of encoding are not easily interpreted
+by CGI scripts unless they use CGI.pm or another library designed
+to handle them.
+</p>
+</dl>
+<p class="POD_TEXT">
+For compatibility, the start_form() method uses the older form of
+encoding by default.  If you want to use the newer form of encoding
+by default, you can call <b>start_multipart_form()</b> instead of
+<b>start_form()</b>.
+</p>
+<p class="POD_TEXT">
+JAVASCRIPTING: The <b>-name</b> and <b>-onSubmit</b> parameters are provided
+for use with JavaScript.  The -name parameter gives the
+form a name so that it can be identified and manipulated by
+JavaScript functions.  -onSubmit should point to a JavaScript
+function that will be executed just before the form is submitted to your
+server.  You can use this opportunity to check the contents of the form 
+for consistency and completeness.  If you find something wrong, you
+can put up an alert box or maybe fix things up yourself.  You can 
+abort the submission by returning false from this function.
+</p>
+<p class="POD_TEXT">
+Usually the bulk of JavaScript functions are defined in a &lt;SCRIPT&gt;
+block in the HTML header and -onSubmit points to one of these function
+call.  See start_html() for details.
+</p>
+<h3 class="POD_HEAD2"><a name="CREATING_A_TEXT_FIEL">CREATING A TEXT FIELD</a></h3>
+<pre class="POD_VERBATIM">
+    print $query-&gt;textfield(-name=&gt;'field_name',
+			    -default=&gt;'starting value',
+			    -size=&gt;50,
+			    -maxlength=&gt;80);
+	-or-
+
+    print $query-&gt;textfield('field_name','starting value',50,80);
+</pre>
+<p class="POD_TEXT">
+textfield() will return a text input field.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Parameters"><b>Parameters</b></a>
+<dt><a name="_7">1.</a>
+<dd>
+The first parameter is the required name for the field (-name).
+<dt class="POD_ITEM"><a name="_8">2.</a>
+<dd>
+The optional second parameter is the default starting value for the field
+contents (-default).
+<dt class="POD_ITEM"><a name="_9">3.</a>
+<dd>
+The optional third parameter is the size of the field in<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;characters (-size).
+<dt class="POD_ITEM"><a name="_10">4.</a>
+<dd>
+The optional fourth parameter is the maximum number of characters the<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;field will accept (-maxlength).
+</dl>
+<pre class="POD_TEXT">
+As with all these methods, the field will be initialized with its 
+previous contents from earlier invocations of the script.
+When the form is processed, the value of the text field can be
+retrieved with:
+
+       $value = $query-&gt;param('foo');
+</pre>
+<pre class="POD_TEXT">
+If you want to reset it from its initial value after the script has been
+called once, you can do so like this:
+
+       $query-&gt;param('foo',&quot;I'm taking over this value!&quot;);
+</pre>
+<pre class="POD_TEXT">
+NEW AS OF VERSION 2.15: If you don't want the field to take on its previous
+value, you can force its current value by using the -override (alias -force)
+parameter:
+
+    print $query-&gt;textfield(-name=&gt;'field_name',
+			    -default=&gt;'starting value',
+			    -override=&gt;1,
+			    -size=&gt;50,
+			    -maxlength=&gt;80);
+</pre>
+<p class="POD_TEXT">
+JAVASCRIPTING: You can also provide <b>-onChange</b>, <b>-onFocus</b>,
+<b>-onBlur</b>, <b>-onMouseOver</b>, <b>-onMouseOut</b> and <b>-onSelect</b>
+parameters to register JavaScript event handlers.  The onChange
+handler will be called whenever the user changes the contents of the
+text field.  You can do text validation if you like.  onFocus and
+onBlur are called respectively when the insertion point moves into and
+out of the text field.  onSelect is called when the user changes the
+portion of the text that is selected.
+</p>
+<h3 class="POD_HEAD2"><a name="CREATING_A_BIG_TEXT_">CREATING A BIG TEXT FIELD</a></h3>
+<pre class="POD_VERBATIM">
+   print $query-&gt;textarea(-name=&gt;'foo',
+			  -default=&gt;'starting value',
+			  -rows=&gt;10,
+			  -columns=&gt;50);
+
+	-or
+
+   print $query-&gt;textarea('foo','starting value',10,50);
+</pre>
+<p class="POD_TEXT">
+textarea() is just like textfield, but it allows you to specify
+rows and columns for a multiline text entry box.  You can provide
+a starting value for the field, which can be long and contain
+multiple lines.
+</p>
+<p class="POD_TEXT">
+JAVASCRIPTING: The <b>-onChange</b>, <b>-onFocus</b>, <b>-onBlur</b> ,
+<b>-onMouseOver</b>, <b>-onMouseOut</b>, and <b>-onSelect</b> parameters are
+recognized.  See textfield().
+</p>
+<h3 class="POD_HEAD2"><a name="CREATING_A_PASSWORD_">CREATING A PASSWORD FIELD</a></h3>
+<pre class="POD_VERBATIM">
+   print $query-&gt;password_field(-name=&gt;'secret',
+				-value=&gt;'starting value',
+				-size=&gt;50,
+				-maxlength=&gt;80);
+	-or-
+
+   print $query-&gt;password_field('secret','starting value',50,80);
+</pre>
+<p class="POD_TEXT">
+password_field() is identical to textfield(), except that its contents 
+will be starred out on the web page.
+</p>
+<p class="POD_TEXT">
+JAVASCRIPTING: The <b>-onChange</b>, <b>-onFocus</b>, <b>-onBlur</b>,
+<b>-onMouseOver</b>, <b>-onMouseOut</b> and <b>-onSelect</b> parameters are
+recognized.  See textfield().
+</p>
+<h3 class="POD_HEAD2"><a name="CREATING_A_FILE_UPLO">CREATING A FILE UPLOAD FIELD</a></h3>
+<pre class="POD_VERBATIM">
+    print $query-&gt;filefield(-name=&gt;'uploaded_file',
+			    -default=&gt;'starting value',
+			    -size=&gt;50,
+			    -maxlength=&gt;80);
+	-or-
+
+    print $query-&gt;filefield('uploaded_file','starting value',50,80);
+</pre>
+<p class="POD_TEXT">
+filefield() will return a file upload field for Netscape 2.0 browsers.
+In order to take full advantage of this <i>you must use the new 
+multipart encoding scheme</i> for the form.  You can do this either
+by calling <b>start_form()</b> with an encoding type of <b>&amp;CGI::MULTIPART</b>,
+or by calling the new method <b>start_multipart_form()</b> instead of
+vanilla <b>start_form()</b>.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Parameters1"><b>Parameters</b></a>
+<dt><a name="_11">1.</a>
+<dd>
+The first parameter is the required name for the field (-name).
+<dt class="POD_ITEM"><a name="_12">2.</a>
+<dd>
+The optional second parameter is the starting value for the field contents
+to be used as the default file name (-default).
+<p class="POD_TEXT">
+For security reasons, browsers don't pay any attention to this field,
+and so the starting value will always be blank.  Worse, the field
+loses its &quot;sticky&quot; behavior and forgets its previous contents.  The
+starting value field is called for in the HTML specification, however,
+and possibly some browser will eventually provide support for it.
+</p>
+<dt class="POD_ITEM"><a name="_13">3.</a>
+<dd>
+The optional third parameter is the size of the field in
+characters (-size).
+<dt class="POD_ITEM"><a name="_14">4.</a>
+<dd>
+The optional fourth parameter is the maximum number of characters the
+field will accept (-maxlength).
+</dl>
+<pre class="POD_TEXT">
+When the form is processed, you can retrieve the entered filename
+by calling param():
+
+       $filename = $query-&gt;param('uploaded_file');
+</pre>
+<p class="POD_TEXT">
+Different browsers will return slightly different things for the
+name.  Some browsers return the filename only.  Others return the full
+path to the file, using the path conventions of the user's machine.
+Regardless, the name returned is always the name of the file on the
+<i>user's</i> machine, and is unrelated to the name of the temporary file
+that CGI.pm creates during upload spooling (see below).
+</p>
+<pre class="POD_TEXT">
+The filename returned is also a file handle.  You can read the contents
+of the file using standard Perl file reading calls:
+
+	# Read a text file and print it out
+	while (&lt;$filename&gt;) {
+	   print;
+	}
+
+	# Copy a binary file to somewhere safe
+	open (OUTFILE,&quot;&gt;&gt;/usr/local/web/users/feedback&quot;);
+	while ($bytesread=read($filename,$buffer,1024)) {
+	   print OUTFILE $buffer;
+	}
+</pre>
+<p class="POD_TEXT">
+However, there are problems with the dual nature of the upload fields.
+If you <code>use strict</code>, then Perl will complain when you try to use a
+string as a filehandle.  You can get around this by placing the file
+reading code in a block containing the <code>no strict</code> pragma.  More
+seriously, it is possible for the remote user to type garbage into the
+upload field, in which case what you get from param() is not a
+filehandle at all, but a string.
+</p>
+<pre class="POD_TEXT">
+To be safe, use the <i>upload()</i> function (new in version 2.47).  When
+called with the name of an upload field, <i>upload()</i> returns a
+filehandle, or undef if the parameter is not a valid filehandle.
+
+     $fh = $query-&gt;upload('uploaded_file');
+     while (&lt;$fh&gt;) {
+	   print;
+     }
+</pre>
+<p class="POD_TEXT">
+This is the recommended idiom.
+</p>
+<pre class="POD_TEXT">
+When a file is uploaded the browser usually sends along some
+information along with it in the format of headers.  The information
+usually includes the MIME content type.  Future browsers may send
+other information as well (such as modification date and size). To
+retrieve this information, call uploadInfo().  It returns a reference to
+an associative array containing all the document headers.
+
+       $filename = $query-&gt;param('uploaded_file');
+       $type = $query-&gt;uploadInfo($filename)-&gt;{'Content-Type'};
+       unless ($type eq 'text/html') {
+	  die &quot;HTML FILES ONLY!&quot;;
+       }
+</pre>
+<p class="POD_TEXT">
+If you are using a machine that recognizes &quot;text&quot; and &quot;binary&quot; data
+modes, be sure to understand when and how to use them (see the Camel book).  
+Otherwise you may find that binary files are corrupted during file
+uploads.
+</p>
+<pre class="POD_TEXT">
+There are occasionally problems involving parsing the uploaded file.
+This usually happens when the user presses &quot;Stop&quot; before the upload is
+finished.  In this case, CGI.pm will return undef for the name of the
+uploaded file and set <i>cgi_error()</i> to the string &quot;400 Bad request
+(malformed multipart POST)&quot;.  This error message is designed so that
+you can incorporate it into a status code to be sent to the browser.
+Example:
+
+   $file = $query-&gt;upload('uploaded_file');
+   if (!$file &amp;&amp; $query-&gt;cgi_error) {
+      print $query-&gt;header(-status=&gt;$query-&gt;cgi_error);
+      exit 0;
+   }
+</pre>
+<p class="POD_TEXT">
+You are free to create a custom HTML page to complain about the error,
+if you wish.
+</p>
+<p class="POD_TEXT">
+JAVASCRIPTING: The <b>-onChange</b>, <b>-onFocus</b>, <b>-onBlur</b>,
+<b>-onMouseOver</b>, <b>-onMouseOut</b> and <b>-onSelect</b> parameters are
+recognized.  See textfield() for details.
+</p>
+<h3 class="POD_HEAD2"><a name="CREATING_A_POPUP_MEN">CREATING A POPUP MENU</a></h3>
+<pre class="POD_VERBATIM">
+   print $query-&gt;popup_menu('menu_name',
+			    ['eenie','meenie','minie'],
+			    'meenie');
+
+      -or-
+
+   %labels = ('eenie'=&gt;'your first choice',
+	      'meenie'=&gt;'your second choice',
+	      'minie'=&gt;'your third choice');
+   print $query-&gt;popup_menu('menu_name',
+			    ['eenie','meenie','minie'],
+			    'meenie',\%labels);
+
+	-or (named parameter style)-
+
+   print $query-&gt;popup_menu(-name=&gt;'menu_name',
+			    -values=&gt;['eenie','meenie','minie'],
+			    -default=&gt;'meenie',
+			    -labels=&gt;\%labels);
+</pre>
+<p class="POD_TEXT">
+popup_menu() creates a menu.
+</p>
+<ol class="POD_LIST">
+<li class="POD_ITEM"><a name="_15"></a>
+
+The required first argument is the menu's name (-name).
+<li class="POD_ITEM"><a name="_16"></a>
+
+The required second argument (-values) is an array <b>reference</b>
+containing the list of menu items in the menu.  You can pass the
+method an anonymous array, as shown in the example, or a reference to
+a named array, such as &quot;\@foo&quot;.
+<li class="POD_ITEM"><a name="_17"></a>
+
+The optional third parameter (-default) is the name of the default
+menu choice.  If not specified, the first item will be the default.
+The values of the previous choice will be maintained across queries.
+<li class="POD_ITEM"><a name="_18"></a>
+
+The optional fourth parameter (-labels) is provided for people who
+want to use different values for the user-visible label inside the
+popup menu nd the value returned to your script.  It's a pointer to an
+associative array relating menu values to user-visible labels.  If you
+leave this parameter blank, the menu values will be displayed by
+default.  (You can also leave a label undefined if you want to).
+</ol>
+<pre class="POD_TEXT">
+When the form is processed, the selected value of the popup menu can
+be retrieved using:
+
+      $popup_menu_value = $query-&gt;param('menu_name');
+</pre>
+<p class="POD_TEXT">
+JAVASCRIPTING: popup_menu() recognizes the following event handlers:
+<b>-onChange</b>, <b>-onFocus</b>, <b>-onMouseOver</b>, <b>-onMouseOut</b>, and
+<b>-onBlur</b>.  See the textfield() section for details on when these
+handlers are called.
+</p>
+<h3 class="POD_HEAD2"><a name="CREATING_A_SCROLLING">CREATING A SCROLLING LIST</a></h3>
+<pre class="POD_VERBATIM">
+   print $query-&gt;scrolling_list('list_name',
+				['eenie','meenie','minie','moe'],
+				['eenie','moe'],5,'true');
+      -or-
+
+   print $query-&gt;scrolling_list('list_name',
+				['eenie','meenie','minie','moe'],
+				['eenie','moe'],5,'true',
+				\%labels);
+
+	-or-
+
+   print $query-&gt;scrolling_list(-name=&gt;'list_name',
+				-values=&gt;['eenie','meenie','minie','moe'],
+				-default=&gt;['eenie','moe'],
+				-size=&gt;5,
+				-multiple=&gt;'true',
+				-labels=&gt;\%labels);
+</pre>
+<p class="POD_TEXT">
+scrolling_list() creates a scrolling list.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Parameters_1"><b>Parameters:</b></a>
+<dt><a name="_19">1.</a>
+<dd>
+The first and second arguments are the list name (-name) and values
+(-values).  As in the popup menu, the second argument should be an
+array reference.
+<dt class="POD_ITEM"><a name="_20">2.</a>
+<dd>
+The optional third argument (-default) can be either a reference to a
+list containing the values to be selected by default, or can be a
+single value to select.  If this argument is missing or undefined,
+then nothing is selected when the list first appears.  In the named
+parameter version, you can use the synonym &quot;-defaults&quot; for this
+parameter.
+<dt class="POD_ITEM"><a name="_21">3.</a>
+<dd>
+The optional fourth argument is the size of the list (-size).
+<dt class="POD_ITEM"><a name="_22">4.</a>
+<dd>
+The optional fifth argument can be set to true to allow multiple
+simultaneous selections (-multiple).  Otherwise only one selection
+will be allowed at a time.
+<dt class="POD_ITEM"><a name="_23">5.</a>
+<dd>
+The optional sixth argument is a pointer to an associative array
+containing long user-visible labels for the list items (-labels).
+If not provided, the values will be displayed.
+<pre class="POD_TEXT">
+When this form is processed, all selected list items will be returned as
+a list under the parameter name 'list_name'.  The values of the
+selected items can be retrieved with:
+
+      @selected = $query-&gt;param('list_name');
+</pre>
+</dl>
+<p class="POD_TEXT">
+JAVASCRIPTING: scrolling_list() recognizes the following event
+handlers: <b>-onChange</b>, <b>-onFocus</b>, <b>-onMouseOver</b>, <b>-onMouseOut</b>
+and <b>-onBlur</b>.  See textfield() for the description of when these
+handlers are called.
+</p>
+<h3 class="POD_HEAD2"><a name="CREATING_A_GROUP_OF_">CREATING A GROUP OF RELATED CHECKBOXES</a></h3>
+<pre class="POD_VERBATIM">
+   print $query-&gt;checkbox_group(-name=&gt;'group_name',
+				-values=&gt;['eenie','meenie','minie','moe'],
+				-default=&gt;['eenie','moe'],
+				-linebreak=&gt;'true',
+				-labels=&gt;\%labels);
+
+   print $query-&gt;checkbox_group('group_name',
+				['eenie','meenie','minie','moe'],
+				['eenie','moe'],'true',\%labels);
+
+   HTML3-COMPATIBLE BROWSERS ONLY:
+
+   print $query-&gt;checkbox_group(-name=&gt;'group_name',
+				-values=&gt;['eenie','meenie','minie','moe'],
+				-rows=2,-columns=&gt;2);
+</pre>
+<p></p>
+<p class="POD_TEXT">
+checkbox_group() creates a list of checkboxes that are related
+by the same name.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Parameters_2"><b>Parameters:</b></a>
+<dt><a name="_24">1.</a>
+<dd>
+The first and second arguments are the checkbox name and values,
+respectively (-name and -values).  As in the popup menu, the second
+argument should be an array reference.  These values are used for the
+user-readable labels printed next to the checkboxes as well as for the
+values passed to your script in the query string.
+<dt class="POD_ITEM"><a name="_25">2.</a>
+<dd>
+The optional third argument (-default) can be either a reference to a
+list containing the values to be checked by default, or can be a
+single value to checked.  If this argument is missing or undefined,
+then nothing is selected when the list first appears.
+<dt class="POD_ITEM"><a name="_26">3.</a>
+<dd>
+The optional fourth argument (-linebreak) can be set to true to place
+line breaks between the checkboxes so that they appear as a vertical
+list.  Otherwise, they will be strung together on a horizontal line.
+<dt class="POD_ITEM"><a name="_27">4.</a>
+<dd>
+The optional fifth argument is a pointer to an associative array
+relating the checkbox values to the user-visible labels that will
+be printed next to them (-labels).  If not provided, the values will
+be used as the default.
+<dt class="POD_ITEM"><a name="_28">5.</a>
+<dd>
+<b>HTML3-compatible browsers</b> (such as Netscape) can take advantage of
+the optional parameters <b>-rows</b>, and <b>-columns</b>.  These parameters
+cause checkbox_group() to return an HTML3 compatible table containing
+the checkbox group formatted with the specified number of rows and
+columns.  You can provide just the -columns parameter if you wish;
+checkbox_group will calculate the correct number of rows for you.
+<p class="POD_TEXT">
+To include row and column headings in the returned table, you
+can use the <b>-rowheaders</b> and <b>-colheaders</b> parameters.  Both
+of these accept a pointer to an array of headings to use.
+The headings are just decorative.  They don't reorganize the
+interpretation of the checkboxes -- they're still a single named
+unit.
+</p>
+</dl>
+<pre class="POD_TEXT">
+When the form is processed, all checked boxes will be returned as
+a list under the parameter name 'group_name'.  The values of the
+&quot;on&quot; checkboxes can be retrieved with:
+
+      @turned_on = $query-&gt;param('group_name');
+</pre>
+<pre class="POD_TEXT">
+The value returned by checkbox_group() is actually an array of button
+elements.  You can capture them and use them within tables, lists,
+or in other creative ways:
+
+    @h = $query-&gt;checkbox_group(-name=&gt;'group_name',-values=&gt;\@values);
+    &amp;use_in_creative_way(@h);
+</pre>
+<p class="POD_TEXT">
+JAVASCRIPTING: checkbox_group() recognizes the <b>-onClick</b>
+parameter.  This specifies a JavaScript code fragment or
+function call to be executed every time the user clicks on
+any of the buttons in the group.  You can retrieve the identity
+of the particular button clicked on using the &quot;this&quot; variable.
+</p>
+<h3 class="POD_HEAD2"><a name="CREATING_A_STANDALON">CREATING A STANDALONE CHECKBOX</a></h3>
+<pre class="POD_VERBATIM">
+    print $query-&gt;checkbox(-name=&gt;'checkbox_name',
+			   -checked=&gt;'checked',
+			   -value=&gt;'ON',
+			   -label=&gt;'CLICK ME');
+
+	-or-
+
+    print $query-&gt;checkbox('checkbox_name','checked','ON','CLICK ME');
+</pre>
+<p class="POD_TEXT">
+checkbox() is used to create an isolated checkbox that isn't logically
+related to any others.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Parameters_3"><b>Parameters:</b></a>
+<dt><a name="_29">1.</a>
+<dd>
+The first parameter is the required name for the checkbox (-name).  It
+will also be used for the user-readable label printed next to the
+checkbox.
+<dt class="POD_ITEM"><a name="_30">2.</a>
+<dd>
+The optional second parameter (-checked) specifies that the checkbox
+is turned on by default.  Synonyms are -selected and -on.
+<dt class="POD_ITEM"><a name="_31">3.</a>
+<dd>
+The optional third parameter (-value) specifies the value of the
+checkbox when it is checked.  If not provided, the word &quot;on&quot; is
+assumed.
+<dt class="POD_ITEM"><a name="_32">4.</a>
+<dd>
+The optional fourth parameter (-label) is the user-readable label to
+be attached to the checkbox.  If not provided, the checkbox name is
+used.
+</dl>
+<pre class="POD_TEXT">
+The value of the checkbox can be retrieved using:
+
+    $turned_on = $query-&gt;param('checkbox_name');
+</pre>
+<p class="POD_TEXT">
+JAVASCRIPTING: checkbox() recognizes the <b>-onClick</b>
+parameter.  See checkbox_group() for further details.
+</p>
+<h3 class="POD_HEAD2"><a name="CREATING_A_RADIO_BUT">CREATING A RADIO BUTTON GROUP</a></h3>
+<pre class="POD_VERBATIM">
+   print $query-&gt;radio_group(-name=&gt;'group_name',
+			     -values=&gt;['eenie','meenie','minie'],
+			     -default=&gt;'meenie',
+			     -linebreak=&gt;'true',
+			     -labels=&gt;\%labels);
+
+	-or-
+
+   print $query-&gt;radio_group('group_name',['eenie','meenie','minie'],
+					  'meenie','true',\%labels);
+</pre>
+<pre>
+   HTML3-COMPATIBLE BROWSERS ONLY:
+
+   print $query-&gt;radio_group(-name=&gt;'group_name',
+			     -values=&gt;['eenie','meenie','minie','moe'],
+			     -rows=2,-columns=&gt;2);
+</pre>
+<p class="POD_TEXT">
+radio_group() creates a set of logically-related radio buttons
+(turning one member of the group on turns the others off)
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Parameters_4"><b>Parameters:</b></a>
+<dt><a name="_33">1.</a>
+<dd>
+The first argument is the name of the group and is required (-name).
+<dt class="POD_ITEM"><a name="_34">2.</a>
+<dd>
+The second argument (-values) is the list of values for the radio
+buttons.  The values and the labels that appear on the page are
+identical.  Pass an array <i>reference</i> in the second argument, either
+using an anonymous array, as shown, or by referencing a named array as
+in &quot;\@foo&quot;.
+<dt class="POD_ITEM"><a name="_35">3.</a>
+<dd>
+The optional third parameter (-default) is the name of the default
+button to turn on. If not specified, the first item will be the
+default.  You can provide a nonexistent button name, such as &quot;-&quot; to
+start up with no buttons selected.
+<dt class="POD_ITEM"><a name="_36">4.</a>
+<dd>
+The optional fourth parameter (-linebreak) can be set to 'true' to put
+line breaks between the buttons, creating a vertical list.
+<dt class="POD_ITEM"><a name="_37">5.</a>
+<dd>
+The optional fifth parameter (-labels) is a pointer to an associative
+array relating the radio button values to user-visible labels to be
+used in the display.  If not provided, the values themselves are
+displayed.
+<dt class="POD_ITEM"><a name="_38">6.</a>
+<dd>
+<b>HTML3-compatible browsers</b> (such as Netscape) can take advantage 
+of the optional 
+parameters <b>-rows</b>, and <b>-columns</b>.  These parameters cause
+radio_group() to return an HTML3 compatible table containing
+the radio group formatted with the specified number of rows
+and columns.  You can provide just the -columns parameter if you
+wish; radio_group will calculate the correct number of rows
+for you.
+<p class="POD_TEXT">
+To include row and column headings in the returned table, you
+can use the <b>-rowheader</b> and <b>-colheader</b> parameters.  Both
+of these accept a pointer to an array of headings to use.
+The headings are just decorative.  They don't reorganize the
+interpretation of the radio buttons -- they're still a single named
+unit.
+</p>
+</dl>
+<pre class="POD_TEXT">
+When the form is processed, the selected radio button can
+be retrieved using:
+
+      $which_radio_button = $query-&gt;param('group_name');
+</pre>
+<pre class="POD_TEXT">
+The value returned by radio_group() is actually an array of button
+elements.  You can capture them and use them within tables, lists,
+or in other creative ways:
+
+    @h = $query-&gt;radio_group(-name=&gt;'group_name',-values=&gt;\@values);
+    &amp;use_in_creative_way(@h);
+</pre>
+<h3 class="POD_HEAD2"><a name="CREATING_A_SUBMIT_BU">CREATING A SUBMIT BUTTON</a></h3>
+<pre class="POD_VERBATIM">
+   print $query-&gt;submit(-name=&gt;'button_name',
+			-value=&gt;'value');
+
+	-or-
+
+   print $query-&gt;submit('button_name','value');
+</pre>
+<p class="POD_TEXT">
+submit() will create the query submission button.  Every form
+should have one of these.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Parameters_5"><b>Parameters:</b></a>
+<dt><a name="_39">1.</a>
+<dd>
+The first argument (-name) is optional.  You can give the button a
+name if you have several submission buttons in your form and you want
+to distinguish between them.  The name will also be used as the
+user-visible label.  Be aware that a few older browsers don't deal with this correctly and
+<b>never</b> send back a value from a button.
+<dt class="POD_ITEM"><a name="_40">2.</a>
+<dd>
+The second argument (-value) is also optional.  This gives the button
+a value that will be passed to your script in the query string.
+</dl>
+<pre class="POD_TEXT">
+You can figure out which button was pressed by using different
+values for each one:
+
+     $which_one = $query-&gt;param('button_name');
+</pre>
+<p class="POD_TEXT">
+JAVASCRIPTING: radio_group() recognizes the <b>-onClick</b>
+parameter.  See checkbox_group() for further details.
+</p>
+<h3 class="POD_HEAD2"><a name="CREATING_A_RESET_BUT">CREATING A RESET BUTTON</a></h3>
+<pre class="POD_VERBATIM">
+   print $query-&gt;reset
+</pre>
+<p class="POD_TEXT">
+reset() creates the &quot;reset&quot; button.  Note that it restores the
+form to its value from the last time the script was called, 
+NOT necessarily to the defaults.
+</p>
+<p class="POD_TEXT">
+Note that this conflicts with the Perl reset() built-in.  Use
+CORE::reset() to get the original reset function.
+</p>
+<h3 class="POD_HEAD2"><a name="CREATING_A_DEFAULT_B">CREATING A DEFAULT BUTTON</a></h3>
+<pre class="POD_VERBATIM">
+   print $query-&gt;defaults('button_label')
+</pre>
+<p class="POD_TEXT">
+defaults() creates a button that, when invoked, will cause the
+form to be completely reset to its defaults, wiping out all the
+changes the user ever made.
+</p>
+<h3 class="POD_HEAD2"><a name="CREATING_A_HIDDEN_FI">CREATING A HIDDEN FIELD</a></h3>
+<pre class="POD_VERBATIM">
+	print $query-&gt;hidden(-name=&gt;'hidden_name',
+			     -default=&gt;['value1','value2'...]);
+
+		-or-
+
+	print $query-&gt;hidden('hidden_name','value1','value2'...);
+</pre>
+<p class="POD_TEXT">
+hidden() produces a text field that can't be seen by the user.  It
+is useful for passing state variable information from one invocation
+of the script to the next.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Parameters_6"><b>Parameters:</b></a>
+<dt><a name="_41">1.</a>
+<dd>
+The first argument is required and specifies the name of this
+field (-name).
+<dt class="POD_ITEM"><a name="_42">2.</a>
+<dd>
+The second argument is also required and specifies its value
+(-default).  In the named parameter style of calling, you can provide
+a single value here or a reference to a whole list
+</dl>
+<pre class="POD_TEXT">
+Fetch the value of a hidden field this way:
+
+     $hidden_value = $query-&gt;param('hidden_name');
+</pre>
+<pre class="POD_TEXT">
+Note, that just like all the other form elements, the value of a
+hidden field is &quot;sticky&quot;.  If you want to replace a hidden field with
+some other values after the script has been called once you'll have to
+do it manually:
+
+     $query-&gt;param('hidden_name','new','values','here');
+</pre>
+<h3 class="POD_HEAD2"><a name="CREATING_A_CLICKABLE">CREATING A CLICKABLE IMAGE BUTTON</a></h3>
+<pre class="POD_VERBATIM">
+     print $query-&gt;image_button(-name=&gt;'button_name',
+				-src=&gt;'/source/URL',
+				-align=&gt;'MIDDLE');
+
+	-or-
+
+     print $query-&gt;image_button('button_name','/source/URL','MIDDLE');
+</pre>
+<p class="POD_TEXT">
+image_button() produces a clickable image.  When it's clicked on the
+position of the click is returned to your script as &quot;button_name.x&quot;
+and &quot;button_name.y&quot;, where &quot;button_name&quot; is the name you've assigned
+to it.
+</p>
+<p class="POD_TEXT">
+JAVASCRIPTING: image_button() recognizes the <b>-onClick</b>
+parameter.  See checkbox_group() for further details.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Parameters_7"><b>Parameters:</b></a>
+<dt><a name="_43">1.</a>
+<dd>
+The first argument (-name) is required and specifies the name of this
+field.
+<dt class="POD_ITEM"><a name="_44">2.</a>
+<dd>
+The second argument (-src) is also required and specifies the URL
+<dt class="POD_ITEM"><a name="_45">3.</a>
+<dd>
+The third option (-align, optional) is an alignment type, and may be
+TOP, BOTTOM or MIDDLE
+</dl>
+<p class="POD_TEXT">
+Fetch the value of the button this way:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$x = $query-&gt;param('button_name.x');<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$y = $query-&gt;param('button_name.y');
+</p>
+<h3 class="POD_HEAD2"><a name="CREATING_A_JAVASCRIP">CREATING A JAVASCRIPT ACTION BUTTON</a></h3>
+<pre class="POD_VERBATIM">
+     print $query-&gt;button(-name=&gt;'button_name',
+			  -value=&gt;'user visible label',
+			  -onClick=&gt;&quot;do_something()&quot;);
+
+	-or-
+
+     print $query-&gt;button('button_name',&quot;do_something()&quot;);
+</pre>
+<p class="POD_TEXT">
+button() produces a button that is compatible with Netscape 2.0's
+JavaScript.  When it's pressed the fragment of JavaScript code
+pointed to by the <b>-onClick</b> parameter will be executed.  On
+non-Netscape browsers this form element will probably not even
+display.
+</p>
+<h2 class="POD_HEAD1"><a name="HTTP_COOKIES">HTTP COOKIES</a></h2>
+<p class="POD_TEXT">
+Netscape browsers versions 1.1 and higher, and all versions of
+Internet Explorer, support a so-called &quot;cookie&quot; designed to help
+maintain state within a browser session.  CGI.pm has several methods
+that support cookies.
+</p>
+<p class="POD_TEXT">
+A cookie is a name=value pair much like the named parameters in a CGI
+query string.  CGI scripts create one or more cookies and send
+them to the browser in the HTTP header.  The browser maintains a list
+of cookies that belong to a particular Web server, and returns them
+to the CGI script during subsequent interactions.
+</p>
+<p class="POD_TEXT">
+In addition to the required name=value pair, each cookie has several
+optional attributes:
+</p>
+<ol class="POD_LIST">
+<li class="POD_ITEM"><a name="an">an expiration time</a>
+
+This is a time/date string (in a special GMT format) that indicates
+when a cookie expires.  The cookie will be saved and returned to your
+script until this expiration date is reached if the user exits
+the browser and restarts it.  If an expiration date isn't specified, the cookie
+will remain active until the user quits the browser.
+<li class="POD_ITEM"><a name="a">a domain</a>
+
+This is a partial or complete domain name for which the cookie is 
+valid.  The browser will return the cookie to any host that matches
+the partial domain name.  For example, if you specify a domain name
+of &quot;.capricorn.com&quot;, then the browser will return the cookie to
+Web servers running on any of the machines &quot;www.capricorn.com&quot;, 
+&quot;www2.capricorn.com&quot;, &quot;feckless.capricorn.com&quot;, etc.  Domain names
+must contain at least two periods to prevent attempts to match
+on top level domains like &quot;.edu&quot;.  If no domain is specified, then
+the browser will only return the cookie to servers on the host the
+cookie originated from.
+<li class="POD_ITEM"><a name="a1">a path</a>
+
+If you provide a cookie path attribute, the browser will check it
+against your script's URL before returning the cookie.  For example,
+if you specify the path &quot;/cgi-bin&quot;, then the cookie will be returned
+to each of the scripts &quot;/cgi-bin/tally.pl&quot;, &quot;/cgi-bin/order.pl&quot;,
+and &quot;/cgi-bin/customer_service/complain.pl&quot;, but not to the script
+&quot;/cgi-private/site_admin.pl&quot;.  By default, path is set to &quot;/&quot;, which
+causes the cookie to be sent to any CGI script on your site.
+<li class="POD_ITEM"><a name="a2">a &quot;secure&quot; flag</a>
+
+If the &quot;secure&quot; attribute is set, the cookie will only be sent to your
+script if the CGI request is occurring on a secure channel, such as SSL.
+</ol>
+<pre class="POD_TEXT">
+The interface to HTTP cookies is the <b>cookie()</b> method:
+
+    $cookie = $query-&gt;cookie(-name=&gt;'sessionID',
+			     -value=&gt;'xyzzy',
+			     -expires=&gt;'+1h',
+			     -path=&gt;'/cgi-bin/database',
+			     -domain=&gt;'.capricorn.org',
+			     -secure=&gt;1);
+    print $query-&gt;header(-cookie=&gt;$cookie);
+</pre>
+<p class="POD_TEXT">
+<b>cookie()</b> creates a new cookie.  Its parameters include:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_name"><b>-name</b></a>
+<dd>
+The name of the cookie (required).  This can be any string at all.
+Although browsers limit their cookie names to non-whitespace
+alphanumeric characters, CGI.pm removes this restriction by escaping
+and unescaping cookies behind the scenes.
+<dt class="POD_ITEM"><a name="_value"><b>-value</b></a>
+<dd>
+The value of the cookie.  This can be any scalar value,
+array reference, or even associative array reference.  For example,
+you can store an entire associative array into a cookie this way:
+<pre class="POD_VERBATIM">
+	$cookie=$query-&gt;cookie(-name=&gt;'family information',
+			       -value=&gt;\%childrens_ages);
+</pre>
+<dt class="POD_ITEM"><a name="_path"><b>-path</b></a>
+<dd>
+The optional partial path for which this cookie will be valid, as described
+above.
+<dt class="POD_ITEM"><a name="_domain"><b>-domain</b></a>
+<dd>
+The optional partial domain for which this cookie will be valid, as described
+above.
+<dt class="POD_ITEM"><a name="_expires"><b>-expires</b></a>
+<dd>
+The optional expiration date for this cookie.  The format is as described 
+in the section on the <b>header()</b> method:
+<pre class="POD_VERBATIM">
+	&quot;+1h&quot;  one hour from now
+</pre>
+<dt class="POD_ITEM"><a name="_secure"><b>-secure</b></a>
+<dd>
+If set to true, this cookie will only be used within a secure
+SSL session.
+</dl>
+<pre class="POD_TEXT">
+The cookie created by cookie() must be incorporated into the HTTP
+header within the string returned by the header() method:
+
+	print $query-&gt;header(-cookie=&gt;$my_cookie);
+</pre>
+<pre class="POD_TEXT">
+To create multiple cookies, give header() an array reference:
+
+	$cookie1 = $query-&gt;cookie(-name=&gt;'riddle_name',
+				  -value=&gt;&quot;The Sphynx's Question&quot;);
+	$cookie2 = $query-&gt;cookie(-name=&gt;'answers',
+				  -value=&gt;\%answers);
+	print $query-&gt;header(-cookie=&gt;[$cookie1,$cookie2]);
+</pre>
+<pre class="POD_TEXT">
+To retrieve a cookie, request it by name by calling cookie() method
+without the <b>-value</b> parameter:
+
+	use CGI;
+	$query = new CGI;
+	$riddle = $query-&gt;cookie('riddle_name');
+        %answers = $query-&gt;cookie('answers');
+</pre>
+<p class="POD_TEXT">
+Cookies created with a single scalar value, such as the &quot;riddle_name&quot;
+cookie, will be returned in that form.  Cookies with array and hash
+values can also be retrieved.
+</p>
+<pre class="POD_TEXT">
+The cookie and CGI namespaces are separate.  If you have a parameter
+named 'answers' and a cookie named 'answers', the values retrieved by
+param() and cookie() are independent of each other.  However, it's
+simple to turn a CGI parameter into a cookie, and vice-versa:
+
+   # turn a CGI parameter into a cookie
+   $c=$q-&gt;cookie(-name=&gt;'answers',-value=&gt;[$q-&gt;param('answers')]);
+   # vice-versa
+   $q-&gt;param(-name=&gt;'answers',-value=&gt;[$q-&gt;cookie('answers')]);
+</pre>
+<p class="POD_TEXT">
+See the <b>cookie.cgi</b> example script for some ideas on how to use
+cookies effectively.
+</p>
+<h2 class="POD_HEAD1"><a name="WORKING_WITH_FRAMES">WORKING WITH FRAMES</a></h2>
+<p class="POD_TEXT">
+It's possible for CGI.pm scripts to write into several browser panels
+and windows using the HTML 4 frame mechanism.  There are three
+techniques for defining new frames programmatically:
+</p>
+<ol class="POD_LIST">
+<li class="POD_ITEM"><a name="Create">Create a &lt;Frameset&gt; document</a>
+
+After writing out the HTTP header, instead of creating a standard
+HTML document using the start_html() call, create a &lt;FRAMESET&gt; 
+document that defines the frames on the page.  Specify your script(s)
+(with appropriate parameters) as the SRC for each of the frames.
+<pre class="POD_TEXT">
+There is no specific support for creating &lt;FRAMESET&gt; sections 
+in CGI.pm, but the HTML is very simple to write.  See the frame
+documentation in Netscape's home pages for details
+
+  http://home.netscape.com/assist/net_sites/frames.html
+</pre>
+<li class="POD_ITEM"><a name="Specify">Specify the destination for the document in the HTTP header</a>
+
+You may provide a <b>-target</b> parameter to the header() method:
+<pre class="POD_VERBATIM">
+    print $q-&gt;header(-target=&gt;'ResultsWindow');
+</pre>
+<p class="POD_TEXT">
+This will tell the browser to load the output of your script into the
+frame named &quot;ResultsWindow&quot;.  If a frame of that name doesn't already
+exist, the browser will pop up a new window and load your script's
+document into that.  There are a number of magic names that you can
+use for targets.  See the frame documents on Netscape's home pages for
+details.
+</p>
+<li class="POD_ITEM"><a name="Specify1">Specify the destination for the document in the &lt;FORM&gt; tag</a>
+
+You can specify the frame to load in the FORM tag itself.  With
+CGI.pm it looks like this:
+<pre class="POD_VERBATIM">
+    print $q-&gt;start_form(-target=&gt;'ResultsWindow');
+</pre>
+<p class="POD_TEXT">
+When your script is reinvoked by the form, its output will be loaded
+into the frame named &quot;ResultsWindow&quot;.  If one doesn't already exist
+a new window will be created.
+</p>
+</ol>
+<p class="POD_TEXT">
+The script &quot;frameset.cgi&quot; in the examples directory shows one way to
+create pages in which the fill-out form and the response live in
+side-by-side frames.
+</p>
+<h2 class="POD_HEAD1"><a name="LIMITED_SUPPORT_FOR_">LIMITED SUPPORT FOR CASCADING STYLE SHEETS</a></h2>
+<p class="POD_TEXT">
+CGI.pm has limited support for HTML3's cascading style sheets (css).
+To incorporate a stylesheet into your document, pass the
+start_html() method a <b>-style</b> parameter.  The value of this
+parameter may be a scalar, in which case it is incorporated directly
+into a &lt;STYLE&gt; section, or it may be a hash reference.  In the latter
+case you should provide the hash with one or more of <b>-src</b> or
+<b>-code</b>.  <b>-src</b> points to a URL where an externally-defined
+stylesheet can be found.  <b>-code</b> points to a scalar value to be
+incorporated into a &lt;STYLE&gt; section.  Style definitions in <b>-code</b>
+override similarly-named ones in <b>-src</b>, hence the name &quot;cascading.&quot;
+</p>
+<p class="POD_TEXT">
+You may also specify the type of the stylesheet by adding the optional
+<b>-type</b> parameter to the hash pointed to by <b>-style</b>.  If not
+specified, the style defaults to 'text/css'.
+</p>
+<pre class="POD_TEXT">
+To refer to a style within the body of your document, add the
+<b>-class</b> parameter to any HTML element:
+
+    print h1({-class=&gt;'Fancy'},'Welcome to the Party');
+</pre>
+<pre class="POD_TEXT">
+Or define styles on the fly with the <b>-style</b> parameter:
+
+    print h1({-style=&gt;'Color: red;'},'Welcome to Hell');
+</pre>
+<pre class="POD_TEXT">
+You may also use the new <b>span()</b> element to apply a style to a
+section of text:
+
+    print span({-style=&gt;'Color: red;'},
+	       h1('Welcome to Hell'),
+	       &quot;Where did that handbasket get to?&quot;
+	       );
+</pre>
+<pre class="POD_TEXT">
+Note that you must import the &quot;:html3&quot; definitions to have the
+<b>span()</b> method available.  Here's a quick and dirty example of using
+CSS's.  See the CSS specification at
+http://www.w3.org/pub/WWW/TR/Wd-css-1.html for more information.
+
+    use CGI qw/:standard :html3/;
+
+    #here's a stylesheet incorporated directly into the page
+    $newStyle=&lt;&lt;END;
+    &lt;!-- 
+    P.Tip {
+	margin-right: 50pt;
+	margin-left: 50pt;
+        color: red;
+    }
+    P.Alert {
+	font-size: 30pt;
+        font-family: sans-serif;
+      color: red;
+    }
+    --&gt;
+    END
+    print header();
+    print start_html( -title=&gt;'CGI with Style',
+		      -style=&gt;{-src=&gt;'http://www.capricorn.com/style/st1.css',
+		               -code=&gt;$newStyle}
+	             );
+    print h1('CGI with Style'),
+          p({-class=&gt;'Tip'},
+	    &quot;Better read the cascading style sheet spec before playing with this!&quot;),
+          span({-style=&gt;'color: magenta'},
+	       &quot;Look Mom, no hands!&quot;,
+	       p(),
+	       &quot;Whooo wee!&quot;
+	       );
+    print end_html;
+</pre>
+<p class="POD_TEXT">
+Pass an array reference to <b>-style</b> in order to incorporate multiple
+stylesheets into your document.
+</p>
+<h2 class="POD_HEAD1"><a name="DEBUGGING">DEBUGGING</a></h2>
+<pre class="POD_TEXT">
+If you are running the script from the command line or in the perl
+debugger, you can pass the script a list of keywords or
+parameter=value pairs on the command line or from standard input (you
+don't have to worry about tricking your script into reading from
+environment variables).  You can pass keywords like this:
+
+    your_script.pl keyword1 keyword2 keyword3
+</pre>
+<pre class="POD_TEXT">
+or this:
+
+   your_script.pl keyword1+keyword2+keyword3
+</pre>
+<pre class="POD_TEXT">
+or this:
+
+    your_script.pl name1=value1 name2=value2
+</pre>
+<pre class="POD_TEXT">
+or this:
+
+    your_script.pl name1=value1&amp;name2=value2
+</pre>
+<p class="POD_TEXT">
+To turn off this feature, use the -no_debug pragma.
+</p>
+<p class="POD_TEXT">
+To test the POST method, you may enable full debugging with the -debug
+pragma.  This will allow you to feed newline-delimited name=value
+pairs to the script on standard input.
+</p>
+<pre class="POD_TEXT">
+When debugging, you can use quotes and backslashes to escape 
+characters in the familiar shell manner, letting you place
+spaces and other funny characters in your parameter=value
+pairs:
+
+   your_script.pl &quot;name1='I am a long value'&quot; &quot;name2=two\ words&quot;
+</pre>
+<h3 class="POD_HEAD2"><a name="DUMPING_OUT_ALL_THE_">DUMPING OUT ALL THE NAME/VALUE PAIRS</a></h3>
+<pre class="POD_TEXT">
+The Dump() method produces a string consisting of all the query's
+name/value pairs formatted nicely as a nested list.  This is useful
+for debugging purposes:
+
+    print $query-&gt;Dump
+</pre>
+<p></p>
+<pre class="POD_TEXT">
+Produces something that looks like:
+
+    &lt;UL&gt;
+    &lt;LI&gt;name1
+	&lt;UL&gt;
+	&lt;LI&gt;value1
+	&lt;LI&gt;value2
+	&lt;/UL&gt;
+    &lt;LI&gt;name2
+	&lt;UL&gt;
+	&lt;LI&gt;value1
+	&lt;/UL&gt;
+    &lt;/UL&gt;
+</pre>
+<pre class="POD_TEXT">
+As a shortcut, you can interpolate the entire CGI object into a string
+and it will be replaced with the a nice HTML dump shown above:
+
+    $query=new CGI;
+    print &quot;&lt;H2&gt;Current Values&lt;/H2&gt; $query\n&quot;;
+</pre>
+<h2 class="POD_HEAD1"><a name="FETCHING_ENVIRONMENT">FETCHING ENVIRONMENT VARIABLES</a></h2>
+<p class="POD_TEXT">
+Some of the more useful environment variables can be fetched
+through this interface.  The methods are as follows:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Accept_"><b>Accept()</b></a>
+<dd>
+Return a list of MIME types that the remote browser accepts. If you
+give this method a single argument corresponding to a MIME type, as in
+$query-&gt;Accept('text/html'), it will return a floating point value
+corresponding to the browser's preference for this type from 0.0
+(don't want) to 1.0.  Glob types (e.g. text/*) in the browser's accept
+list are handled correctly.
+<p class="POD_TEXT">
+Note that the capitalization changed between version 2.43 and 2.44 in
+order to avoid conflict with Perl's accept() function.
+</p>
+<dt class="POD_ITEM"><a name="raw_cookie_"><b>raw_cookie()</b></a>
+<dd>
+Returns the HTTP_COOKIE variable, an HTTP extension implemented by
+Netscape browsers version 1.1 and higher, and all versions of Internet
+Explorer.  Cookies have a special format, and this method call just
+returns the raw form (?cookie dough).  See cookie() for ways of
+setting and retrieving cooked cookies.
+<p class="POD_TEXT">
+Called with no parameters, raw_cookie() returns the packed cookie
+structure.  You can separate it into individual cookies by splitting
+on the character sequence &quot;; &quot;.  Called with the name of a cookie,
+retrieves the <b>unescaped</b> form of the cookie.  You can use the
+regular cookie() method to get the names, or use the raw_fetch()
+method from the CGI::Cookie module.
+</p>
+<dt class="POD_ITEM"><a name="user_agent_"><b>user_agent()</b></a>
+<dd>
+Returns the HTTP_USER_AGENT variable.  If you give
+this method a single argument, it will attempt to
+pattern match on it, allowing you to do something
+like $query-&gt;user_agent(netscape);
+<dt class="POD_ITEM"><a name="path_info_"><b>path_info()</b></a>
+<dd>
+Returns additional path information from the script URL.
+E.G. fetching /cgi-bin/your_script/additional/stuff will result in
+$query-&gt;path_info() returning &quot;/additional/stuff&quot;.
+<p class="POD_TEXT">
+NOTE: The Microsoft Internet Information Server
+is broken with respect to additional path information.  If
+you use the Perl DLL library, the IIS server will attempt to
+execute the additional path information as a Perl script.
+If you use the ordinary file associations mapping, the
+path information will be present in the environment, 
+but incorrect.  The best thing to do is to avoid using additional
+path information in CGI scripts destined for use with IIS.
+</p>
+<dt class="POD_ITEM"><a name="path_translated_"><b>path_translated()</b></a>
+<dd>
+As per path_info() but returns the additional
+path information translated into a physical path, e.g.
+&quot;/usr/local/etc/httpd/htdocs/additional/stuff&quot;.
+<p class="POD_TEXT">
+The Microsoft IIS is broken with respect to the translated
+path as well.
+</p>
+<dt class="POD_ITEM"><a name="remote_host_"><b>remote_host()</b></a>
+<dd>
+Returns either the remote host name or IP address.
+if the former is unavailable.
+<dt class="POD_ITEM"><a name="script_name_"><b>script_name()</b></a>
+<dd>
+Return the script name as a partial URL, for self-refering
+scripts.
+<dt class="POD_ITEM"><a name="referer_"><b>referer()</b></a>
+<dd>
+Return the URL of the page the browser was viewing
+prior to fetching your script.  Not available for all
+browsers.
+<dt class="POD_ITEM"><a name="auth_type_"><b>auth_type ()</b></a>
+<dd>
+Return the authorization/verification method in use for this
+script, if any.
+<dt class="POD_ITEM"><a name="server_name_"><b>server_name ()</b></a>
+<dd>
+Returns the name of the server, usually the machine's host
+name.
+<dt class="POD_ITEM"><a name="virtual_host_"><b>virtual_host ()</b></a>
+<dd>
+When using virtual hosts, returns the name of the host that
+the browser attempted to contact
+<dt class="POD_ITEM"><a name="server_port_"><b>server_port ()</b></a>
+<dd>
+Return the port that the server is listening on.
+<dt class="POD_ITEM"><a name="server_software_"><b>server_software ()</b></a>
+<dd>
+Returns the server software and version number.
+<dt class="POD_ITEM"><a name="remote_user_"><b>remote_user ()</b></a>
+<dd>
+Return the authorization/verification name used for user
+verification, if this script is protected.
+<dt class="POD_ITEM"><a name="user_name_"><b>user_name ()</b></a>
+<dd>
+Attempt to obtain the remote user's name, using a variety of different
+techniques.  This only works with older browsers such as Mosaic.
+Newer browsers do not report the user name for privacy reasons!
+<dt class="POD_ITEM"><a name="request_method_"><b>request_method()</b></a>
+<dd>
+Returns the method used to access your script, usually
+one of 'POST', 'GET' or 'HEAD'.
+<dt class="POD_ITEM"><a name="content_type_"><b>content_type()</b></a>
+<dd>
+Returns the content_type of data submitted in a POST, generally 
+multipart/form-data or application/x-www-form-urlencoded
+<dt class="POD_ITEM"><a name="http_"><b>http()</b></a>
+<dd>
+Called with no arguments returns the list of HTTP environment
+variables, including such things as HTTP_USER_AGENT,
+HTTP_ACCEPT_LANGUAGE, and HTTP_ACCEPT_CHARSET, corresponding to the
+like-named HTTP header fields in the request.  Called with the name of
+an HTTP header field, returns its value.  Capitalization and the use
+of hyphens versus underscores are not significant.
+<pre class="POD_TEXT">
+For example, all three of these examples are equivalent:
+
+   $requested_language = $q-&gt;http('Accept-language');
+   $requested_language = $q-&gt;http('Accept_language');
+   $requested_language = $q-&gt;http('HTTP_ACCEPT_LANGUAGE');
+</pre>
+<dt class="POD_ITEM"><a name="https_"><b>https()</b></a>
+<dd>
+The same as <i>http()</i>, but operates on the HTTPS environment variables
+present when the SSL protocol is in effect.  Can be used to determine
+whether SSL is turned on.
+</dl>
+<h2 class="POD_HEAD1"><a name="USING_NPH_SCRIPTS">USING NPH SCRIPTS</a></h2>
+<p class="POD_TEXT">
+NPH, or &quot;no-parsed-header&quot;, scripts bypass the server completely by
+sending the complete HTTP header directly to the browser.  This has
+slight performance benefits, but is of most use for taking advantage
+of HTTP extensions that are not directly supported by your server,
+such as server push and PICS headers.
+</p>
+<p class="POD_TEXT">
+Servers use a variety of conventions for designating CGI scripts as
+NPH.  Many Unix servers look at the beginning of the script's name for
+the prefix &quot;nph-&quot;.  The Macintosh WebSTAR server and Microsoft's
+Internet Information Server, in contrast, try to decide whether a
+program is an NPH script by examining the first line of script output.
+</p>
+<p></p>
+<p class="POD_TEXT">
+CGI.pm supports NPH scripts with a special NPH mode.  When in this
+mode, CGI.pm will output the necessary extra header information when
+the header() and redirect() methods are
+called.
+</p>
+<p class="POD_TEXT">
+The Microsoft Internet Information Server requires NPH mode.  As of version
+2.30, CGI.pm will automatically detect when the script is running under IIS
+and put itself into this mode.  You do not need to do this manually, although
+it won't hurt anything if you do.
+</p>
+<p class="POD_TEXT">
+There are a number of ways to put CGI.pm into NPH mode:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="In_the_use_statement">In the <b>use</b> statement</a>
+<dd>
+Simply add the &quot;-nph&quot; pragmato the list of symbols to be imported into
+your script:
+<pre class="POD_VERBATIM">
+      use CGI qw(:standard -nph)
+</pre>
+<dt class="POD_ITEM"><a name="By_calling_the_nph_m">By calling the <b>nph()</b> method:</a>
+<dd>
+Call <b>nph()</b> with a non-zero parameter at any point after using CGI.pm in your program.
+<pre class="POD_VERBATIM">
+      CGI-&gt;nph(1)
+</pre>
+<dt class="POD_ITEM"><a name="By_using_nph_paramet">By using <b>-nph</b> parameters</a>
+<dd>
+in the <b>header()</b> and <b>redirect()</b>  statements:
+<pre class="POD_VERBATIM">
+      print $q-&gt;header(-nph=&gt;1);
+</pre>
+</dl>
+<h2 class="POD_HEAD1"><a name="Server_Push">Server Push</a></h2>
+<p class="POD_TEXT">
+CGI.pm provides four simple functions for producing multipart
+documents of the type needed to implement server push.  These
+functions were graciously provided by Ed Jordan &lt;ed@fidalgo.net&gt;.  To
+import these into your namespace, you must import the &quot;:push&quot; set.
+You are also advised to put the script into NPH mode and to set $| to
+1 to avoid buffering problems.
+</p>
+<pre class="POD_TEXT">
+Here is a simple script that demonstrates server push:
+
+  #!/usr/local/bin/perl
+  use CGI qw/:push -nph/;
+  $| = 1;
+  print multipart_init(-boundary=&gt;'----here we go!');
+  foreach (0 .. 4) {
+      print multipart_start(-type=&gt;'text/plain'),
+            &quot;The current time is &quot;,scalar(localtime),&quot;\n&quot;;
+      if ($_ &lt; 4) {
+              print multipart_end;
+      } else {
+              print multipart_final;
+      }
+      sleep 1;
+  }
+</pre>
+<p class="POD_TEXT">
+This script initializes server push by calling <b>multipart_init()</b>.
+It then enters a loop in which it begins a new multipart section by
+calling <b>multipart_start()</b>, prints the current local time,
+and ends a multipart section with <b>multipart_end()</b>.  It then sleeps
+a second, and begins again. On the final iteration, it ends the
+multipart section with <b>multipart_final()</b> rather than with
+<b>multipart_end()</b>.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="multipart_init_">multipart_init()</a>
+<dd><pre class="POD_VERBATIM">
+  multipart_init(-boundary=&gt;$boundary);
+</pre>
+
+Initialize the multipart system.  The -boundary argument specifies
+what MIME boundary string to use to separate parts of the document.
+If not provided, CGI.pm chooses a reasonable boundary for you.
+<dt class="POD_ITEM"><a name="multipart_start_">multipart_start()</a>
+<dd><pre class="POD_VERBATIM">
+  multipart_start(-type=&gt;$type)
+</pre>
+
+Start a new part of the multipart document using the specified MIME
+type.  If not specified, text/html is assumed.
+<dt class="POD_ITEM"><a name="multipart_end_">multipart_end()</a>
+<dd><pre class="POD_VERBATIM">
+  multipart_end()
+</pre>
+
+End a part.  You must remember to call multipart_end() once for each
+multipart_start(), except at the end of the last part of the multipart
+document when multipart_final() should be called instead of multipart_end().
+<dt class="POD_ITEM"><a name="multipart_final_">multipart_final()</a>
+<dd><pre class="POD_VERBATIM">
+  multipart_final()
+</pre>
+
+End all parts.  You should call multipart_final() rather than
+multipart_end() at the end of the last part of the multipart document.
+</dl>
+<p class="POD_TEXT">
+Users interested in server push applications should also have a look
+at the CGI::Push module.
+</p>
+<p class="POD_TEXT">
+Only Netscape Navigator supports server push.  Internet Explorer
+browsers do not.
+</p>
+<h2 class="POD_HEAD1"><a name="Avoiding_Denial_of_S">Avoiding Denial of Service Attacks</a></h2>
+<p class="POD_TEXT">
+A potential problem with CGI.pm is that, by default, it attempts to
+process form POSTings no matter how large they are.  A wily hacker
+could attack your site by sending a CGI script a huge POST of many
+megabytes.  CGI.pm will attempt to read the entire POST into a
+variable, growing hugely in size until it runs out of memory.  While
+the script attempts to allocate the memory the system may slow down
+dramatically.  This is a form of denial of service attack.
+</p>
+<p class="POD_TEXT">
+Another possible attack is for the remote user to force CGI.pm to
+accept a huge file upload.  CGI.pm will accept the upload and store it
+in a temporary directory even if your script doesn't expect to receive
+an uploaded file.  CGI.pm will delete the file automatically when it
+terminates, but in the meantime the remote user may have filled up the
+server's disk space, causing problems for other programs.
+</p>
+<p class="POD_TEXT">
+The best way to avoid denial of service attacks is to limit the amount
+of memory, CPU time and disk space that CGI scripts can use.  Some Web
+servers come with built-in facilities to accomplish this. In other
+cases, you can use the shell <i>limit</i> or <i>ulimit</i>
+commands to put ceilings on CGI resource usage.
+</p>
+<p></p>
+<p class="POD_TEXT">
+CGI.pm also has some simple built-in protections against denial of
+service attacks, but you must activate them before you can use them.
+These take the form of two global variables in the CGI name space:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_CGI_POST_MAX"><b>$CGI::POST_MAX</b></a>
+<dd>
+If set to a non-negative integer, this variable puts a ceiling
+on the size of POSTings, in bytes.  If CGI.pm detects a POST
+that is greater than the ceiling, it will immediately exit with an error
+message.  This value will affect both ordinary POSTs and
+multipart POSTs, meaning that it limits the maximum size of file
+uploads as well.  You should set this to a reasonably high
+value, such as 1 megabyte.
+<dt class="POD_ITEM"><a name="_CGI_DISABLE_UPLOADS"><b>$CGI::DISABLE_UPLOADS</b></a>
+<dd>
+If set to a non-zero value, this will disable file uploads
+completely.  Other fill-out form values will work as usual.
+</dl>
+<p class="POD_TEXT">
+You can use these variables in either of two ways.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="On"><b>1. On a script-by-script basis</b></a>
+<dd>
+Set the variable at the top of the script, right after the &quot;use&quot; statement:
+<pre class="POD_VERBATIM">
+    use CGI qw/:standard/;
+    use CGI::Carp 'fatalsToBrowser';
+    $CGI::POST_MAX=1024 * 100;  # max 100K posts
+    $CGI::DISABLE_UPLOADS = 1;  # no uploads
+</pre>
+<dt class="POD_ITEM"><a name="Globally"><b>2. Globally for all scripts</b></a>
+<dd>
+Open up CGI.pm, find the definitions for $POST_MAX and 
+$DISABLE_UPLOADS, and set them to the desired values.  You'll 
+find them towards the top of the file in a subroutine named 
+initialize_globals().
+</dl>
+<p class="POD_TEXT">
+An attempt to send a POST larger than $POST_MAX bytes will cause
+<i>param()</i> to return an empty CGI parameter list.  You can test for
+this event by checking <i>cgi_error()</i>, either after you create the CGI
+object or, if you are using the function-oriented interface, call
+&lt;param()&gt; for the first time.  If the POST was intercepted, then
+cgi_error() will return the message &quot;413 POST too large&quot;.
+</p>
+<pre class="POD_TEXT">
+This error message is actually defined by the HTTP protocol, and is
+designed to be returned to the browser as the CGI script's status
+ code.  For example:
+
+   $uploaded_file = param('upload');
+   if (!$uploaded_file &amp;&amp; cgi_error()) {
+      print header(-status=&gt;cgi_error());
+      exit 0;
+   }
+</pre>
+<p class="POD_TEXT">
+However it isn't clear that any browser currently knows what to do
+with this status code.  It might be better just to create an
+HTML page that warns the user of the problem.
+</p>
+<h2 class="POD_HEAD1"><a name="COMPATIBILITY_WITH_C">COMPATIBILITY WITH CGI-LIB.PL</a></h2>
+<p class="POD_TEXT">
+To make it easier to port existing programs that use cgi-lib.pl the
+compatibility routine &quot;ReadParse&quot; is provided.  Porting is simple:
+</p>
+<p class="POD_TEXT">
+OLD VERSION<br>&nbsp;&nbsp;&nbsp;&nbsp;require &quot;cgi-lib.pl&quot;;<br>&nbsp;&nbsp;&nbsp;&nbsp;&amp;ReadParse;<br>&nbsp;&nbsp;&nbsp;&nbsp;print &quot;The value of the antique is $in{antique}.\n&quot;;
+</p>
+<p class="POD_TEXT">
+NEW VERSION<br>&nbsp;&nbsp;&nbsp;&nbsp;use CGI;<br>&nbsp;&nbsp;&nbsp;&nbsp;CGI::ReadParse<br>&nbsp;&nbsp;&nbsp;&nbsp;print &quot;The value of the antique is $in{antique}.\n&quot;;
+</p>
+<p class="POD_TEXT">
+CGI.pm's ReadParse() routine creates a tied variable named %in,
+which can be accessed to obtain the query variables.  Like
+ReadParse, you can also provide your own variable.  Infrequently
+used features of ReadParse, such as the creation of @in and $in 
+variables, are not supported.
+</p>
+<pre class="POD_TEXT">
+Once you use ReadParse, you can retrieve the query object itself
+this way:
+
+    $q = $in{CGI};
+    print $q-&gt;textfield(-name=&gt;'wow',
+			-value=&gt;'does this really work?');
+</pre>
+<p class="POD_TEXT">
+This allows you to start using the more interesting features
+of CGI.pm without rewriting your old scripts from scratch.
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHOR_INFORMATION">AUTHOR INFORMATION</a></h2>
+<p class="POD_TEXT">
+Copyright 1995-1998, Lincoln D. Stein.  All rights reserved.
+</p>
+<p class="POD_TEXT">
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+</p>
+<p class="POD_TEXT">
+Address bug reports and comments to: lstein@cshl.org.  When sending
+bug reports, please provide the version of CGI.pm, the version of
+Perl, the name and version of your Web server, and the name and
+version of the operating system you are using.  If the problem is even
+remotely browser dependent, please provide information about the
+affected browers as well.
+</p>
+<h2 class="POD_HEAD1"><a name="CREDITS">CREDITS</a></h2>
+<p class="POD_TEXT">
+Thanks very much to:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Matt_Heffron_heffron">Matt Heffron (heffron@falstaff.css.beckman.com)</a>
+<dt><a name="James_Taylor_james_t">James Taylor (james.taylor@srs.gov)</a>
+<dt><a name="Scott_Anguish_sangui">Scott Anguish &lt;sanguish@digifix.com&gt;</a>
+<dt><a name="Mike_Jewell_mlj3u_vi">Mike Jewell (mlj3u@virginia.edu)</a>
+<dt><a name="Timothy_Shimmin_tes_">Timothy Shimmin (tes@kbs.citri.edu.au)</a>
+<dt><a name="Joergen_Haegg_jh_axi">Joergen Haegg (jh@axis.se)</a>
+<dt><a name="Laurent_Delfosse_del">Laurent Delfosse (delfosse@delfosse.com)</a>
+<dt><a name="Richard_Resnick_appl">Richard Resnick (applepi1@aol.com)</a>
+<dt><a name="Craig_Bishop_csb_bar">Craig Bishop (csb@barwonwater.vic.gov.au)</a>
+<dt><a name="Tony_Curtis_tc_vcpc_">Tony Curtis (tc@vcpc.univie.ac.at)</a>
+<dt><a name="Tim_Bunce_Tim_Bunce_">Tim Bunce (Tim.Bunce@ig.co.uk)</a>
+<dt><a name="Tom_Christiansen_tch">Tom Christiansen (tchrist@convex.com)</a>
+<dt><a name="Andreas_Koenig_k_fra">Andreas Koenig (k@franz.ww.TU-Berlin.DE)</a>
+<dt><a name="Tim_MacKenzie_Tim_Ma">Tim MacKenzie (Tim.MacKenzie@fulcrum.com.au)</a>
+<dt><a name="Kevin_B_Hendricks_kb">Kevin B. Hendricks (kbhend@dogwood.tyler.wm.edu)</a>
+<dt><a name="Stephen_Dahmen_joyfi">Stephen Dahmen (joyfire@inxpress.net)</a>
+<dt><a name="Ed_Jordan_ed_fidalgo">Ed Jordan (ed@fidalgo.net)</a>
+<dt><a name="David_Alan_Pisoni_da">David Alan Pisoni (david@cnation.com)</a>
+<dt><a name="Doug_MacEachern_doug">Doug MacEachern (dougm@opengroup.org)</a>
+<dt><a name="Robin_Houston_robin_">Robin Houston (robin@oneworld.org)</a>
+<dt><a name="_and_many_many_more_">...and many many more...</a>
+<dd>
+for suggestions and bug fixes.
+</dl>
+<h2 class="POD_HEAD1"><a name="A_COMPLETE_EXAMPLE_O">A COMPLETE EXAMPLE OF A SIMPLE FORM-BASED SCRIPT</a></h2>
+<pre>
+	#!/usr/local/bin/perl
+
+	use CGI;
+
+	$query = new CGI;
+
+	print $query-&gt;header;
+	print $query-&gt;start_html(&quot;Example CGI.pm Form&quot;);
+	print &quot;&lt;H1&gt; Example CGI.pm Form&lt;/H1&gt;\n&quot;;
+	&amp;print_prompt($query);
+	&amp;do_work($query);
+	&amp;print_tail;
+	print $query-&gt;end_html;
+
+	sub print_prompt {
+	   my($query) = @_;
+
+	   print $query-&gt;start_form;
+	   print &quot;&lt;EM&gt;What's your name?&lt;/EM&gt;&lt;BR&gt;&quot;;
+	   print $query-&gt;textfield('name');
+	   print $query-&gt;checkbox('Not my real name');
+
+	   print &quot;&lt;P&gt;&lt;EM&gt;Where can you find English Sparrows?&lt;/EM&gt;&lt;BR&gt;&quot;;
+	   print $query-&gt;checkbox_group(
+				 -name=&gt;'Sparrow locations',
+				 -values=&gt;[England,France,Spain,Asia,Hoboken],
+				 -linebreak=&gt;'yes',
+				 -defaults=&gt;[England,Asia]);
+
+	   print &quot;&lt;P&gt;&lt;EM&gt;How far can they fly?&lt;/EM&gt;&lt;BR&gt;&quot;,
+		$query-&gt;radio_group(
+			-name=&gt;'how far',
+			-values=&gt;['10 ft','1 mile','10 miles','real far'],
+			-default=&gt;'1 mile');
+
+	   print &quot;&lt;P&gt;&lt;EM&gt;What's your favorite color?&lt;/EM&gt;  &quot;;
+	   print $query-&gt;popup_menu(-name=&gt;'Color',
+				    -values=&gt;['black','brown','red','yellow'],
+				    -default=&gt;'red');
+
+	   print $query-&gt;hidden('Reference','Monty Python and the Holy Grail');
+
+	   print &quot;&lt;P&gt;&lt;EM&gt;What have you got there?&lt;/EM&gt;&lt;BR&gt;&quot;;
+	   print $query-&gt;scrolling_list(
+			 -name=&gt;'possessions',
+			 -values=&gt;['A Coconut','A Grail','An Icon',
+				   'A Sword','A Ticket'],
+			 -size=&gt;5,
+			 -multiple=&gt;'true');
+
+	   print &quot;&lt;P&gt;&lt;EM&gt;Any parting comments?&lt;/EM&gt;&lt;BR&gt;&quot;;
+	   print $query-&gt;textarea(-name=&gt;'Comments',
+				  -rows=&gt;10,
+				  -columns=&gt;50);
+
+	   print &quot;&lt;P&gt;&quot;,$query-&gt;reset;
+	   print $query-&gt;submit('Action','Shout');
+	   print $query-&gt;submit('Action','Scream');
+	   print $query-&gt;endform;
+	   print &quot;&lt;HR&gt;\n&quot;;
+	}
+
+	sub do_work {
+	   my($query) = @_;
+	   my(@values,$key);
+
+	   print &quot;&lt;H2&gt;Here are the current settings in this form&lt;/H2&gt;&quot;;
+
+	   foreach $key ($query-&gt;param) {
+	      print &quot;&lt;STRONG&gt;$key&lt;/STRONG&gt; -&gt; &quot;;
+	      @values = $query-&gt;param($key);
+	      print join(&quot;, &quot;,@values),&quot;&lt;BR&gt;\n&quot;;
+	  }
+	}
+
+	sub print_tail {
+	   print &lt;&lt;END;
+	&lt;HR&gt;
+	&lt;ADDRESS&gt;Lincoln D. Stein&lt;/ADDRESS&gt;&lt;BR&gt;
+	&lt;A HREF=&quot;/&quot;&gt;Home Page&lt;/A&gt;
+	END
+	}
+</pre>
+<h2 class="POD_HEAD1"><a name="BUGS">BUGS</a></h2>
+<p class="POD_TEXT">
+This module has grown large and monolithic.  Furthermore it's doing many
+things, such as handling URLs, parsing CGI input, writing HTML, etc., that
+are also done in the LWP modules. It should be discarded in favor of
+the CGI::* modules, but somehow I continue to work on it.
+</p>
+<p class="POD_TEXT">
+Note that the code is truly contorted in order to avoid spurious
+warnings when programs are run with the <b>-w</b> switch.
+</p>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+the <a class="POD_LINK" href="CGI/Carp.html">CGI::Carp</a> manpage, the <u>URI::URL</u> manpage, the <u>CGI::Request</u> manpage, the <u>CGI::MiniSvr</u> manpage,
+the <u>CGI::Base</u> manpage, the <u>CGI::Form</u> manpage, the <a class="POD_LINK" href="CGI/Push.html">CGI::Push</a> manpage, the <a class="POD_LINK" href="CGI/Fast.html">CGI::Fast</a> manpage,
+the <a class="POD_LINK" href="CGI/Pretty.html">CGI::Pretty</a> manpage
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:15 2001
+</body>
+</html>
+

@@ -1,0 +1,183 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>Term::ReadLine</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="../Test.html">Next:<br>Test</a></td><td align="left" width="1%"><a  href="../Term/Complete.html">Previous:<br>Term::Complete</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="../podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="../podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">Term::ReadLine</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#Minimal_set_of_suppo">Minimal set of supported functions</a>
+<li><a href="#Additional_supported">Additional supported functions</a>
+<li><a href="#EXPORTS">EXPORTS</a>
+<li><a href="#ENVIRONMENT">ENVIRONMENT</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+Term::ReadLine - Perl interface to various <code><a class="POD_LINK" href="../perlfunc.html#readline_EXPR">readline</a></code> packages. If
+no real package is found, substitutes stubs instead of basic functions.
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+  use Term::ReadLine;
+  $term = new Term::ReadLine 'Simple Perl calc';
+  $prompt = &quot;Enter your arithmetic expression: &quot;;
+  $OUT = $term-&gt;OUT || STDOUT;
+  while ( defined ($_ = $term-&gt;readline($prompt)) ) {
+    $res = eval($_), &quot;\n&quot;;
+    warn $@ if $@;
+    print $OUT $res, &quot;\n&quot; unless $@;
+    $term-&gt;addhistory($_) if /\S/;
+  }
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+This package is just a front end to some other packages. At the moment
+this description is written, the only such package is Term-ReadLine,
+available on CPAN near you. The real target of this stub package is to
+set up a common interface to whatever Readline emerges with time.
+</p>
+<h2 class="POD_HEAD1"><a name="Minimal_set_of_suppo">Minimal set of supported functions</a></h2>
+<pre class="POD_TEXT">
+All the supported functions should be called as methods, i.e., either as
+
+  $term = new Term::ReadLine 'name';
+</pre>
+<pre class="POD_TEXT">
+or as
+
+  $term-&gt;addhistory('row');
+</pre>
+<p class="POD_TEXT">
+where $term is a return value of Term::ReadLine-&gt;Init.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="ReadLine"><code>ReadLine</code></a>
+<dd>
+returns the actual package that executes the commands. Among possible
+values are <code>Term::ReadLine::Gnu</code>, <code>Term::ReadLine::Perl</code>,
+<code>Term::ReadLine::Stub Exporter</code>.
+<dt class="POD_ITEM"><a name="new"><code>new</code></a>
+<dd>
+returns the handle for subsequent calls to following
+functions. Argument is the name of the application. Optionally can be
+followed by two arguments for <code>IN</code> and <code>OUT</code> filehandles. These
+arguments should be globs.
+<dt class="POD_ITEM"><a name="readline"><code><a class="POD_LINK" href="../perlfunc.html#readline_EXPR">readline</a></code></a>
+<dd>
+gets an input line, <i>possibly</i> with actual <code><a class="POD_LINK" href="../perlfunc.html#readline_EXPR">readline</a></code>
+support. Trailing newline is removed. Returns <code><a class="POD_LINK" href="../perlfunc.html#undef">undef</a></code> on <code>EOF</code>.
+<dt class="POD_ITEM"><a name="addhistory"><code>addhistory</code></a>
+<dd>
+adds the line to the history of input, from where it can be used if
+the actual <code><a class="POD_LINK" href="../perlfunc.html#readline_EXPR">readline</a></code> is present.
+<dt class="POD_ITEM"><a name="IN_OUT"><code>IN</code>, $<code>OUT</code></a>
+<dd>
+return the filehandles for input and output or <code><a class="POD_LINK" href="../perlfunc.html#undef">undef</a></code> if <code><a class="POD_LINK" href="../perlfunc.html#readline_EXPR">readline</a></code>
+input and output cannot be used for Perl.
+<dt class="POD_ITEM"><a name="MinLine"><code>MinLine</code></a>
+<dd>
+If argument is specified, it is an advice on minimal size of line to
+be included into history.  <code><a class="POD_LINK" href="../perlfunc.html#undef">undef</a></code> means do not include anything into
+history. Returns the old value.
+<dt class="POD_ITEM"><a name="findConsole"><code>findConsole</code></a>
+<dd>
+returns an array with two strings that give most appropriate names for
+files for input and output using conventions <code>&quot;&lt;$in&quot;</code>, <code>&quot;&gt;out&quot;</code>.
+<dt class="POD_ITEM"><a name="Attribs">Attribs</a>
+<dd>
+returns a reference to a hash which describes internal configuration
+of the package. Names of keys in this hash conform to standard
+conventions with the leading <code>rl_</code> stripped.
+<dt class="POD_ITEM"><a name="Features"><code>Features</code></a>
+<dd>
+Returns a reference to a hash with keys being features present in
+current implementation. Several optional features are used in the
+minimal interface: <code>appname</code> should be present if the first argument
+to <code>new</code> is recognized, and <code>minline</code> should be present if
+<code>MinLine</code> method is not dummy.  <code>autohistory</code> should be present if
+lines are put into history automatically (maybe subject to
+<code>MinLine</code>), and <code>addhistory</code> if <code>addhistory</code> method is not dummy.
+<p class="POD_TEXT">
+If <code>Features</code> method reports a feature <code>attribs</code> as present, the
+method <code>Attribs</code> is not dummy.
+</p>
+</dl>
+<h2 class="POD_HEAD1"><a name="Additional_supported">Additional supported functions</a></h2>
+<p class="POD_TEXT">
+Actually <code>Term::ReadLine</code> can use some other package, that will
+support reacher set of commands.
+</p>
+<p class="POD_TEXT">
+All these commands are callable via method interface and have names
+which conform to standard conventions with the leading <code>rl_</code> stripped.
+</p>
+<p class="POD_TEXT">
+The stub package included with the perl distribution allows some
+additional methods:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="tkRunning"><code>tkRunning</code></a>
+<dd>
+makes Tk event loop run when waiting for user input (i.e., during
+<code><a class="POD_LINK" href="../perlfunc.html#readline_EXPR">readline</a></code> method).
+<dt class="POD_ITEM"><a name="ornaments"><code>ornaments</code></a>
+<dd>
+makes the command line stand out by using termcap data.  The argument
+to <code>ornaments</code> should be 0, 1, or a string of a form
+<code>&quot;aa,bb,cc,dd&quot;</code>.  Four components of this string should be names of
+<i>terminal capacities</i>, first two will be issued to make the prompt
+standout, last two to make the input line standout.
+<dt class="POD_ITEM"><a name="newTTY"><code>newTTY</code></a>
+<dd>
+takes two arguments which are input filehandle and output filehandle.
+Switches to use these filehandles.
+</dl>
+<p class="POD_TEXT">
+One can check whether the currently loaded ReadLine package supports
+these methods by checking for corresponding <code>Features</code>.
+</p>
+<h2 class="POD_HEAD1"><a name="EXPORTS">EXPORTS</a></h2>
+<p class="POD_TEXT">
+None
+</p>
+<h2 class="POD_HEAD1"><a name="ENVIRONMENT">ENVIRONMENT</a></h2>
+<p class="POD_TEXT">
+The environment variable <code>PERL_RL</code> governs which ReadLine clone is
+loaded. If the value is false, a dummy interface is used. If the value
+is true, it should be tail of the name of the package to use, such as
+<code><a class="POD_LINK" href="../perlfunc.html#Perl_Functions_by_Ca">Perl</a></code> or <code>Gnu</code>.
+</p>
+<p class="POD_TEXT">
+As a special case, if the value of this variable is space-separated,
+the tail might be used to disable the ornaments by setting the tail to
+be <code>o=0</code> or <code>ornaments=0</code>.  The head should be as described above, say
+</p>
+<pre class="POD_TEXT">
+If the variable is not set, or if the head of space-separated list is
+empty, the best available package is loaded.
+
+  export &quot;PERL_RL=Perl o=0&quot;	# Use Perl ReadLine without ornaments
+  export &quot;PERL_RL= o=0&quot;		# Use best available ReadLine without ornaments
+</pre>
+<p class="POD_TEXT">
+(Note that processing of <code>PERL_RL</code> for ornaments is in the discretion of the 
+particular used <code>Term::ReadLine::*</code> package).
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:37:00 2001
+</body>
+</html>
+

@@ -1,0 +1,149 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>AutoSplit</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="autouse.html">Next:<br>autouse</a></td><td align="left" width="1%"><a href="AutoLoader.html">Previous:<br>AutoLoader</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">AutoSplit</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#Multiple_packages">Multiple packages</a>
+</ul>
+<li><a href="#DIAGNOSTICS">DIAGNOSTICS</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+AutoSplit - split a package for autoloading
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+ autosplit($file, $dir, $keep, $check, $modtime);
+
+ autosplit_lib_modules(@modules);
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+This function will split up your program into files that the AutoLoader
+module can handle. It is used by both the standard perl libraries and by
+the MakeMaker utility, to automatically configure libraries for autoloading.
+</p>
+<p class="POD_TEXT">
+The <code>autosplit</code> interface splits the specified file into a hierarchy 
+rooted at the directory <code>$dir</code>. It creates directories as needed to reflect
+class hierarchy, and creates the file <code>autosplit.ix</code>. This file acts as
+both forward declaration of all package routines, and as timestamp for the
+last update of the hierarchy.
+</p>
+<p class="POD_TEXT">
+The remaining three arguments to <code>autosplit</code> govern other options to
+the autosplitter.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_keep">$keep</a>
+<dd>
+If the third argument, <i>$keep</i>, is false, then any
+pre-existing <code>*.al</code> files in the autoload directory are removed if
+they are no longer part of the module (obsoleted functions).
+$keep defaults to 0.
+<dt class="POD_ITEM"><a name="_check">$check</a>
+<dd>
+The
+fourth argument, <i>$check</i>, instructs <code>autosplit</code> to check the module
+currently being split to ensure that it does include a <code><a class="POD_LINK" href="perlfunc.html#use_Module_LIST">use</a></code>
+specification for the AutoLoader module, and skips the module if
+AutoLoader is not detected.
+$check defaults to 1.
+<dt class="POD_ITEM"><a name="_modtime">$modtime</a>
+<dd>
+Lastly, the <i>$modtime</i> argument specifies
+that <code>autosplit</code> is to check the modification time of the module
+against that of the <code>autosplit.ix</code> file, and only split the module if
+it is newer.
+$modtime defaults to 1.
+</dl>
+<pre class="POD_TEXT">
+Typical use of AutoSplit in the perl MakeMaker utility is via the command-line
+with:
+
+ perl -e 'use AutoSplit; autosplit($ARGV[0], $ARGV[1], 0, 1, 1)'
+</pre>
+<p class="POD_TEXT">
+Defined as a Make macro, it is invoked with file and directory arguments;
+<code>autosplit</code> will split the specified file into the specified directory and
+delete obsolete <code>.al</code> files, after checking first that the module does use
+the AutoLoader, and ensuring that the module is not already currently split
+in its current form (the modtime test).
+</p>
+<p class="POD_TEXT">
+The <code>autosplit_lib_modules</code> form is used in the building of perl. It takes
+as input a list of files (modules) that are assumed to reside in a directory
+<b>lib</b> relative to the current directory. Each file is sent to the 
+autosplitter one at a time, to be split into the directory <b>lib/auto</b>.
+</p>
+<p class="POD_TEXT">
+In both usages of the autosplitter, only subroutines defined following the
+perl <i>__END__</i> token are split out into separate files. Some
+routines may be placed prior to this marker to force their immediate loading
+and parsing.
+</p>
+<h3 class="POD_HEAD2"><a name="Multiple_packages">Multiple packages</a></h3>
+<pre class="POD_TEXT">
+As of version 1.01 of the AutoSplit module it is possible to have
+multiple packages within a single file. Both of the following cases
+are supported:
+
+   package NAME;
+   __END__
+   sub AAA { ... }
+   package NAME::option1;
+   sub BBB { ... }
+   package NAME::option2;
+   sub BBB { ... }
+
+   package NAME;
+   __END__
+   sub AAA { ... }
+   sub NAME::option1::BBB { ... }
+   sub NAME::option2::BBB { ... }
+</pre>
+<h2 class="POD_HEAD1"><a name="DIAGNOSTICS">DIAGNOSTICS</a></h2>
+<p class="POD_TEXT">
+<code>AutoSplit</code> will inform the user if it is necessary to create the
+top-level directory specified in the invocation. It is preferred that
+the script or installation process that invokes <code>AutoSplit</code> have
+created the full directory path ahead of time. This warning may
+indicate that the module is being split into an incorrect path.
+</p>
+<p class="POD_TEXT">
+<code>AutoSplit</code> will warn the user of all subroutines whose name causes
+potential file naming conflicts on machines with drastically limited
+(8 characters or less) file name length. Since the subroutine name is
+used as the file name, these warnings can aid in portability to such
+systems.
+</p>
+<p class="POD_TEXT">
+Warnings are issued and the file skipped if <code>AutoSplit</code> cannot locate
+either the <i>__END__</i> marker or a &quot;package Name;&quot;-style specification.
+</p>
+<p class="POD_TEXT">
+<code>AutoSplit</code> will also emit general diagnostics for inability to
+create directories or files.
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:04 2001
+</body>
+</html>
+

@@ -1,0 +1,149 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>File::Basename</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="../File/CheckTree.html">Next:<br>File::CheckTree</a></td><td align="left" width="1%"><a  href="../fields.html">Previous:<br>fields</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="../podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="../podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">File::Basename</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#EXAMPLES">EXAMPLES</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+fileparse - split a pathname into pieces
+</p>
+<p class="POD_TEXT">
+basename - extract just the filename from a path
+</p>
+<p class="POD_TEXT">
+dirname - extract just the directory from a path
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+    use File::Basename;
+
+    ($name,$path,$suffix) = fileparse($fullname,@suffixlist)
+    fileparse_set_fstype($os_string);
+    $basename = basename($fullname,@suffixlist);
+    $dirname = dirname($fullname);
+
+    ($name,$path,$suffix) = fileparse(&quot;lib/File/Basename.pm&quot;,&quot;\.pm&quot;);
+    fileparse_set_fstype(&quot;VMS&quot;);
+    $basename = basename(&quot;lib/File/Basename.pm&quot;,&quot;.pm&quot;);
+    $dirname = dirname(&quot;lib/File/Basename.pm&quot;);
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+These routines allow you to parse file specifications into useful
+pieces using the syntax of different operating systems.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="fileparse_set_fstype">fileparse_set_fstype</a>
+<dd>
+You select the syntax via the routine fileparse_set_fstype().
+<p class="POD_TEXT">
+If the argument passed to it contains one of the substrings
+&quot;VMS&quot;, &quot;MSDOS&quot;, &quot;MacOS&quot;, &quot;AmigaOS&quot; or &quot;MSWin32&quot;, the file specification 
+syntax of that operating system is used in future calls to 
+fileparse(), basename(), and dirname().  If it contains none of
+these substrings, Unix syntax is used.  This pattern matching is
+case-insensitive.  If you've selected VMS syntax, and the file
+specification you pass to one of these routines contains a &quot;/&quot;,
+they assume you are using Unix emulation and apply the Unix syntax
+rules instead, for that function call only.
+</p>
+<p class="POD_TEXT">
+If the argument passed to it contains one of the substrings &quot;VMS&quot;,
+&quot;MSDOS&quot;, &quot;MacOS&quot;, &quot;AmigaOS&quot;, &quot;os2&quot;, &quot;MSWin32&quot; or &quot;RISCOS&quot;, then the pattern
+matching for suffix removal is performed without regard for case,
+since those systems are not case-sensitive when opening existing files
+(though some of them preserve case on file creation).
+</p>
+<p class="POD_TEXT">
+If you haven't called fileparse_set_fstype(), the syntax is chosen
+by examining the builtin variable <code><a class="POD_LINK" href="../perlvar.html#_O">$^O</a></code> according to these rules.
+</p>
+<dt class="POD_ITEM"><a name="fileparse">fileparse</a>
+<dd>
+The fileparse() routine divides a file specification into three
+parts: a leading <b>path</b>, a file <b>name</b>, and a <b>suffix</b>.  The
+<b>path</b> contains everything up to and including the last directory
+separator in the input file specification.  The remainder of the input
+file specification is then divided into <b>name</b> and <b>suffix</b> based on
+the optional patterns you specify in <code>@suffixlist</code>.  Each element of
+this list is interpreted as a regular expression, and is matched
+against the end of <b>name</b>.  If this succeeds, the matching portion of
+<b>name</b> is removed and prepended to <b>suffix</b>.  By proper use of
+<code>@suffixlist</code>, you can remove file types or versions for examination.
+<p class="POD_TEXT">
+You are guaranteed that if you concatenate <b>path</b>, <b>name</b>, and
+<b>suffix</b> together in that order, the result will denote the same
+file as the input file specification.
+</p>
+</dl>
+<h2 class="POD_HEAD1"><a name="EXAMPLES">EXAMPLES</a></h2>
+<pre class="POD_TEXT">
+Using Unix file syntax:
+
+    ($base,$path,$type) = fileparse('/virgil/aeneid/draft.book7',
+				    '\.book\d+');
+</pre>
+<pre class="POD_TEXT">
+would yield
+
+    $base eq 'draft'
+    $path eq '/virgil/aeneid/',
+    $type eq '.book7'
+</pre>
+<pre class="POD_TEXT">
+Similarly, using VMS syntax:
+
+    ($name,$dir,$type) = fileparse('Doc_Root:[Help]Rhetoric.Rnh',
+				   '\..*');
+</pre>
+<pre class="POD_TEXT">
+would yield
+
+    $name eq 'Rhetoric'
+    $dir  eq 'Doc_Root:[Help]'
+    $type eq '.Rnh'
+</pre>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="basename"><code>basename</code></a>
+<dd>
+The basename() routine returns the first element of the list produced
+by calling fileparse() with the same arguments, except that it always
+quotes metacharacters in the given suffixes.  It is provided for
+programmer compatibility with the Unix shell command basename(1).
+<dt class="POD_ITEM"><a name="dirname"><code>dirname</code></a>
+<dd>
+The dirname() routine returns the directory portion of the input file
+specification.  When using VMS or MacOS syntax, this is identical to the
+second element of the list produced by calling fileparse() with the same
+input file specification.  (Under VMS, if there is no directory information
+in the input file specification, then the current default device and
+directory are returned.)  When using Unix or MSDOS syntax, the return
+value conforms to the behavior of the Unix shell command dirname(1).  This
+is usually the same as the behavior of fileparse(), but differs in some
+cases.  For example, for the input file specification <code>lib/</code>, fileparse()
+considers the directory name to be <code>lib/</code>, while dirname() considers the
+directory name to be <code>.</code>).
+</dl>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:28 2001
+</body>
+</html>
+

@@ -1,0 +1,209 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>AutoLoader</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="AutoSplit.html">Next:<br>AutoSplit</a></td><td align="left" width="1%"><a href="attributes.html">Previous:<br>attributes</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">AutoLoader</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#Subroutine_Stubs">Subroutine Stubs</a>
+<li><a href="#Using_AutoLoader_s_A">Using <b>AutoLoader</b>'s AUTOLOAD Subroutine</a>
+<li><a href="#Overriding_AutoLoade">Overriding <b>AutoLoader</b>'s AUTOLOAD Subroutine</a>
+<li><a href="#Package_Lexicals">Package Lexicals</a>
+<li><a href="#Not_Using_AutoLoader">Not Using AutoLoader</a>
+<li><a href="#AutoLoader_vs_SelfLo"><b>AutoLoader</b> vs. <b>SelfLoader</b></a>
+</ul>
+<li><a href="#CAVEATS">CAVEATS</a>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+AutoLoader - load subroutines only on demand
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+    package Foo;
+    use AutoLoader 'AUTOLOAD';   # import the default AUTOLOAD subroutine
+
+    package Bar;
+    use AutoLoader;              # don't import AUTOLOAD, define our own
+    sub AUTOLOAD {
+        ...
+        $AutoLoader::AUTOLOAD = &quot;...&quot;;
+        goto &amp;AutoLoader::AUTOLOAD;
+    }
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+The <b>AutoLoader</b> module works with the <b>AutoSplit</b> module and the
+<code>__END__</code> token to defer the loading of some subroutines until they are
+used rather than loading them all at once.
+</p>
+<p class="POD_TEXT">
+To use <b>AutoLoader</b>, the author of a module has to place the
+definitions of subroutines to be autoloaded after an <code>__END__</code> token.
+(See the <a class="POD_LINK" href="perldata.html">perldata</a> manpage.)  The <b>AutoSplit</b> module can then be run manually to
+extract the definitions into individual files <code>auto/funcname.al</code>.
+</p>
+<p class="POD_TEXT">
+<b>AutoLoader</b> implements an AUTOLOAD subroutine.  When an undefined
+subroutine in is called in a client module of <b>AutoLoader</b>,
+<b>AutoLoader</b>'s AUTOLOAD subroutine attempts to locate the subroutine in a
+file with a name related to the location of the file from which the
+client module was read.  As an example, if <code>POSIX.pm</code> is located in
+<code>/usr/local/lib/perl5/POSIX.pm</code>, <b>AutoLoader</b> will look for perl
+subroutines <b>POSIX</b> in <code>/usr/local/lib/perl5/auto/POSIX/*.al</code>, where
+the <code>.al</code> file has the same name as the subroutine, sans package.  If
+such a file exists, AUTOLOAD will read and evaluate it,
+thus (presumably) defining the needed subroutine.  AUTOLOAD will then
+<code><a class="POD_LINK" href="perlfunc.html#goto_EXPR">goto</a></code> the newly defined subroutine.
+</p>
+<p class="POD_TEXT">
+Once this process completes for a given function, it is defined, so
+future calls to the subroutine will bypass the AUTOLOAD mechanism.
+</p>
+<h3 class="POD_HEAD2"><a name="Subroutine_Stubs">Subroutine Stubs</a></h3>
+<p class="POD_TEXT">
+In order for object method lookup and/or prototype checking to operate
+correctly even when methods have not yet been defined it is necessary to
+&quot;forward declare&quot; each subroutine (as in <code>sub NAME;</code>).  See
+the section on <a class="POD_LINK" href="perlsub.html#SYNOPSIS">SYNOPSIS</a> in the <a class="POD_LINK" href="perlsub.html">perlsub</a> manpage.  Such forward declaration creates &quot;subroutine
+stubs&quot;, which are place holders with no code.
+</p>
+<p class="POD_TEXT">
+The AutoSplit and <b>AutoLoader</b> modules automate the creation of forward
+declarations.  The AutoSplit module creates an 'index' file containing
+forward declarations of all the AutoSplit subroutines.  When the
+AutoLoader module is 'use'd it loads these declarations into its callers
+package.
+</p>
+<p class="POD_TEXT">
+Because of this mechanism it is important that <b>AutoLoader</b> is always
+<code><a class="POD_LINK" href="perlfunc.html#use_Module_LIST">use</a></code>d and not <code><a class="POD_LINK" href="perlfunc.html#require">require</a></code>d.
+</p>
+<h3 class="POD_HEAD2"><a name="Using_AutoLoader_s_A">Using <b>AutoLoader</b>'s AUTOLOAD Subroutine</a></h3>
+<pre class="POD_TEXT">
+In order to use <b>AutoLoader</b>'s AUTOLOAD subroutine you <i>must</i>
+explicitly import it:
+
+    use AutoLoader 'AUTOLOAD';
+</pre>
+<h3 class="POD_HEAD2"><a name="Overriding_AutoLoade">Overriding <b>AutoLoader</b>'s AUTOLOAD Subroutine</a></h3>
+<p class="POD_TEXT">
+Some modules, mainly extensions, provide their own AUTOLOAD subroutines.
+They typically need to check for some special cases (such as constants)
+and then fallback to <b>AutoLoader</b>'s AUTOLOAD for the rest.
+</p>
+<pre class="POD_TEXT">
+Such modules should <i>not</i> import <b>AutoLoader</b>'s AUTOLOAD subroutine.
+Instead, they should define their own AUTOLOAD subroutines along these
+lines:
+
+    use AutoLoader;
+    use Carp;
+
+    sub AUTOLOAD {
+        my $sub = $AUTOLOAD;
+        (my $constname = $sub) =~ s/.*:://;
+        my $val = constant($constname, @_ ? $_[0] : 0);
+        if ($! != 0) {
+            if ($! =~ /Invalid/ || $!{EINVAL}) {
+                $AutoLoader::AUTOLOAD = $sub;
+                goto &amp;AutoLoader::AUTOLOAD;
+            }
+            else {
+                croak &quot;Your vendor has not defined constant $constname&quot;;
+            }
+        }
+        *$sub = sub { $val }; # same as: eval &quot;sub $sub { $val }&quot;;
+        goto &amp;$sub;
+    }
+</pre>
+<p class="POD_TEXT">
+If any module's own AUTOLOAD subroutine has no need to fallback to the
+AutoLoader's AUTOLOAD subroutine (because it doesn't have any AutoSplit
+subroutines), then that module should not use <b>AutoLoader</b> at all.
+</p>
+<h3 class="POD_HEAD2"><a name="Package_Lexicals">Package Lexicals</a></h3>
+<p class="POD_TEXT">
+Package lexicals declared with <code><a class="POD_LINK" href="perlfunc.html#my_EXPR_ATTRIBUTES">my</a></code> in the main block of a package
+using <b>AutoLoader</b> will not be visible to auto-loaded subroutines, due to
+the fact that the given scope ends at the <code>__END__</code> marker.  A module
+using such variables as package globals will not work properly under the
+<b>AutoLoader</b>.
+</p>
+<p class="POD_TEXT">
+The <code>vars</code> pragma (see the section on <a class="POD_LINK" href="perlmod.html">vars</a> in the <a class="POD_LINK" href="perlmod.html">perlmod</a> manpage) may be used in such
+situations as an alternative to explicitly qualifying all globals with
+the package namespace.  Variables pre-declared with this pragma will be
+visible to any autoloaded routines (but will not be invisible outside
+the package, unfortunately).
+</p>
+<h3 class="POD_HEAD2"><a name="Not_Using_AutoLoader">Not Using AutoLoader</a></h3>
+<pre class="POD_TEXT">
+You can stop using AutoLoader by simply
+
+	no AutoLoader;
+</pre>
+<h3 class="POD_HEAD2"><a name="AutoLoader_vs_SelfLo"><b>AutoLoader</b> vs. <b>SelfLoader</b></a></h3>
+<p class="POD_TEXT">
+The <b>AutoLoader</b> is similar in purpose to <b>SelfLoader</b>: both delay the
+loading of subroutines.
+</p>
+<p class="POD_TEXT">
+<b>SelfLoader</b> uses the <code>__DATA__</code> marker rather than <code>__END__</code>.
+While this avoids the use of a hierarchy of disk files and the
+associated open/close for each routine loaded, <b>SelfLoader</b> suffers a
+startup speed disadvantage in the one-time parsing of the lines after
+<code>__DATA__</code>, after which routines are cached.  <b>SelfLoader</b> can also
+handle multiple packages in a file.
+</p>
+<p class="POD_TEXT">
+<b>AutoLoader</b> only reads code as it is requested, and in many cases
+should be faster, but requires a mechanism like <b>AutoSplit</b> be used to
+create the individual files.  the <a class="POD_LINK" href="ExtUtils/MakeMaker.html">ExtUtils::MakeMaker</a> manpage will invoke
+<b>AutoSplit</b> automatically if <b>AutoLoader</b> is used in a module source
+file.
+</p>
+<h2 class="POD_HEAD1"><a name="CAVEATS">CAVEATS</a></h2>
+<p class="POD_TEXT">
+AutoLoaders prior to Perl 5.002 had a slightly different interface.  Any
+old modules which use <b>AutoLoader</b> should be changed to the new calling
+style.  Typically this just means changing a require to a use, adding
+the explicit <code>'AUTOLOAD'</code> import if needed, and removing <b>AutoLoader</b>
+from <code>@ISA</code>.
+</p>
+<p class="POD_TEXT">
+On systems with restrictions on file name length, the file corresponding
+to a subroutine may have a shorter name that the routine itself.  This
+can lead to conflicting file names.  The <i>AutoSplit</i> package warns of
+these potential conflicts when used to split a module.
+</p>
+<p class="POD_TEXT">
+AutoLoader may fail to find the autosplit files (or even find the wrong
+ones) in cases where <code><a class="POD_LINK" href="perlvar.html#_INC">@INC</a></code> contains relative paths, <b>and</b> the program
+does <code><a class="POD_LINK" href="perlfunc.html#chdir_EXPR">chdir</a></code>.
+</p>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+the <a class="POD_LINK" href="SelfLoader.html">SelfLoader</a> manpage - an autoloader that doesn't use external files.
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:04 2001
+</body>
+</html>
+

@@ -1,0 +1,1161 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>perltie</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="perltoc.html">Next:<br>perltoc</a></td><td align="left" width="1%"><a  href="perlthrtut.html">Previous:<br>perlthrtut</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">perltie</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#Tying_Scalars">Tying Scalars</a>
+<li><a href="#Tying_Arrays">Tying Arrays</a>
+<li><a href="#Tying_Hashes">Tying Hashes</a>
+<li><a href="#Tying_FileHandles">Tying FileHandles</a>
+<li><a href="#UNTIE_this4">UNTIE this</a>
+<li><a href="#The_untie_Gotcha">The <code><a class="POD_LINK" href="perlfunc.html#untie_VARIABLE">untie</a></code> Gotcha</a>
+</ul>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+<li><a href="#BUGS">BUGS</a>
+<li><a href="#AUTHOR">AUTHOR</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+perltie - how to hide an object class in a simple variable
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+ tie VARIABLE, CLASSNAME, LIST
+
+ $object = tied VARIABLE
+
+ untie VARIABLE
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+Prior to release 5.0 of Perl, a programmer could use dbmopen()
+to connect an on-disk database in the standard Unix dbm(3x)
+format magically to a %HASH in their program.  However, their Perl was either
+built with one particular dbm library or another, but not both, and
+you couldn't extend this mechanism to other packages or types of variables.
+</p>
+<p class="POD_TEXT">
+Now you can.
+</p>
+<p class="POD_TEXT">
+The tie() function binds a variable to a class (package) that will provide
+the implementation for access methods for that variable.  Once this magic
+has been performed, accessing a tied variable automatically triggers
+method calls in the proper class.  The complexity of the class is
+hidden behind magic methods calls.  The method names are in ALL CAPS,
+which is a convention that Perl uses to indicate that they're called
+implicitly rather than explicitly--just like the BEGIN() and END()
+functions.
+</p>
+<p class="POD_TEXT">
+In the tie() call, <code>VARIABLE</code> is the name of the variable to be
+enchanted.  <code>CLASSNAME</code> is the name of a class implementing objects of
+the correct type.  Any additional arguments in the <code>LIST</code> are passed to
+the appropriate constructor method for that class--meaning TIESCALAR(),
+TIEARRAY(), TIEHASH(), or TIEHANDLE().  (Typically these are arguments
+such as might be passed to the dbminit() function of C.) The object
+returned by the &quot;new&quot; method is also returned by the tie() function,
+which would be useful if you wanted to access other methods in
+<code>CLASSNAME</code>. (You don't actually have to return a reference to a right
+&quot;type&quot; (e.g., HASH or <code>CLASSNAME</code>) so long as it's a properly blessed
+object.)  You can also retrieve a reference to the underlying object
+using the tied() function.
+</p>
+<p class="POD_TEXT">
+Unlike dbmopen(), the tie() function will not <code><a class="POD_LINK" href="perlfunc.html#use_Module_LIST">use</a></code> or <code><a class="POD_LINK" href="perlfunc.html#require">require</a></code> a module
+for you--you need to do that explicitly yourself.
+</p>
+<h3 class="POD_HEAD2"><a name="Tying_Scalars">Tying Scalars</a></h3>
+<p class="POD_TEXT">
+A class implementing a tied scalar should define the following methods:
+TIESCALAR, FETCH, STORE, and possibly UNTIE and/or DESTROY.
+</p>
+<pre class="POD_TEXT">
+Let's look at each in turn, using as an example a tie class for
+scalars that allows the user to do something like:
+
+    tie $his_speed, 'Nice', getppid();
+    tie $my_speed,  'Nice', $$;
+</pre>
+<p class="POD_TEXT">
+And now whenever either of those variables is accessed, its current
+system priority is retrieved and returned.  If those variables are set,
+then the process's priority is changed!
+</p>
+<pre class="POD_TEXT">
+We'll use Jarkko Hietaniemi &lt;<code>jhi@iki.fi</code>&gt;'s BSD::Resource class (not
+included) to access the PRIO_PROCESS, PRIO_MIN, and PRIO_MAX constants
+from your system, as well as the getpriority() and setpriority() system
+calls.  Here's the preamble of the class.
+
+    package Nice;
+    use Carp;
+    use BSD::Resource;
+    use strict;
+    $Nice::DEBUG = 0 unless defined $Nice::DEBUG;
+</pre>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="TIESCALAR_classname_">TIESCALAR classname, LIST</a>
+<dd>
+This is the constructor for the class.  That means it is
+expected to return a blessed reference to a new scalar
+(probably anonymous) that it's creating.  For example:
+<pre class="POD_VERBATIM">
+    sub TIESCALAR {
+        my $class = shift;
+        my $pid = shift || $$; # 0 means me
+
+        if ($pid !~ /^\d+$/) {
+            carp &quot;Nice::Tie::Scalar got non-numeric pid $pid&quot; if $^W;
+            return undef;
+        }
+
+        unless (kill 0, $pid) { # EPERM or ERSCH, no doubt
+            carp &quot;Nice::Tie::Scalar got bad pid $pid: $!&quot; if $^W;
+            return undef;
+        }
+
+        return bless \$pid, $class;
+    }
+</pre>
+<p class="POD_TEXT">
+This tie class has chosen to return an error rather than raising an
+exception if its constructor should fail.  While this is how dbmopen() works,
+other classes may well not wish to be so forgiving.  It checks the global
+variable <code><a class="POD_LINK" href="perlvar.html#_W">$^W</a></code> to see whether to emit a bit of noise anyway.
+</p>
+<dt class="POD_ITEM"><a name="FETCH_this">FETCH this</a>
+<dd>
+This method will be triggered every time the tied variable is accessed
+(read).  It takes no arguments beyond its self reference, which is the
+object representing the scalar we're dealing with.  Because in this case
+we're using just a SCALAR ref for the tied scalar object, a simple $$self
+allows the method to get at the real value stored there.  In our example
+below, that real value is the process ID to which we've tied our variable.
+<pre class="POD_VERBATIM">
+    sub FETCH {
+        my $self = shift;
+        confess &quot;wrong type&quot; unless ref $self;
+        croak &quot;usage error&quot; if @_;
+        my $nicety;
+        local($!) = 0;
+        $nicety = getpriority(PRIO_PROCESS, $$self);
+        if ($!) { croak &quot;getpriority failed: $!&quot; }
+        return $nicety;
+    }
+</pre>
+<p class="POD_TEXT">
+This time we've decided to blow up (raise an exception) if the renice
+fails--there's no place for us to return an error otherwise, and it's
+probably the right thing to do.
+</p>
+<dt class="POD_ITEM"><a name="STORE_this_value">STORE this, value</a>
+<dd>
+This method will be triggered every time the tied variable is set
+(assigned).  Beyond its self reference, it also expects one (and only one)
+argument--the new value the user is trying to assign.
+<pre class="POD_VERBATIM">
+    sub STORE {
+        my $self = shift;
+        confess &quot;wrong type&quot; unless ref $self;
+        my $new_nicety = shift;
+        croak &quot;usage error&quot; if @_;
+
+        if ($new_nicety &lt; PRIO_MIN) {
+            carp sprintf
+              &quot;WARNING: priority %d less than minimum system priority %d&quot;,
+                  $new_nicety, PRIO_MIN if $^W;
+            $new_nicety = PRIO_MIN;
+        }
+
+        if ($new_nicety &gt; PRIO_MAX) {
+            carp sprintf
+              &quot;WARNING: priority %d greater than maximum system priority %d&quot;,
+                  $new_nicety, PRIO_MAX if $^W;
+            $new_nicety = PRIO_MAX;
+        }
+
+        unless (defined setpriority(PRIO_PROCESS, $$self, $new_nicety)) {
+            confess &quot;setpriority failed: $!&quot;;
+        }
+        return $new_nicety;
+    }
+</pre>
+<dt class="POD_ITEM"><a name="UNTIE_this">UNTIE this</a>
+<dd>
+This method will be triggered when the <code><a class="POD_LINK" href="perlfunc.html#untie_VARIABLE">untie</a></code> occurs. This can be useful
+if the class needs to know when no further calls will be made. (Except DESTROY
+of course.) See below for more details.
+<dt class="POD_ITEM"><a name="DESTROY_this">DESTROY this</a>
+<dd>
+This method will be triggered when the tied variable needs to be destructed.
+As with other object classes, such a method is seldom necessary, because Perl
+deallocates its moribund object's memory for you automatically--this isn't
+C++, you know.  We'll use a DESTROY method here for debugging purposes only.
+<pre class="POD_VERBATIM">
+    sub DESTROY {
+        my $self = shift;
+        confess &quot;wrong type&quot; unless ref $self;
+        carp &quot;[ Nice::DESTROY pid $$self ]&quot; if $Nice::DEBUG;
+    }
+</pre>
+</dl>
+<p class="POD_TEXT">
+That's about all there is to it.  Actually, it's more than all there
+is to it, because we've done a few nice things here for the sake
+of completeness, robustness, and general aesthetics.  Simpler
+TIESCALAR classes are certainly possible.
+</p>
+<h3 class="POD_HEAD2"><a name="Tying_Arrays">Tying Arrays</a></h3>
+<p class="POD_TEXT">
+A class implementing a tied ordinary array should define the following
+methods: TIEARRAY, FETCH, STORE, FETCHSIZE, STORESIZE and perhaps UNTIE and/or DESTROY.
+</p>
+<p class="POD_TEXT">
+FETCHSIZE and STORESIZE are used to provide <code>$#array</code> and
+equivalent <code>scalar(@array)</code> access.
+</p>
+<p class="POD_TEXT">
+The methods POP, PUSH, SHIFT, UNSHIFT, SPLICE, DELETE, and EXISTS are
+required if the perl operator with the corresponding (but lowercase) name
+is to operate on the tied array. The <b>Tie::Array</b> class can be used as a
+base class to implement the first five of these in terms of the basic
+methods above.  The default implementations of DELETE and EXISTS in
+<b>Tie::Array</b> simply <code>croak</code>.
+</p>
+<p class="POD_TEXT">
+In addition EXTEND will be called when perl would have pre-extended
+allocation in a real array.
+</p>
+<pre class="POD_TEXT">
+For this discussion, we'll implement an array whose elements are a fixed
+size at creation.  If you try to create an element larger than the fixed
+size, you'll take an exception.  For example:
+
+    use FixedElem_Array;
+    tie @array, 'FixedElem_Array', 3;
+    $array[0] = 'cat';  # ok.
+    $array[1] = 'dogs'; # exception, length('dogs') &gt; 3.
+</pre>
+<pre class="POD_TEXT">
+The preamble code for the class is as follows:
+
+    package FixedElem_Array;
+    use Carp;
+    use strict;
+</pre>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="TIEARRAY_classname_L">TIEARRAY classname, LIST</a>
+<dd>
+This is the constructor for the class.  That means it is expected to
+return a blessed reference through which the new array (probably an
+anonymous ARRAY ref) will be accessed.
+<pre class="POD_TEXT">
+In our example, just to show you that you don't <i>really</i> have to return an
+ARRAY reference, we'll choose a HASH reference to represent our object.
+A HASH works out well as a generic record type: the <code>{ELEMSIZE}</code> field will
+store the maximum element size allowed, and the <code>{ARRAY}</code> field will hold the
+true ARRAY ref.  If someone outside the class tries to dereference the
+object returned (doubtless thinking it an ARRAY ref), they'll blow up.
+This just goes to show you that you should respect an object's privacy.
+
+    sub TIEARRAY {
+      my $class    = shift;
+      my $elemsize = shift;
+      if ( @_ || $elemsize =~ /\D/ ) {
+        croak &quot;usage: tie ARRAY, '&quot; . __PACKAGE__ . &quot;', elem_size&quot;;
+      }
+      return bless {
+        ELEMSIZE =&gt; $elemsize,
+        ARRAY    =&gt; [],
+      }, $class;
+    }
+</pre>
+<dt class="POD_ITEM"><a name="FETCH_this_index">FETCH this, index</a>
+<dd>
+This method will be triggered every time an individual element the tied array
+is accessed (read).  It takes one argument beyond its self reference: the
+index whose value we're trying to fetch.
+<pre class="POD_VERBATIM">
+    sub FETCH {
+      my $self  = shift;
+      my $index = shift;
+      return $self-&gt;{ARRAY}-&gt;[$index];
+    }
+</pre>
+<p class="POD_TEXT">
+If a negative array index is used to read from an array, the index
+will be translated to a positive one internally by calling FETCHSIZE
+before being passed to FETCH.
+</p>
+<p class="POD_TEXT">
+As you may have noticed, the name of the FETCH method (et al.) is the same
+for all accesses, even though the constructors differ in names (TIESCALAR
+vs TIEARRAY).  While in theory you could have the same class servicing
+several tied types, in practice this becomes cumbersome, and it's easiest
+to keep them at simply one tie type per class.
+</p>
+<dt class="POD_ITEM"><a name="STORE_this_index_val">STORE this, index, value</a>
+<dd>
+This method will be triggered every time an element in the tied array is set
+(written).  It takes two arguments beyond its self reference: the index at
+which we're trying to store something and the value we're trying to put
+there.
+<pre class="POD_TEXT">
+In our example, <code><a class="POD_LINK" href="perlfunc.html#undef">undef</a></code> is really <code>$self-&gt;{ELEMSIZE}</code> number of
+spaces so we have a little more work to do here:
+
+    sub STORE {
+      my $self = shift;
+      my( $index, $value ) = @_;
+      if ( length $value &gt; $self-&gt;{ELEMSIZE} ) {
+        croak &quot;length of $value is greater than $self-&gt;{ELEMSIZE}&quot;;
+      }
+      # fill in the blanks
+      $self-&gt;EXTEND( $index ) if $index &gt; $self-&gt;FETCHSIZE();
+      # right justify to keep element size for smaller elements
+      $self-&gt;{ARRAY}-&gt;[$index] = sprintf &quot;%$self-&gt;{ELEMSIZE}s&quot;, $value;
+    }
+</pre>
+<p class="POD_TEXT">
+Negative indexes are treated the same as with FETCH.
+</p>
+<dt class="POD_ITEM"><a name="FETCHSIZE_this">FETCHSIZE this</a>
+<dd>
+Returns the total number of items in the tied array associated with
+object <i>this</i>. (Equivalent to <code>scalar(@array)</code>).  For example:
+<pre class="POD_VERBATIM">
+    sub FETCHSIZE {
+      my $self = shift;
+      return scalar @{$self-&gt;{ARRAY}};
+    }
+</pre>
+<dt class="POD_ITEM"><a name="STORESIZE_this_count">STORESIZE this, count</a>
+<dd>
+Sets the total number of items in the tied array associated with
+object <i>this</i> to be <i>count</i>. If this makes the array larger then
+class's mapping of <code><a class="POD_LINK" href="perlfunc.html#undef">undef</a></code> should be returned for new positions.
+If the array becomes smaller then entries beyond count should be
+deleted.
+<pre class="POD_TEXT">
+In our example, 'undef' is really an element containing
+<code>$self-&gt;{ELEMSIZE}</code> number of spaces.  Observe:
+
+    sub STORESIZE {
+      my $self  = shift;
+      my $count = shift;
+      if ( $count &gt; $self-&gt;FETCHSIZE() ) {
+        foreach ( $count - $self-&gt;FETCHSIZE() .. $count ) {
+          $self-&gt;STORE( $_, '' );
+        }
+      } elsif ( $count &lt; $self-&gt;FETCHSIZE() ) {
+        foreach ( 0 .. $self-&gt;FETCHSIZE() - $count - 2 ) {
+          $self-&gt;POP();
+        }
+      }
+    }
+</pre>
+<dt class="POD_ITEM"><a name="EXTEND_this_count">EXTEND this, count</a>
+<dd>
+Informative call that array is likely to grow to have <i>count</i> entries.
+Can be used to optimize allocation. This method need do nothing.
+<pre class="POD_TEXT">
+In our example, we want to make sure there are no blank (<code><a class="POD_LINK" href="perlfunc.html#undef">undef</a></code>)
+entries, so <code>EXTEND</code> will make use of <code>STORESIZE</code> to fill elements
+as needed:
+
+    sub EXTEND {   
+      my $self  = shift;
+      my $count = shift;
+      $self-&gt;STORESIZE( $count );
+    }
+</pre>
+<dt class="POD_ITEM"><a name="EXISTS_this_key">EXISTS this, key</a>
+<dd>
+Verify that the element at index <i>key</i> exists in the tied array <i>this</i>.
+<pre class="POD_TEXT">
+In our example, we will determine that if an element consists of
+<code>$self-&gt;{ELEMSIZE}</code> spaces only, it does not exist:
+
+    sub EXISTS {
+      my $self  = shift;
+      my $index = shift;
+      return 0 if ! defined $self-&gt;{ARRAY}-&gt;[$index] ||
+                  $self-&gt;{ARRAY}-&gt;[$index] eq ' ' x $self-&gt;{ELEMSIZE};
+      return 1;
+    }
+</pre>
+<dt class="POD_ITEM"><a name="DELETE_this_key">DELETE this, key</a>
+<dd>
+Delete the element at index <i>key</i> from the tied array <i>this</i>.
+<pre class="POD_TEXT">
+In our example, a deleted item is <code>$self-</code>{ELEMSIZE}&gt; spaces:
+
+    sub DELETE {
+      my $self  = shift;
+      my $index = shift;
+      return $self-&gt;STORE( $index, '' );
+    }
+</pre>
+<dt class="POD_ITEM"><a name="CLEAR_this">CLEAR this</a>
+<dd>
+Clear (remove, delete, ...) all values from the tied array associated with
+object <i>this</i>.  For example:
+<pre class="POD_VERBATIM">
+    sub CLEAR {
+      my $self = shift;
+      return $self-&gt;{ARRAY} = [];
+    }
+</pre>
+<dt class="POD_ITEM"><a name="PUSH_this_LIST">PUSH this, LIST</a>
+<dd>
+Append elements of <i>LIST</i> to the array.  For example:
+<pre class="POD_VERBATIM">
+    sub PUSH {  
+      my $self = shift;
+      my @list = @_;
+      my $last = $self-&gt;FETCHSIZE();
+      $self-&gt;STORE( $last + $_, $list[$_] ) foreach 0 .. $#list;
+      return $self-&gt;FETCHSIZE();
+    }
+</pre>
+<dt class="POD_ITEM"><a name="POP_this">POP this</a>
+<dd>
+Remove last element of the array and return it.  For example:
+<pre class="POD_VERBATIM">
+    sub POP {
+      my $self = shift;
+      return pop @{$self-&gt;{ARRAY}};
+    }
+</pre>
+<dt class="POD_ITEM"><a name="SHIFT_this">SHIFT this</a>
+<dd>
+Remove the first element of the array (shifting other elements down)
+and return it.  For example:
+<pre class="POD_VERBATIM">
+    sub SHIFT {
+      my $self = shift;
+      return shift @{$self-&gt;{ARRAY}};
+    }
+</pre>
+<dt class="POD_ITEM"><a name="UNSHIFT_this_LIST">UNSHIFT this, LIST</a>
+<dd>
+Insert LIST elements at the beginning of the array, moving existing elements
+up to make room.  For example:
+<pre class="POD_VERBATIM">
+    sub UNSHIFT {
+      my $self = shift;
+      my @list = @_;
+      my $size = scalar( @list );
+      # make room for our list
+      @{$self-&gt;{ARRAY}}[ $size .. $#{$self-&gt;{ARRAY}} + $size ]
+       = @{$self-&gt;{ARRAY}};
+      $self-&gt;STORE( $_, $list[$_] ) foreach 0 .. $#list;
+    }
+</pre>
+<dt class="POD_ITEM"><a name="SPLICE_this_offset_l">SPLICE this, offset, length, LIST</a>
+<dd>
+Perform the equivalent of <code><a class="POD_LINK" href="perlfunc.html#splice_ARRAY">splice</a></code> on the array.
+<p class="POD_TEXT">
+<i>offset</i> is optional and defaults to zero, negative values count back 
+from the end of the array.
+</p>
+<p class="POD_TEXT">
+<i>length</i> is optional and defaults to rest of the array.
+</p>
+<p class="POD_TEXT">
+<i>LIST</i> may be empty.
+</p>
+<p class="POD_TEXT">
+Returns a list of the original <i>length</i> elements at <i>offset</i>.
+</p>
+<pre class="POD_TEXT">
+In our example, we'll use a little shortcut if there is a <i>LIST</i>:
+
+    sub SPLICE {
+      my $self   = shift;
+      my $offset = shift || 0;
+      my $length = shift || $self-&gt;FETCHSIZE() - $offset;
+      my @list   = (); 
+      if ( @_ ) {
+        tie @list, __PACKAGE__, $self-&gt;{ELEMSIZE};
+        @list   = @_;
+      }
+      return splice @{$self-&gt;{ARRAY}}, $offset, $length, @list;
+    }
+</pre>
+<dt class="POD_ITEM"><a name="UNTIE_this1">UNTIE this</a>
+<dd>
+Will be called when <code><a class="POD_LINK" href="perlfunc.html#untie_VARIABLE">untie</a></code> happens. (See below.)
+<dt class="POD_ITEM"><a name="DESTROY_this1">DESTROY this</a>
+<dd>
+This method will be triggered when the tied variable needs to be destructed.
+As with the scalar tie class, this is almost never needed in a
+language that does its own garbage collection, so this time we'll
+just leave it out.
+</dl>
+<h3 class="POD_HEAD2"><a name="Tying_Hashes">Tying Hashes</a></h3>
+<p class="POD_TEXT">
+Hashes were the first Perl data type to be tied (see dbmopen()).  A class
+implementing a tied hash should define the following methods: TIEHASH is
+the constructor.  FETCH and STORE access the key and value pairs.  EXISTS
+reports whether a key is present in the hash, and DELETE deletes one.
+CLEAR empties the hash by deleting all the key and value pairs.  FIRSTKEY
+and NEXTKEY implement the keys() and each() functions to iterate over all
+the keys.  UNTIE is called when <code><a class="POD_LINK" href="perlfunc.html#untie_VARIABLE">untie</a></code> happens, and DESTROY is called when
+the tied variable is garbage collected.
+</p>
+<p class="POD_TEXT">
+If this seems like a lot, then feel free to inherit from merely the
+standard Tie::Hash module for most of your methods, redefining only the
+interesting ones.  See the <a class="POD_LINK" href="Tie/Hash.html">Tie::Hash</a> manpage for details.
+</p>
+<p class="POD_TEXT">
+Remember that Perl distinguishes between a key not existing in the hash,
+and the key existing in the hash but having a corresponding value of
+<code><a class="POD_LINK" href="perlfunc.html#undef">undef</a></code>.  The two possibilities can be tested with the <code>exists()</code> and
+<code>defined()</code> functions.
+</p>
+<pre class="POD_TEXT">
+Here's an example of a somewhat interesting tied hash class:  it gives you
+a hash representing a particular user's dot files.  You index into the hash
+with the name of the file (minus the dot) and you get back that dot file's
+contents.  For example:
+
+    use DotFiles;
+    tie %dot, 'DotFiles';
+    if ( $dot{profile} =~ /MANPATH/ ||
+         $dot{login}   =~ /MANPATH/ ||
+         $dot{cshrc}   =~ /MANPATH/    )
+    {
+	print &quot;you seem to set your MANPATH\n&quot;;
+    }
+</pre>
+<pre class="POD_TEXT">
+Or here's another sample of using our tied class:
+
+    tie %him, 'DotFiles', 'daemon';
+    foreach $f ( keys %him ) {
+	printf &quot;daemon dot file %s is size %d\n&quot;,
+	    $f, length $him{$f};
+    }
+</pre>
+<p class="POD_TEXT">
+In our tied hash DotFiles example, we use a regular
+hash for the object containing several important
+fields, of which only the <code>{LIST}</code> field will be what the
+user thinks of as the real hash.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="USER">USER</a>
+<dd>
+whose dot files this object represents
+<dt class="POD_ITEM"><a name="HOME">HOME</a>
+<dd>
+where those dot files live
+<dt class="POD_ITEM"><a name="CLOBBER">CLOBBER</a>
+<dd>
+whether we should try to change or remove those dot files
+<dt class="POD_ITEM"><a name="LIST">LIST</a>
+<dd>
+the hash of dot file names and content mappings
+</dl>
+<pre class="POD_TEXT">
+Here's the start of <code>Dotfiles.pm</code>:
+
+    package DotFiles;
+    use Carp;
+    sub whowasi { (caller(1))[3] . '()' }
+    my $DEBUG = 0;
+    sub debug { $DEBUG = @_ ? shift : 1 }
+</pre>
+<p class="POD_TEXT">
+For our example, we want to be able to emit debugging info to help in tracing
+during development.  We keep also one convenience function around
+internally to help print out warnings; whowasi() returns the function name
+that calls it.
+</p>
+<p class="POD_TEXT">
+Here are the methods for the DotFiles tied hash.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="TIEHASH_classname_LI">TIEHASH classname, LIST</a>
+<dd>
+This is the constructor for the class.  That means it is expected to
+return a blessed reference through which the new object (probably but not
+necessarily an anonymous hash) will be accessed.
+<pre class="POD_TEXT">
+Here's the constructor:
+
+    sub TIEHASH {
+	my $self = shift;
+	my $user = shift || $&gt;;
+	my $dotdir = shift || '';
+	croak &quot;usage: @{[&amp;whowasi]} [USER [DOTDIR]]&quot; if @_;
+	$user = getpwuid($user) if $user =~ /^\d+$/;
+	my $dir = (getpwnam($user))[7]
+		|| croak &quot;@{[&amp;whowasi]}: no user $user&quot;;
+	$dir .= &quot;/$dotdir&quot; if $dotdir;
+
+	my $node = {
+	    USER    =&gt; $user,
+	    HOME    =&gt; $dir,
+	    LIST    =&gt; {},
+	    CLOBBER =&gt; 0,
+	};
+
+	opendir(DIR, $dir)
+		|| croak &quot;@{[&amp;whowasi]}: can't opendir $dir: $!&quot;;
+	foreach $dot ( grep /^\./ &amp;&amp; -f &quot;$dir/$_&quot;, readdir(DIR)) {
+	    $dot =~ s/^\.//;
+	    $node-&gt;{LIST}{$dot} = undef;
+	}
+	closedir DIR;
+	return bless $node, $self;
+    }
+</pre>
+<p class="POD_TEXT">
+It's probably worth mentioning that if you're going to filetest the
+return values out of a readdir, you'd better prepend the directory
+in question.  Otherwise, because we didn't chdir() there, it would
+have been testing the wrong file.
+</p>
+<dt class="POD_ITEM"><a name="FETCH_this_key">FETCH this, key</a>
+<dd>
+This method will be triggered every time an element in the tied hash is
+accessed (read).  It takes one argument beyond its self reference: the key
+whose value we're trying to fetch.
+<pre class="POD_TEXT">
+Here's the fetch for our DotFiles example.
+
+    sub FETCH {
+	carp &amp;whowasi if $DEBUG;
+	my $self = shift;
+	my $dot = shift;
+	my $dir = $self-&gt;{HOME};
+	my $file = &quot;$dir/.$dot&quot;;
+
+	unless (exists $self-&gt;{LIST}-&gt;{$dot} || -f $file) {
+	    carp &quot;@{[&amp;whowasi]}: no $dot file&quot; if $DEBUG;
+	    return undef;
+	}
+
+	if (defined $self-&gt;{LIST}-&gt;{$dot}) {
+	    return $self-&gt;{LIST}-&gt;{$dot};
+	} else {
+	    return $self-&gt;{LIST}-&gt;{$dot} = `cat $dir/.$dot`;
+	}
+    }
+</pre>
+<p class="POD_TEXT">
+It was easy to write by having it call the Unix cat(1) command, but it
+would probably be more portable to open the file manually (and somewhat
+more efficient).  Of course, because dot files are a Unixy concept, we're
+not that concerned.
+</p>
+<dt class="POD_ITEM"><a name="STORE_this_key_value">STORE this, key, value</a>
+<dd>
+This method will be triggered every time an element in the tied hash is set
+(written).  It takes two arguments beyond its self reference: the index at
+which we're trying to store something, and the value we're trying to put
+there.
+<pre class="POD_TEXT">
+Here in our DotFiles example, we'll be careful not to let
+them try to overwrite the file unless they've called the clobber()
+method on the original object reference returned by tie().
+
+    sub STORE {
+	carp &amp;whowasi if $DEBUG;
+	my $self = shift;
+	my $dot = shift;
+	my $value = shift;
+	my $file = $self-&gt;{HOME} . &quot;/.$dot&quot;;
+	my $user = $self-&gt;{USER};
+
+	croak &quot;@{[&amp;whowasi]}: $file not clobberable&quot;
+	    unless $self-&gt;{CLOBBER};
+
+	open(F, &quot;&gt; $file&quot;) || croak &quot;can't open $file: $!&quot;;
+	print F $value;
+	close(F);
+    }
+</pre>
+<pre class="POD_TEXT">
+If they wanted to clobber something, they might say:
+
+    $ob = tie %daemon_dots, 'daemon';
+    $ob-&gt;clobber(1);
+    $daemon_dots{signature} = &quot;A true daemon\n&quot;;
+</pre>
+<pre class="POD_TEXT">
+Another way to lay hands on a reference to the underlying object is to
+use the tied() function, so they might alternately have set clobber
+using:
+
+    tie %daemon_dots, 'daemon';
+    tied(%daemon_dots)-&gt;clobber(1);
+</pre>
+<pre class="POD_TEXT">
+The clobber method is simply:
+
+    sub clobber {
+	my $self = shift;
+	$self-&gt;{CLOBBER} = @_ ? shift : 1;
+    }
+</pre>
+<dt class="POD_ITEM"><a name="DELETE_this_key1">DELETE this, key</a>
+<dd>
+This method is triggered when we remove an element from the hash,
+typically by using the delete() function.  Again, we'll
+be careful to check whether they really want to clobber files.
+<pre class="POD_VERBATIM">
+    sub DELETE   {
+	carp &amp;whowasi if $DEBUG;
+
+	my $self = shift;
+	my $dot = shift;
+	my $file = $self-&gt;{HOME} . &quot;/.$dot&quot;;
+	croak &quot;@{[&amp;whowasi]}: won't remove file $file&quot;
+	    unless $self-&gt;{CLOBBER};
+	delete $self-&gt;{LIST}-&gt;{$dot};
+	my $success = unlink($file);
+	carp &quot;@{[&amp;whowasi]}: can't unlink $file: $!&quot; unless $success;
+	$success;
+    }
+</pre>
+<p class="POD_TEXT">
+The value returned by DELETE becomes the return value of the call
+to delete().  If you want to emulate the normal behavior of delete(),
+you should return whatever FETCH would have returned for this key.
+In this example, we have chosen instead to return a value which tells
+the caller whether the file was successfully deleted.
+</p>
+<dt class="POD_ITEM"><a name="CLEAR_this1">CLEAR this</a>
+<dd>
+This method is triggered when the whole hash is to be cleared, usually by
+assigning the empty list to it.
+<pre class="POD_TEXT">
+In our example, that would remove all the user's dot files!  It's such a
+dangerous thing that they'll have to set CLOBBER to something higher than
+1 to make it happen.
+
+    sub CLEAR    {
+	carp &amp;whowasi if $DEBUG;
+	my $self = shift;
+	croak &quot;@{[&amp;whowasi]}: won't remove all dot files for $self-&gt;{USER}&quot;
+	    unless $self-&gt;{CLOBBER} &gt; 1;
+	my $dot;
+	foreach $dot ( keys %{$self-&gt;{LIST}}) {
+	    $self-&gt;DELETE($dot);
+	}
+    }
+</pre>
+<dt class="POD_ITEM"><a name="EXISTS_this_key1">EXISTS this, key</a>
+<dd>
+This method is triggered when the user uses the exists() function
+on a particular hash.  In our example, we'll look at the <code>{LIST}</code>
+hash element for this:
+<pre class="POD_VERBATIM">
+    sub EXISTS   {
+	carp &amp;whowasi if $DEBUG;
+	my $self = shift;
+	my $dot = shift;
+	return exists $self-&gt;{LIST}-&gt;{$dot};
+    }
+</pre>
+<dt class="POD_ITEM"><a name="FIRSTKEY_this">FIRSTKEY this</a>
+<dd>
+This method will be triggered when the user is going
+to iterate through the hash, such as via a keys() or each()
+call.
+<pre class="POD_VERBATIM">
+    sub FIRSTKEY {
+	carp &amp;whowasi if $DEBUG;
+	my $self = shift;
+	my $a = keys %{$self-&gt;{LIST}};		# reset each() iterator
+	each %{$self-&gt;{LIST}}
+    }
+</pre>
+<dt class="POD_ITEM"><a name="NEXTKEY_this_lastkey">NEXTKEY this, lastkey</a>
+<dd>
+This method gets triggered during a keys() or each() iteration.  It has a
+second argument which is the last key that had been accessed.  This is
+useful if you're carrying about ordering or calling the iterator from more
+than one sequence, or not really storing things in a hash anywhere.
+<pre class="POD_TEXT">
+For our example, we're using a real hash so we'll do just the simple
+thing, but we'll have to go through the LIST field indirectly.
+
+    sub NEXTKEY  {
+	carp &amp;whowasi if $DEBUG;
+	my $self = shift;
+	return each %{ $self-&gt;{LIST} }
+    }
+</pre>
+<dt class="POD_ITEM"><a name="UNTIE_this2">UNTIE this</a>
+<dd>
+This is called when <code><a class="POD_LINK" href="perlfunc.html#untie_VARIABLE">untie</a></code> occurs.
+<dt class="POD_ITEM"><a name="DESTROY_this2">DESTROY this</a>
+<dd>
+This method is triggered when a tied hash is about to go out of
+scope.  You don't really need it unless you're trying to add debugging
+or have auxiliary state to clean up.  Here's a very simple function:
+<pre class="POD_VERBATIM">
+    sub DESTROY  {
+	carp &amp;whowasi if $DEBUG;
+    }
+</pre>
+</dl>
+<pre class="POD_TEXT">
+Note that functions such as keys() and values() may return huge lists
+when used on large objects, like DBM files.  You may prefer to use the
+each() function to iterate over such.  Example:
+
+    # print out history file offsets
+    use NDBM_File;
+    tie(%HIST, 'NDBM_File', '/usr/lib/news/history', 1, 0);
+    while (($key,$val) = each %HIST) {
+        print $key, ' = ', unpack('L',$val), &quot;\n&quot;;
+    }
+    untie(%HIST);
+</pre>
+<h3 class="POD_HEAD2"><a name="Tying_FileHandles">Tying FileHandles</a></h3>
+<p class="POD_TEXT">
+This is partially implemented now.
+</p>
+<p class="POD_TEXT">
+A class implementing a tied filehandle should define the following
+methods: TIEHANDLE, at least one of PRINT, PRINTF, WRITE, READLINE, GETC,
+READ, and possibly CLOSE, UNTIE and DESTROY.  The class can also provide: BINMODE,
+OPEN, EOF, FILENO, SEEK, TELL - if the corresponding perl operators are
+used on the handle.
+</p>
+<p class="POD_TEXT">
+It is especially useful when perl is embedded in some other program,
+where output to STDOUT and STDERR may have to be redirected in some
+special way. See nvi and the Apache module for examples.
+</p>
+<pre class="POD_TEXT">
+In our example we're going to create a shouting handle.
+
+    package Shout;
+</pre>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="TIEHANDLE_classname_">TIEHANDLE classname, LIST</a>
+<dd>
+This is the constructor for the class.  That means it is expected to
+return a blessed reference of some sort. The reference can be used to
+hold some internal information.
+<pre class="POD_VERBATIM">
+    sub TIEHANDLE { print &quot;&lt;shout&gt;\n&quot;; my $i; bless \$i, shift }
+</pre>
+<dt class="POD_ITEM"><a name="WRITE_this_LIST">WRITE this, LIST</a>
+<dd>
+This method will be called when the handle is written to via the
+<code><a class="POD_LINK" href="perlfunc.html#syswrite_FILEHANDLE_1">syswrite</a></code> function.
+<pre class="POD_VERBATIM">
+    sub WRITE {
+	$r = shift;
+	my($buf,$len,$offset) = @_;
+	print &quot;WRITE called, \$buf=$buf, \$len=$len, \$offset=$offset&quot;;
+    }
+</pre>
+<dt class="POD_ITEM"><a name="PRINT_this_LIST">PRINT this, LIST</a>
+<dd>
+This method will be triggered every time the tied handle is printed to
+with the <code>print()</code> function.
+Beyond its self reference it also expects the list that was passed to
+the print function.
+<pre class="POD_VERBATIM">
+    sub PRINT { $r = shift; $$r++; print join($,,map(uc($_),@_)),$\ }
+</pre>
+<dt class="POD_ITEM"><a name="PRINTF_this_LIST">PRINTF this, LIST</a>
+<dd>
+This method will be triggered every time the tied handle is printed to
+with the <code>printf()</code> function.
+Beyond its self reference it also expects the format and list that was
+passed to the printf function.
+<pre class="POD_VERBATIM">
+    sub PRINTF {
+        shift;
+        my $fmt = shift;
+        print sprintf($fmt, @_).&quot;\n&quot;;
+    }
+</pre>
+<dt class="POD_ITEM"><a name="READ_this_LIST">READ this, LIST</a>
+<dd>
+This method will be called when the handle is read from via the <code><a class="POD_LINK" href="perlfunc.html#read_FILEHANDLE_SCAL1">read</a></code>
+or <code><a class="POD_LINK" href="perlfunc.html#sysread_FILEHANDLE_S">sysread</a></code> functions.
+<pre class="POD_VERBATIM">
+    sub READ {
+	my $self = shift;
+	my $$bufref = \$_[0];
+	my(undef,$len,$offset) = @_;
+	print &quot;READ called, \$buf=$bufref, \$len=$len, \$offset=$offset&quot;;
+	# add to $$bufref, set $len to number of characters read
+	$len;
+    }
+</pre>
+<dt class="POD_ITEM"><a name="READLINE_this">READLINE this</a>
+<dd>
+This method will be called when the handle is read from via &lt;HANDLE&gt;.
+The method should return undef when there is no more data.
+<pre class="POD_VERBATIM">
+    sub READLINE { $r = shift; &quot;READLINE called $$r times\n&quot;; }
+</pre>
+<dt class="POD_ITEM"><a name="GETC_this">GETC this</a>
+<dd>
+This method will be called when the <code><a class="POD_LINK" href="perlfunc.html#getc">getc</a></code> function is called.
+<pre class="POD_VERBATIM">
+    sub GETC { print &quot;Don't GETC, Get Perl&quot;; return &quot;a&quot;; }
+</pre>
+<dt class="POD_ITEM"><a name="CLOSE_this">CLOSE this</a>
+<dd>
+This method will be called when the handle is closed via the <code><a class="POD_LINK" href="perlfunc.html#close">close</a></code>
+function.
+<pre class="POD_VERBATIM">
+    sub CLOSE { print &quot;CLOSE called.\n&quot; }
+</pre>
+<dt class="POD_ITEM"><a name="UNTIE_this3">UNTIE this</a>
+<dd>
+As with the other types of ties, this method will be called when <code><a class="POD_LINK" href="perlfunc.html#untie_VARIABLE">untie</a></code> happens.
+It may be appropriate to &quot;auto CLOSE&quot; when this occurs.
+<dt class="POD_ITEM"><a name="DESTROY_this3">DESTROY this</a>
+<dd>
+As with the other types of ties, this method will be called when the
+tied handle is about to be destroyed. This is useful for debugging and
+possibly cleaning up.
+<pre class="POD_VERBATIM">
+    sub DESTROY { print &quot;&lt;/shout&gt;\n&quot; }
+</pre>
+</dl>
+<pre class="POD_TEXT">
+Here's how to use our little example:
+
+    tie(*FOO,'Shout');
+    print FOO &quot;hello\n&quot;;
+    $a = 4; $b = 6;
+    print FOO $a, &quot; plus &quot;, $b, &quot; equals &quot;, $a + $b, &quot;\n&quot;;
+    print &lt;FOO&gt;;
+</pre>
+<h3 class="POD_HEAD2"><a name="UNTIE_this4">UNTIE this</a></h3>
+<p class="POD_TEXT">
+You can define for all tie types an UNTIE method that will be called
+at untie().
+</p>
+<h3 class="POD_HEAD2"><a name="The_untie_Gotcha">The <code><a class="POD_LINK" href="perlfunc.html#untie_VARIABLE">untie</a></code> Gotcha</a></h3>
+<p class="POD_TEXT">
+If you intend making use of the object returned from either tie() or
+tied(), and if the tie's target class defines a destructor, there is a
+subtle gotcha you <i>must</i> guard against.
+</p>
+<pre class="POD_TEXT">
+As setup, consider this (admittedly rather contrived) example of a
+tie; all it does is use a file to keep a log of the values assigned to
+a scalar.
+
+    package Remember;
+
+    use strict;
+    use warnings;
+    use IO::File;
+
+    sub TIESCALAR {
+        my $class = shift;
+        my $filename = shift;
+        my $handle = new IO::File &quot;&gt; $filename&quot;
+                         or die &quot;Cannot open $filename: $!\n&quot;;
+
+        print $handle &quot;The Start\n&quot;;
+        bless {FH =&gt; $handle, Value =&gt; 0}, $class;
+    }
+
+    sub FETCH {
+        my $self = shift;
+        return $self-&gt;{Value};
+    }
+
+    sub STORE {
+        my $self = shift;
+        my $value = shift;
+        my $handle = $self-&gt;{FH};
+        print $handle &quot;$value\n&quot;;
+        $self-&gt;{Value} = $value;
+    }
+
+    sub DESTROY {
+        my $self = shift;
+        my $handle = $self-&gt;{FH};
+        print $handle &quot;The End\n&quot;;
+        close $handle;
+    }
+
+    1;
+</pre>
+<pre class="POD_TEXT">
+Here is an example that makes use of this tie:
+
+    use strict;
+    use Remember;
+
+    my $fred;
+    tie $fred, 'Remember', 'myfile.txt';
+    $fred = 1;
+    $fred = 4;
+    $fred = 5;
+    untie $fred;
+    system &quot;cat myfile.txt&quot;;
+</pre>
+<pre class="POD_TEXT">
+This is the output when it is executed:
+
+    The Start
+    1
+    4
+    5
+    The End
+</pre>
+<pre class="POD_TEXT">
+So far so good.  Those of you who have been paying attention will have
+spotted that the tied object hasn't been used so far.  So lets add an
+extra method to the Remember class to allow comments to be included in
+the file -- say, something like this:
+
+    sub comment {
+        my $self = shift;
+        my $text = shift;
+        my $handle = $self-&gt;{FH};
+        print $handle $text, &quot;\n&quot;;
+    }
+</pre>
+<pre class="POD_TEXT">
+And here is the previous example modified to use the <code>comment</code> method
+(which requires the tied object):
+
+    use strict;
+    use Remember;
+
+    my ($fred, $x);
+    $x = tie $fred, 'Remember', 'myfile.txt';
+    $fred = 1;
+    $fred = 4;
+    comment $x &quot;changing...&quot;;
+    $fred = 5;
+    untie $fred;
+    system &quot;cat myfile.txt&quot;;
+</pre>
+<p class="POD_TEXT">
+When this code is executed there is no output.  Here's why:
+</p>
+<p class="POD_TEXT">
+When a variable is tied, it is associated with the object which is the
+return value of the TIESCALAR, TIEARRAY, or TIEHASH function.  This
+object normally has only one reference, namely, the implicit reference
+from the tied variable.  When untie() is called, that reference is
+destroyed.  Then, as in the first example above, the object's
+destructor (DESTROY) is called, which is normal for objects that have
+no more valid references; and thus the file is closed.
+</p>
+<p class="POD_TEXT">
+In the second example, however, we have stored another reference to
+the tied object in $x.  That means that when untie() gets called
+there will still be a valid reference to the object in existence, so
+the destructor is not called at that time, and thus the file is not
+closed.  The reason there is no output is because the file buffers
+have not been flushed to disk.
+</p>
+<pre class="POD_TEXT">
+Now that you know what the problem is, what can you do to avoid it?
+Prior to the introduction of the optional UNTIE method the only way
+was the good old <code><a class="POD_LINK" href="perlrun.html#_w">-w</a></code> flag. Which will spot any instances where you call
+untie() and there are still valid references to the tied object.  If
+the second script above this near the top <code>use warnings 'untie'</code>
+or was run with the <code><a class="POD_LINK" href="perlrun.html#_w">-w</a></code> flag, Perl prints this
+warning message:
+
+    untie attempted while 1 inner references still exist
+</pre>
+<pre class="POD_TEXT">
+To get the script to work properly and silence the warning make sure
+there are no valid references to the tied object <i>before</i> untie() is
+called:
+
+    undef $x;
+    untie $fred;
+</pre>
+<p class="POD_TEXT">
+Now that UNTIE exists the class designer can decide which parts of the
+class functionality are really associated with <code><a class="POD_LINK" href="perlfunc.html#untie_VARIABLE">untie</a></code> and which with
+the object being destroyed. What makes sense for a given class depends
+on whether the inner references are being kept so that non-tie-related
+methods can be called on the object. But in most cases it probably makes
+sense to move the functionality that would have been in DESTROY to the UNTIE
+method.
+</p>
+<pre class="POD_TEXT">
+If the UNTIE method exists then the warning above does not occur. Instead the
+UNTIE method is passed the count of &quot;extra&quot; references and can issue its own
+warning if appropriate. e.g. to replicate the no UNTIE case this method can
+be used:
+
+    sub UNTIE
+    {
+     my ($obj,$count) = @_;
+     carp &quot;untie attempted while $count inner references still exist&quot; if $count;
+    }
+</pre>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+See the <u>DB_File</u> manpage or the <u>Config</u> manpage for some interesting tie() implementations.
+A good starting point for many tie() implementations is with one of the
+modules the <a class="POD_LINK" href="Tie/Scalar.html">Tie::Scalar</a> manpage, the <a class="POD_LINK" href="Tie/Array.html">Tie::Array</a> manpage, the <a class="POD_LINK" href="Tie/Hash.html">Tie::Hash</a> manpage, or the <a class="POD_LINK" href="Tie/Handle.html">Tie::Handle</a> manpage.
+</p>
+<h2 class="POD_HEAD1"><a name="BUGS">BUGS</a></h2>
+<p class="POD_TEXT">
+You cannot easily tie a multilevel data structure (such as a hash of
+hashes) to a dbm file.  The first problem is that all but GDBM and
+Berkeley DB have size limitations, but beyond that, you also have problems
+with how references are to be represented on disk.  One experimental
+module that does attempt to address this need partially is the MLDBM
+module.  Check your nearest CPAN site as described in the <a class="POD_LINK" href="perlmodlib.html">perlmodlib</a> manpage for
+source code to MLDBM.
+</p>
+<p class="POD_TEXT">
+Tied filehandles are still incomplete.  sysopen(), truncate(),
+flock(), fcntl(), stat() and -X can't currently be trapped.
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHOR">AUTHOR</a></h2>
+<p class="POD_TEXT">
+Tom Christiansen
+</p>
+<p class="POD_TEXT">
+TIEHANDLE by Sven Verdoolaege &lt;<code>skimo@dns.ufsia.ac.be</code>&gt; and Doug MacEachern &lt;<code>dougm@osf.org</code>&gt;
+</p>
+<p class="POD_TEXT">
+UNTIE by Nick Ing-Simmons &lt;<code>nick@ing-simmons.net</code>&gt;
+</p>
+<p class="POD_TEXT">
+Tying Arrays by Casey Tweten &lt;<code>crt@kiski.net</code>&gt;
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:36:13 2001
+</body>
+</html>
+

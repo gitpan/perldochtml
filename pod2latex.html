@@ -1,0 +1,127 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>pod2latex</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="pod2man.html">Next:<br>pod2man</a></td><td align="left" width="1%"><a  href="pod2html.html">Previous:<br>pod2html</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">pod2latex</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#OPTIONS_AND_ARGUMENT">OPTIONS AND ARGUMENTS</a>
+<li><a href="#BUGS">BUGS</a>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+<li><a href="#AUTHOR">AUTHOR</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+pod2latex - convert pod documentation to latex format
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+  pod2latex *.pm
+
+  pod2latex -out mytex.tex *.pod
+
+  pod2latex -full -sections 'DESCRIPTION|NAME' SomeDir
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+<code>pod2latex</code> is a program to convert POD format documentation
+(the <a class="POD_LINK" href="perlpod.html">perlpod</a> manpage) into latex. It can process multiple input documents at a
+time and either generate a latex file per input document or a single
+combined output file.
+</p>
+<h2 class="POD_HEAD1"><a name="OPTIONS_AND_ARGUMENT">OPTIONS AND ARGUMENTS</a></h2>
+<p class="POD_TEXT">
+This section describes the supported command line options. Minium
+matching is supported.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_out"><b>-out</b></a>
+<dd>
+Name of the output file to be used. If there are multiple input pods
+it is assumed that the intention is to write all translated output
+into a single file. <code>.tex</code> is appended if not present.  If the
+argument is not supplied, a single document will be created for each
+input file.
+<dt class="POD_ITEM"><a name="_full"><b>-full</b></a>
+<dd>
+Creates a complete <code>latex</code> file that can be processed immediately
+(unless <code>=for/=begin</code> directives are used that rely on extra packages).
+Table of contents and index generation commands are included in the
+wrapper <code>latex</code> code.
+<dt class="POD_ITEM"><a name="_sections"><b>-sections</b></a>
+<dd>
+Specify pod sections to include (or remove if negated) in the
+translation.  See the section on <a class="POD_LINK" href="Pod/Select.html#SECTION_SPECIFICATIO">SECTION SPECIFICATIONS</a> in the <a class="POD_LINK" href="Pod/Select.html">Pod::Select</a> manpage for the
+format to use for <i>section-spec</i>. This option may be given multiple
+times on the command line.This is identical to the similar option in
+the <code>podselect()</code> command.
+<dt class="POD_ITEM"><a name="_modify"><b>-modify</b></a>
+<dd>
+This option causes the output <code>latex</code> to be slightly
+modified from the input pod such that when a <code>=head1 NAME</code>
+is encountered a section is created containing the actual
+pod name (rather than <b>NAME</b>) and all subsequent <code>=head1</code>
+directives are treated as subsections. This has the advantage
+that the description of a module will be in its own section
+which is helpful for including module descriptions in documentation.
+Also forces <code>latex</code> label and index entries to be prefixed by the
+name of the module.
+<dt class="POD_ITEM"><a name="_help"><b>-help</b></a>
+<dd>
+Print a brief help message and exit.
+<dt class="POD_ITEM"><a name="_man"><b>-man</b></a>
+<dd>
+Print the manual page and exit.
+<dt class="POD_ITEM"><a name="_verbose"><b>-verbose</b></a>
+<dd>
+Print information messages as each document is processed.
+</dl>
+<h2 class="POD_HEAD1"><a name="BUGS">BUGS</a></h2>
+<p class="POD_TEXT">
+Known bugs are:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_"></a>
+
+Cross references between documents are not resolved when multiple
+pod documents are converted into a single output <code>latex</code> file.
+<li class="POD_ITEM"><a name="_1"></a>
+
+Functions and variables are not automatically recognized 
+and they will therefore not be marked up in any special way
+unless instructed by an explicit pod command.
+</ul>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+the <a class="POD_LINK" href="Pod/LaTeX.html">Pod::LaTeX</a> manpage
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHOR">AUTHOR</a></h2>
+<p class="POD_TEXT">
+Tim Jenness &lt;t.jenness@jach.hawaii.edu&gt;
+</p>
+<p class="POD_TEXT">
+This program is free software; you can redistribute it
+and/or modify it under the same terms as Perl itself.
+</p>
+<p class="POD_TEXT">
+Copyright (C) 2000 Tim Jenness.
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:36:46 2001
+</body>
+</html>
+

@@ -1,0 +1,178 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>File::Copy</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="../File/DosGlob.html">Next:<br>File::DosGlob</a></td><td align="left" width="1%"><a  href="../File/Compare.html">Previous:<br>File::Compare</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="../podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="../podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">File::Copy</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#Special_behaviour_if">Special behaviour if <code>syscopy</code> is defined (OS/2, VMS and Win32)</a>
+</ul>
+<li><a href="#RETURN">RETURN</a>
+<li><a href="#AUTHOR">AUTHOR</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+File::Copy - Copy files or filehandles
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+  	use File::Copy;
+
+	copy(&quot;file1&quot;,&quot;file2&quot;);
+  	copy(&quot;Copy.pm&quot;,\*STDOUT);'
+	move(&quot;/dev1/fileA&quot;,&quot;/dev2/fileB&quot;);
+
+  	use POSIX;
+	use File::Copy cp;
+
+	$n = FileHandle-&gt;new(&quot;/a/file&quot;,&quot;r&quot;);
+	cp($n,&quot;x&quot;);'
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+The File::Copy module provides two basic functions, <code>copy</code> and
+<code>move</code>, which are useful for getting the contents of a file from
+one place to another.
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_"></a>
+
+The <code>copy</code> function takes two
+parameters: a file to copy from and a file to copy to. Either
+argument may be a string, a FileHandle reference or a FileHandle
+glob. Obviously, if the first argument is a filehandle of some
+sort, it will be read from, and if it is a file <i>name</i> it will
+be opened for reading. Likewise, the second argument will be
+written to (and created if need be).
+<p class="POD_TEXT">
+<b>Note that passing in
+files as handles instead of names may lead to loss of information
+on some operating systems; it is recommended that you use file
+names whenever possible.</b>  Files are opened in binary mode where
+applicable.  To get a consistent behaviour when copying from a
+filehandle to a file, use <code><a class="POD_LINK" href="../perlfunc.html#binmode_FILEHANDLE">binmode</a></code> on the filehandle.
+</p>
+<p class="POD_TEXT">
+An optional third parameter can be used to specify the buffer
+size used for copying. This is the number of bytes from the
+first file, that wil be held in memory at any given time, before
+being written to the second file. The default buffer size depends
+upon the file, but will generally be the whole file (up to 2Mb), or
+1k for filehandles that do not reference files (eg. sockets).
+</p>
+<p class="POD_TEXT">
+You may use the syntax <code>use File::Copy &quot;cp&quot;</code> to get at the
+&quot;cp&quot; alias for this function. The syntax is <i>exactly</i> the same.
+</p>
+<li class="POD_ITEM"><a name="_1"></a>
+
+The <code>move</code> function also takes two parameters: the current name
+and the intended name of the file to be moved.  If the destination
+already exists and is a directory, and the source is not a
+directory, then the source file will be renamed into the directory
+specified by the destination.
+<p class="POD_TEXT">
+If possible, move() will simply rename the file.  Otherwise, it copies
+the file to the new location and deletes the original.  If an error occurs
+during this copy-and-delete process, you may be left with a (possibly partial)
+copy of the file under the destination name.
+</p>
+<p class="POD_TEXT">
+You may use the &quot;mv&quot; alias for this function in the same way that
+you may use the &quot;cp&quot; alias for <code>copy</code>.
+</p>
+</ul>
+<p class="POD_TEXT">
+File::Copy also provides the <code>syscopy</code> routine, which copies the
+file specified in the first parameter to the file specified in the
+second parameter, preserving OS-specific attributes and file
+structure.  For Unix systems, this is equivalent to the simple
+<code>copy</code> routine.  For VMS systems, this calls the <code>rmscopy</code>
+routine (see below).  For OS/2 systems, this calls the <code>syscopy</code>
+XSUB directly. For Win32 systems, this calls <code>Win32::CopyFile</code>.
+</p>
+<h3 class="POD_HEAD2"><a name="Special_behaviour_if">Special behaviour if <code>syscopy</code> is defined (OS/2, VMS and Win32)</a></h3>
+<p class="POD_TEXT">
+If both arguments to <code>copy</code> are not file handles,
+then <code>copy</code> will perform a &quot;system copy&quot; of
+the input file to a new output file, in order to preserve file
+attributes, indexed file structure, <i>etc.</i>  The buffer size
+parameter is ignored.  If either argument to <code>copy</code> is a
+handle to an opened file, then data is copied using Perl
+operators, and no effort is made to preserve file attributes
+or record structure.
+</p>
+<p class="POD_TEXT">
+The system copy routine may also be called directly under VMS and OS/2
+as <code>File::Copy::syscopy</code> (or under VMS as <code>File::Copy::rmscopy</code>, which
+is the routine that does the actual work for syscopy).
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="rmscopy_from_to_date">rmscopy($from,$to[,$date_flag])</a>
+<dd>
+The first and second arguments may be strings, typeglobs, typeglob
+references, or objects inheriting from IO::Handle;
+they are used in all cases to obtain the
+<i>filespec</i> of the input and output files, respectively.  The
+name and type of the input file are used as defaults for the
+output file, if necessary.
+<p class="POD_TEXT">
+A new version of the output file is always created, which
+inherits the structure and RMS attributes of the input file,
+except for owner and protections (and possibly timestamps;
+see below).  All data from the input file is copied to the
+output file; if either of the first two parameters to <code>rmscopy</code>
+is a file handle, its position is unchanged.  (Note that this
+means a file handle pointing to the output file will be
+associated with an old version of that file after <code>rmscopy</code>
+returns, not the newly created version.)
+</p>
+<p class="POD_TEXT">
+The third parameter is an integer flag, which tells <code>rmscopy</code>
+how to handle timestamps.  If it is &lt; 0, none of the input file's
+timestamps are propagated to the output file.  If it is &gt; 0, then
+it is interpreted as a bitmask: if bit 0 (the LSB) is set, then
+timestamps other than the revision date are propagated; if bit 1
+is set, the revision date is propagated.  If the third parameter
+to <code>rmscopy</code> is 0, then it behaves much like the DCL COPY command:
+if the name or type of the output file was explicitly specified,
+then no timestamps are propagated, but if they were taken implicitly
+from the input filespec, then all timestamps other than the
+revision date are propagated.  If this parameter is not supplied,
+it defaults to 0.
+</p>
+<p class="POD_TEXT">
+Like <code>copy</code>, <code>rmscopy</code> returns 1 on success.  If an error occurs,
+it sets <code><a class="POD_LINK" href="../perlvar.html#_29">$!</a></code>, deletes the output file, and returns 0.
+</p>
+</dl>
+<h2 class="POD_HEAD1"><a name="RETURN">RETURN</a></h2>
+<p class="POD_TEXT">
+All functions return 1 on success, 0 on failure.
+$! will be set if an error was encountered.
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHOR">AUTHOR</a></h2>
+<p class="POD_TEXT">
+File::Copy was written by Aaron Sherman <i>&lt;ajs@ajs.com&gt;</i> in 1995,
+and updated by Charles Bailey <i>&lt;bailey@newman.upenn.edu&gt;</i> in 1996.
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:28 2001
+</body>
+</html>
+

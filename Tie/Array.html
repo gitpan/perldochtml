@@ -1,0 +1,192 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>Tie::Array</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="../Tie/Handle.html">Next:<br>Tie::Handle</a></td><td align="left" width="1%"><a  href="../Text/Wrap.html">Previous:<br>Text::Wrap</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="../podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="../podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">Tie::Array</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#CAVEATS">CAVEATS</a>
+<li><a href="#AUTHOR">AUTHOR</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+Tie::Array - base class for tied arrays
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+    package NewArray;
+    use Tie::Array;
+    @ISA = ('Tie::Array');
+
+    # mandatory methods
+    sub TIEARRAY { ... }
+    sub FETCH { ... }
+    sub FETCHSIZE { ... }
+
+    sub STORE { ... }        # mandatory if elements writeable
+    sub STORESIZE { ... }    # mandatory if elements can be added/deleted
+    sub EXISTS { ... }       # mandatory if exists() expected to work
+    sub DELETE { ... }       # mandatory if delete() expected to work
+
+    # optional methods - for efficiency
+    sub CLEAR { ... }
+    sub PUSH { ... }
+    sub POP { ... }
+    sub SHIFT { ... }
+    sub UNSHIFT { ... }
+    sub SPLICE { ... }
+    sub EXTEND { ... }
+    sub DESTROY { ... }
+
+    package NewStdArray;
+    use Tie::Array;
+
+    @ISA = ('Tie::StdArray');
+
+    # all methods provided by default
+
+    package main;
+
+    $object = tie @somearray,Tie::NewArray;
+    $object = tie @somearray,Tie::StdArray;
+    $object = tie @somearray,Tie::NewStdArray;
+</pre>
+<p></p>
+<p></p>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+This module provides methods for array-tying classes. See
+the <a class="POD_LINK" href="../perltie.html">perltie</a> manpage for a list of the functions required in order to tie an array
+to a package. The basic <b>Tie::Array</b> package provides stub <code>DESTROY</code>,
+and <code>EXTEND</code> methods that do nothing, stub <code>DELETE</code> and <code>EXISTS</code>
+methods that croak() if the delete() or exists() builtins are ever called
+on the tied array, and implementations of <code>PUSH</code>, <code>POP</code>, <code>SHIFT</code>,
+<code>UNSHIFT</code>, <code>SPLICE</code> and <code>CLEAR</code> in terms of basic <code>FETCH</code>, <code>STORE</code>,
+<code>FETCHSIZE</code>, <code>STORESIZE</code>.
+</p>
+<p class="POD_TEXT">
+The <b>Tie::StdArray</b> package provides efficient methods required for tied arrays
+which are implemented as blessed references to an &quot;inner&quot; perl array.
+It inherits from <b>Tie::Array</b>, and should cause tied arrays to behave exactly
+like standard arrays, allowing for selective overloading of methods.
+</p>
+<p class="POD_TEXT">
+For developers wishing to write their own tied arrays, the required methods
+are briefly defined below. See the the <a class="POD_LINK" href="../perltie.html">perltie</a> manpage section for more detailed
+descriptive, as well as example code:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="TIEARRAY_classname_L">TIEARRAY classname, LIST</a>
+<dd>
+The class method is invoked by the command <code>tie @array, classname</code>. Associates
+an array instance with the specified class. <code>LIST</code> would represent
+additional arguments (along the lines of the <a class="POD_LINK" href="../AnyDBM_File.html">AnyDBM_File</a> manpage and compatriots) needed
+to complete the association. The method should return an object of a class which
+provides the methods below.
+<dt class="POD_ITEM"><a name="STORE_this_index_val">STORE this, index, value</a>
+<dd>
+Store datum <i>value</i> into <i>index</i> for the tied array associated with
+object <i>this</i>. If this makes the array larger then
+class's mapping of <code><a class="POD_LINK" href="../perlfunc.html#undef">undef</a></code> should be returned for new positions.
+<dt class="POD_ITEM"><a name="FETCH_this_index">FETCH this, index</a>
+<dd>
+Retrieve the datum in <i>index</i> for the tied array associated with
+object <i>this</i>.
+<dt class="POD_ITEM"><a name="FETCHSIZE_this">FETCHSIZE this</a>
+<dd>
+Returns the total number of items in the tied array associated with
+object <i>this</i>. (Equivalent to <code>scalar(@array)</code>).
+<dt class="POD_ITEM"><a name="STORESIZE_this_count">STORESIZE this, count</a>
+<dd>
+Sets the total number of items in the tied array associated with
+object <i>this</i> to be <i>count</i>. If this makes the array larger then
+class's mapping of <code><a class="POD_LINK" href="../perlfunc.html#undef">undef</a></code> should be returned for new positions.
+If the array becomes smaller then entries beyond count should be
+deleted.
+<dt class="POD_ITEM"><a name="EXTEND_this_count">EXTEND this, count</a>
+<dd>
+Informative call that array is likely to grow to have <i>count</i> entries.
+Can be used to optimize allocation. This method need do nothing.
+<dt class="POD_ITEM"><a name="EXISTS_this_key">EXISTS this, key</a>
+<dd>
+Verify that the element at index <i>key</i> exists in the tied array <i>this</i>.
+<p class="POD_TEXT">
+The <b>Tie::Array</b> implementation is a stub that simply croaks.
+</p>
+<dt class="POD_ITEM"><a name="DELETE_this_key">DELETE this, key</a>
+<dd>
+Delete the element at index <i>key</i> from the tied array <i>this</i>.
+<p class="POD_TEXT">
+The <b>Tie::Array</b> implementation is a stub that simply croaks.
+</p>
+<dt class="POD_ITEM"><a name="CLEAR_this">CLEAR this</a>
+<dd>
+Clear (remove, delete, ...) all values from the tied array associated with
+object <i>this</i>.
+<dt class="POD_ITEM"><a name="DESTROY_this">DESTROY this</a>
+<dd>
+Normal object destructor method.
+<dt class="POD_ITEM"><a name="PUSH_this_LIST">PUSH this, LIST</a>
+<dd>
+Append elements of LIST to the array.
+<dt class="POD_ITEM"><a name="POP_this">POP this</a>
+<dd>
+Remove last element of the array and return it.
+<dt class="POD_ITEM"><a name="SHIFT_this">SHIFT this</a>
+<dd>
+Remove the first element of the array (shifting other elements down)
+and return it.
+<dt class="POD_ITEM"><a name="UNSHIFT_this_LIST">UNSHIFT this, LIST</a>
+<dd>
+Insert LIST elements at the beginning of the array, moving existing elements
+up to make room.
+<dt class="POD_ITEM"><a name="SPLICE_this_offset_l">SPLICE this, offset, length, LIST</a>
+<dd>
+Perform the equivalent of <code><a class="POD_LINK" href="../perlfunc.html#splice_ARRAY">splice</a></code> on the array.
+<p class="POD_TEXT">
+<i>offset</i> is optional and defaults to zero, negative values count back
+from the end of the array.
+</p>
+<p class="POD_TEXT">
+<i>length</i> is optional and defaults to rest of the array.
+</p>
+<p class="POD_TEXT">
+<i>LIST</i> may be empty.
+</p>
+<p class="POD_TEXT">
+Returns a list of the original <i>length</i> elements at <i>offset</i>.
+</p>
+</dl>
+<h2 class="POD_HEAD1"><a name="CAVEATS">CAVEATS</a></h2>
+<p class="POD_TEXT">
+There is no support at present for tied @ISA. There is a potential conflict
+between magic entries needed to notice setting of @ISA, and those needed to
+implement 'tie'.
+</p>
+<p class="POD_TEXT">
+Very little consideration has been given to the behaviour of tied arrays
+when <code><a class="POD_LINK" href="../perlvar.html#_36">$[</a></code> is not default value of zero.
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHOR">AUTHOR</a></h2>
+<p class="POD_TEXT">
+Nick Ing-Simmons &lt;nik@tiuk.ti.com&gt;
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:37:01 2001
+</body>
+</html>
+

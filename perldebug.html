@@ -1,0 +1,959 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>perldebug</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="perldelta.html">Next:<br>perldelta</a></td><td align="left" width="1%"><a href="perldebtut.html">Previous:<br>perldebtut</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">perldebug</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#The_Perl_Debugger">The Perl Debugger</a>
+<ul>
+<li><a href="#Debugger_Commands">Debugger Commands</a>
+<li><a href="#Configurable_Options">Configurable Options</a>
+<li><a href="#Debugger_input_outpu">Debugger input/output</a>
+<li><a href="#Debugging_compile_ti">Debugging compile-time statements</a>
+<li><a href="#Debugger_Customizati">Debugger Customization</a>
+<li><a href="#Readline_Support">Readline Support</a>
+<li><a href="#Editor_Support_for_D">Editor Support for Debugging</a>
+<li><a href="#The_Perl_Profiler">The Perl Profiler</a>
+</ul>
+<li><a href="#Debugging_regular_ex">Debugging regular expressions</a>
+<li><a href="#Debugging_memory_usa">Debugging memory usage</a>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+<li><a href="#BUGS">BUGS</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+perldebug - Perl debugging
+</p>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+First of all, have you tried using the <b>-w</b> switch?
+</p>
+<h2 class="POD_HEAD1"><a name="The_Perl_Debugger">The Perl Debugger</a></h2>
+<pre class="POD_TEXT">
+If you invoke Perl with the <b>-d</b> switch, your script runs under the
+Perl source debugger.  This works like an interactive Perl
+environment, prompting for debugger commands that let you examine
+source code, set breakpoints, get stack backtraces, change the values of
+variables, etc.  This is so convenient that you often fire up
+the debugger all by itself just to test out Perl constructs
+interactively to see what they do.  For example:
+
+    $ perl -d -e 42
+</pre>
+<p class="POD_TEXT">
+In Perl, the debugger is not a separate program the way it usually is in the
+typical compiled environment.  Instead, the <b>-d</b> flag tells the compiler
+to insert source information into the parse trees it's about to hand off
+to the interpreter.  That means your code must first compile correctly
+for the debugger to work on it.  Then when the interpreter starts up, it
+preloads a special Perl library file containing the debugger.
+</p>
+<p class="POD_TEXT">
+The program will halt <i>right before</i> the first run-time executable
+statement (but see below regarding compile-time statements) and ask you
+to enter a debugger command.  Contrary to popular expectations, whenever
+the debugger halts and shows you a line of code, it always displays the
+line it's <i>about</i> to execute, rather than the one it has just executed.
+</p>
+<p class="POD_TEXT">
+Any command not recognized by the debugger is directly executed
+(<code><a class="POD_LINK" href="perlfunc.html#eval_EXPR">eval</a></code>'d) as Perl code in the current package.  (The debugger
+uses the DB package for keeping its own state information.)
+</p>
+<p class="POD_TEXT">
+For any text entered at the debugger prompt, leading and trailing whitespace
+is first stripped before further processing.  If a debugger command
+coincides with some function in your own program, merely precede the
+function with something that doesn't look like a debugger command, such
+as a leading <code>;</code> or perhaps a <code>+</code>, or by wrapping it with parentheses
+or braces.
+</p>
+<h3 class="POD_HEAD2"><a name="Debugger_Commands">Debugger Commands</a></h3>
+<p class="POD_TEXT">
+The debugger understands the following commands:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="h_command_">h [command]</a>
+<dd>
+Prints out a help message.
+<p class="POD_TEXT">
+If you supply another debugger command as an argument to the <code>h</code> command,
+it prints out the description for just that command.  The special
+argument of <code>h h</code> produces a more compact help listing, designed to fit
+together on one screen.
+</p>
+<pre class="POD_TEXT">
+If the output of the <code>h</code> command (or any command, for that matter) scrolls
+past your screen, precede the command with a leading pipe symbol so
+that it's run through your pager, as in
+
+    DB&gt; |h
+</pre>
+<p class="POD_TEXT">
+You may change the pager which is used via <code>O pager=...</code> command.
+</p>
+<dt class="POD_ITEM"><a name="p_expr">p expr</a>
+<dd>
+Same as <code>print {$DB::OUT} expr</code> in the current package.  In particular,
+because this is just Perl's own <code><a class="POD_LINK" href="perlfunc.html#print">print</a></code> function, this means that nested
+data structures and objects are not dumped, unlike with the <code>x</code> command.
+<p class="POD_TEXT">
+The <code>DB::OUT</code> filehandle is opened to <code>/dev/tty</code>, regardless of
+where STDOUT may be redirected to.
+</p>
+<dt class="POD_ITEM"><a name="x_expr">x expr</a>
+<dd>
+Evaluates its expression in list context and dumps out the result
+in a pretty-printed fashion.  Nested data structures are printed out
+recursively, unlike the real <code><a class="POD_LINK" href="perlfunc.html#print">print</a></code> function in Perl.
+See the <a class="POD_LINK" href="Dumpvalue.html">Dumpvalue</a> manpage if you'd like to do this yourself.
+<p class="POD_TEXT">
+The output format is governed by multiple options described under
+the section on <a class="POD_LINK" href="#Configurable_Options">Configurable Options</a> elsewhere in this document.
+</p>
+<dt class="POD_ITEM"><a name="V_pkg_vars_">V [pkg [vars]]</a>
+<dd>
+Display all (or some) variables in package (defaulting to <code>main</code>) 
+using a data pretty-printer (hashes show their keys and values so
+you see what's what, control characters are made printable, etc.).
+Make sure you don't put the type specifier (like <code>$</code>) there, just
+the symbol names, like this:
+<pre class="POD_VERBATIM">
+    V DB filename line
+</pre>
+<p class="POD_TEXT">
+Use <code>~pattern</code> and <code>!pattern</code> for positive and negative regexes.
+</p>
+<p class="POD_TEXT">
+This is similar to calling the <code>x</code> command on each applicable var.
+</p>
+<dt class="POD_ITEM"><a name="X_vars_">X [vars]</a>
+<dd>
+Same as <code>V currentpackage [vars]</code>.
+<dt class="POD_ITEM"><a name="T">T</a>
+<dd>
+Produce a stack backtrace.  See below for details on its output.
+<dt class="POD_ITEM"><a name="s_expr_">s [expr]</a>
+<dd>
+Single step.  Executes until the beginning of another
+statement, descending into subroutine calls.  If an expression is
+supplied that includes function calls, it too will be single-stepped.
+<dt class="POD_ITEM"><a name="n_expr_">n [expr]</a>
+<dd>
+Next.  Executes over subroutine calls, until the beginning
+of the next statement.  If an expression is supplied that includes
+function calls, those functions will be executed with stops before
+each statement.
+<dt class="POD_ITEM"><a name="r">r</a>
+<dd>
+Continue until the return from the current subroutine.
+Dump the return value if the <code>PrintRet</code> option is set (default).
+<dt class="POD_ITEM"><a name="_CR_">&lt;CR&gt;</a>
+<dd>
+Repeat last <code>n</code> or <code>s</code> command.
+<dt class="POD_ITEM"><a name="c_line_sub_">c [line|sub]</a>
+<dd>
+Continue, optionally inserting a one-time-only breakpoint
+at the specified line or subroutine.
+<dt class="POD_ITEM"><a name="l">l</a>
+<dd>
+List next window of lines.
+<dt class="POD_ITEM"><a name="l_min_incr">l min+incr</a>
+<dd>
+List <code>incr+1</code> lines starting at <code>min</code>.
+<dt class="POD_ITEM"><a name="l_min_max">l min-max</a>
+<dd>
+List lines <code>min</code> through <code>max</code>.  <code>l -</code> is synonymous to <code>-</code>.
+<dt class="POD_ITEM"><a name="l_line">l line</a>
+<dd>
+List a single line.
+<dt class="POD_ITEM"><a name="l_subname">l subname</a>
+<dd>
+List first window of lines from subroutine.  <i>subname</i> may
+be a variable that contains a code reference.
+<dt class="POD_ITEM"><a name="_">-</a>
+<dd>
+List previous window of lines.
+<dt class="POD_ITEM"><a name="w_line_">w [line]</a>
+<dd>
+List window (a few lines) around the current line.
+<dt class="POD_ITEM"><a name="_1">.</a>
+<dd>
+Return the internal debugger pointer to the line last
+executed, and print out that line.
+<dt class="POD_ITEM"><a name="f_filename">f filename</a>
+<dd>
+Switch to viewing a different file or <code><a class="POD_LINK" href="perlfunc.html#eval_EXPR">eval</a></code> statement.  If <i>filename</i>
+is not a full pathname found in the values of %INC, it is considered 
+a regex.
+<p class="POD_TEXT">
+<code><a class="POD_LINK" href="perlfunc.html#eval_EXPR">eval</a></code>ed strings (when accessible) are considered to be filenames:
+<code>f (eval 7)</code> and <code>f eval 7\b</code> access the body of the 7th <code><a class="POD_LINK" href="perlfunc.html#eval_EXPR">eval</a></code>ed string
+(in the order of execution).  The bodies of the currently executed <code><a class="POD_LINK" href="perlfunc.html#eval_EXPR">eval</a></code>
+and of <code><a class="POD_LINK" href="perlfunc.html#eval_EXPR">eval</a></code>ed strings that define subroutines are saved and thus
+accessible.
+</p>
+<dt class="POD_ITEM"><a name="_pattern_">/pattern/</a>
+<dd>
+Search forwards for pattern (a Perl regex); final / is optional.
+<dt class="POD_ITEM"><a name="_pattern_1">?pattern?</a>
+<dd>
+Search backwards for pattern; final ? is optional.
+<dt class="POD_ITEM"><a name="L">L</a>
+<dd>
+List all breakpoints and actions.
+<dt class="POD_ITEM"><a name="S_regex_">S [[!]regex]</a>
+<dd>
+List subroutine names [not] matching the regex.
+<dt class="POD_ITEM"><a name="t">t</a>
+<dd>
+Toggle trace mode (see also the <code>AutoTrace</code> option).
+<dt class="POD_ITEM"><a name="t_expr">t expr</a>
+<dd>
+Trace through execution of <code>expr</code>.
+See the section on <a class="POD_LINK" href="perldebguts.html#Frame_Listing_Output">Frame Listing Output Examples</a> in the <a class="POD_LINK" href="perldebguts.html">perldebguts</a> manpage for examples.
+<dt class="POD_ITEM"><a name="b_line_condition_">b [line] [condition]</a>
+<dd>
+Set a breakpoint before the given line.  If <i>line</i> is omitted, set a
+breakpoint on the line about to be executed.  If a condition
+is specified, it's evaluated each time the statement is reached: a
+breakpoint is taken only if the condition is true.  Breakpoints may
+only be set on lines that begin an executable statement.  Conditions
+don't use <code>if</code>:
+<pre class="POD_VERBATIM">
+    b 237 $x &gt; 30
+    b 237 ++$count237 &lt; 11
+    b 33 /pattern/i
+</pre>
+<dt class="POD_ITEM"><a name="b_subname_condition_">b subname [condition]</a>
+<dd>
+Set a breakpoint before the first line of the named subroutine.  <i>subname</i> may
+be a variable containing a code reference (in this case <i>condition</i>
+is not supported).
+<dt class="POD_ITEM"><a name="b_postpone_subname_c">b postpone subname [condition]</a>
+<dd>
+Set a breakpoint at first line of subroutine after it is compiled.
+<dt class="POD_ITEM"><a name="b_load_filename">b load filename</a>
+<dd>
+Set a breakpoint before the first executed line of the <i>filename</i>,
+which should be a full pathname found amongst the %INC values.
+<dt class="POD_ITEM"><a name="b_compile_subname">b compile subname</a>
+<dd>
+Sets a breakpoint before the first statement executed after the specified
+subroutine is compiled.
+<dt class="POD_ITEM"><a name="d_line_">d [line]</a>
+<dd>
+Delete a breakpoint from the specified <i>line</i>.  If <i>line</i> is omitted, deletes
+the breakpoint from the line about to be executed.
+<dt class="POD_ITEM"><a name="D">D</a>
+<dd>
+Delete all installed breakpoints.
+<dt class="POD_ITEM"><a name="a_line_command">a [line] command</a>
+<dd>
+Set an action to be done before the line is executed.  If <i>line</i> is
+omitted, set an action on the line about to be executed.
+The sequence of steps taken by the debugger is
+<pre class="POD_VERBATIM">
+  1. check for a breakpoint at this line
+  2. print the line if necessary (tracing)
+  3. do any actions associated with that line
+  4. prompt user if at a breakpoint or in single-step
+  5. evaluate line
+</pre>
+<pre class="POD_TEXT">
+For example, this will print out $foo every time line
+53 is passed:
+
+    a 53 print &quot;DB FOUND $foo\n&quot;
+</pre>
+<dt class="POD_ITEM"><a name="a_line_">a [line]</a>
+<dd>
+Delete an action from the specified line.  If <i>line</i> is omitted, delete
+the action on the line that is about to be executed.
+<dt class="POD_ITEM"><a name="A">A</a>
+<dd>
+Delete all installed actions.
+<dt class="POD_ITEM"><a name="W_expr">W expr</a>
+<dd>
+Add a global watch-expression.  We hope you know what one of these
+is, because they're supposed to be obvious.  <b>WARNING</b>: It is far
+too easy to destroy your watch expressions by accidentally omitting
+the <i>expr</i>.
+<dt class="POD_ITEM"><a name="W">W</a>
+<dd>
+Delete all watch-expressions.
+<dt class="POD_ITEM"><a name="O_booloption_">O booloption ...</a>
+<dd>
+Set each listed Boolean option to the value <code>1</code>.
+<dt class="POD_ITEM"><a name="O_anyoption_">O anyoption? ...</a>
+<dd>
+Print out the value of one or more options.
+<dt class="POD_ITEM"><a name="O_option_value_">O option=value ...</a>
+<dd>
+Set the value of one or more options.  If the value has internal
+whitespace, it should be quoted.  For example, you could set <code>O
+pager=&quot;less -MQeicsNfr&quot;</code> to call <b>less</b> with those specific options.
+You may use either single or double quotes, but if you do, you must
+escape any embedded instances of same sort of quote you began with,
+as well as any escaping any escapes that immediately precede that
+quote but which are not meant to escape the quote itself.  In other
+words, you follow single-quoting rules irrespective of the quote;
+eg: <code>O option='this isn\'t bad'</code> or <code>O option=&quot;She said, \&quot;Isn't
+it?\&quot;&quot;</code>.
+<p class="POD_TEXT">
+For historical reasons, the <code>=value</code> is optional, but defaults to
+1 only where it is safe to do so--that is, mostly for Boolean
+options.  It is always better to assign a specific value using <code>=</code>.
+The <code>option</code> can be abbreviated, but for clarity probably should
+not be.  Several options can be set together.  See the section on <a class="POD_LINK" href="#Configurable_Options">Configurable Options</a> elsewhere in this document 
+for a list of these.
+</p>
+<dt class="POD_ITEM"><a name="_2">&lt; ?</a>
+<dd>
+List out all pre-prompt Perl command actions.
+<dt class="POD_ITEM"><a name="_command_">&lt; [ command ]</a>
+<dd>
+Set an action (Perl command) to happen before every debugger prompt.
+A multi-line command may be entered by backslashing the newlines.  
+<b>WARNING</b> If <code>command</code> is missing, all actions are wiped out!
+<dt class="POD_ITEM"><a name="_command">&lt;&lt; command</a>
+<dd>
+Add an action (Perl command) to happen before every debugger prompt.
+A multi-line command may be entered by backwhacking the newlines.
+<dt class="POD_ITEM"><a name="_3">&gt; ?</a>
+<dd>
+List out post-prompt Perl command actions.
+<dt class="POD_ITEM"><a name="_command1">&gt; command</a>
+<dd>
+Set an action (Perl command) to happen after the prompt when you've
+just given a command to return to executing the script.  A multi-line
+command may be entered by backslashing the newlines (we bet you
+couldn't've guessed this by now).  <b>WARNING</b> If <code>command</code> is
+missing, all actions are wiped out!
+<dt class="POD_ITEM"><a name="_command2">&gt;&gt; command</a>
+<dd>
+Adds an action (Perl command) to happen after the prompt when you've
+just given a command to return to executing the script.  A multi-line
+command may be entered by backslashing the newlines.
+<dt class="POD_ITEM"><a name="_4">{ ?</a>
+<dd>
+List out pre-prompt debugger commands.
+<dt class="POD_ITEM"><a name="_command_1">{ [ command ]</a>
+<dd>
+Set an action (debugger command) to happen before every debugger prompt.
+A multi-line command may be entered in the customary fashion.  
+<b>WARNING</b> If <code>command</code> is missing, all actions are wiped out!
+<p class="POD_TEXT">
+Because this command is in some senses new, a warning is issued if
+you appear to have accidentally entered a block instead.  If that's
+what you mean to do, write it as with <code>;{ ... }</code> or even 
+<code>do { ... }</code>.
+</p>
+<dt class="POD_ITEM"><a name="_command3">{{ command</a>
+<dd>
+Add an action (debugger command) to happen before every debugger prompt.
+A multi-line command may be entered, if you can guess how: see above.
+<dt class="POD_ITEM"><a name="_number">! number</a>
+<dd>
+Redo a previous command (defaults to the previous command).
+<dt class="POD_ITEM"><a name="_number1">! -number</a>
+<dd>
+Redo number'th previous command.
+<dt class="POD_ITEM"><a name="_pattern">! pattern</a>
+<dd>
+Redo last command that started with pattern.
+See <code>O recallCommand</code>, too.
+<dt class="POD_ITEM"><a name="_cmd">!! cmd</a>
+<dd>
+Run cmd in a subprocess (reads from DB::IN, writes to DB::OUT) See
+<code>O shellBang</code>, also.  Note that the user's current shell (well,
+their <code>$ENV{SHELL}</code> variable) will be used, which can interfere
+with proper interpretation of exit status or signal and coredump
+information.
+<dt class="POD_ITEM"><a name="H_number">H -number</a>
+<dd>
+Display last n commands.  Only commands longer than one character are
+listed.  If <i>number</i> is omitted, list them all.
+<dt class="POD_ITEM"><a name="q_or_D">q or ^D</a>
+<dd>
+Quit.  (&quot;quit&quot; doesn't work for this, unless you've made an alias)
+This is the only supported way to exit the debugger, though typing
+<code><a class="POD_LINK" href="perlfunc.html#exit_EXPR">exit</a></code> twice might work.
+<p class="POD_TEXT">
+Set the <code>inhibit_exit</code> option to 0 if you want to be able to step
+off the end the script.  You may also need to set $finished to 0 
+if you want to step through global destruction.
+</p>
+<dt class="POD_ITEM"><a name="R">R</a>
+<dd>
+Restart the debugger by <code>exec()</code>ing a new session.  We try to maintain
+your history across this, but internal settings and command-line options
+may be lost.
+<p class="POD_TEXT">
+The following setting are currently preserved: history, breakpoints,
+actions, debugger options, and the Perl command-line
+options <b>-w</b>, <b>-I</b>, and <b>-e</b>.
+</p>
+<dt class="POD_ITEM"><a name="_dbcmd">|dbcmd</a>
+<dd>
+Run the debugger command, piping DB::OUT into your current pager.
+<dt class="POD_ITEM"><a name="_dbcmd1">||dbcmd</a>
+<dd>
+Same as <code>|dbcmd</code> but DB::OUT is temporarily <code><a class="POD_LINK" href="perlfunc.html#select">select</a></code>ed as well.
+<dt class="POD_ITEM"><a name="_alias_value_">= [alias value]</a>
+<dd>
+Define a command alias, like
+<pre class="POD_VERBATIM">
+    = quit q
+</pre>
+<p class="POD_TEXT">
+or list current aliases.
+</p>
+<dt class="POD_ITEM"><a name="command">command</a>
+<dd>
+Execute command as a Perl statement.  A trailing semicolon will be
+supplied.  If the Perl statement would otherwise be confused for a
+Perl debugger, use a leading semicolon, too.
+<dt class="POD_ITEM"><a name="m_expr">m expr</a>
+<dd>
+List which methods may be called on the result of the evaluated
+expression.  The expression may evaluated to a reference to a 
+blessed object, or to a package name.
+<dt class="POD_ITEM"><a name="man_manpage_">man [manpage]</a>
+<dd>
+Despite its name, this calls your system's default documentation
+viewer on the given page, or on the viewer itself if <i>manpage</i> is
+omitted.  If that viewer is <b>man</b>, the current <code>Config</code> information
+is used to invoke <b>man</b> using the proper MANPATH or <b>-M</b>&nbsp;<i>manpath</i> option.  Failed lookups of the form <code>XXX</code> that match
+known manpages of the form <i>perlXXX</i> will be retried.  This lets
+you type <code>man debug</code> or <code>man op</code> from the debugger.
+<pre class="POD_TEXT">
+On systems traditionally bereft of a usable <b>man</b> command, the
+debugger invokes <b>perldoc</b>.  Occasionally this determination is
+incorrect due to recalcitrant vendors or rather more felicitously,
+to enterprising users.  If you fall into either category, just
+manually set the $DB::doccmd variable to whatever viewer to view
+the Perl documentation on your system.  This may be set in an rc
+file, or through direct assignment.  We're still waiting for a
+working example of something along the lines of:
+
+    $DB::doccmd = 'netscape -remote http://something.here/';
+</pre>
+</dl>
+<h3 class="POD_HEAD2"><a name="Configurable_Options">Configurable Options</a></h3>
+<p class="POD_TEXT">
+The debugger has numerous options settable using the <code>O</code> command,
+either interactively or from the environment or an rc file.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="recallCommand_ShellB"><code>recallCommand</code>, <code>ShellBang</code></a>
+<dd>
+The characters used to recall command or spawn shell.  By
+default, both are set to <code>!</code>, which is unfortunate.
+<dt class="POD_ITEM"><a name="pager"><code>pager</code></a>
+<dd>
+Program to use for output of pager-piped commands (those beginning
+with a <code>|</code> character.)  By default, <code>$ENV{PAGER}</code> will be used.
+Because the debugger uses your current terminal characteristics
+for bold and underlining, if the chosen pager does not pass escape
+sequences through unchanged, the output of some debugger commands
+will not be readable when sent through the pager.
+<dt class="POD_ITEM"><a name="tkRunning"><code>tkRunning</code></a>
+<dd>
+Run Tk while prompting (with ReadLine).
+<dt class="POD_ITEM"><a name="signalLevel_warnLeve"><code>signalLevel</code>, <code>warnLevel</code>, <code>dieLevel</code></a>
+<dd>
+Level of verbosity.  By default, the debugger leaves your exceptions
+and warnings alone, because altering them can break correctly running
+programs.  It will attempt to print a message when uncaught INT, BUS, or
+SEGV signals arrive.  (But see the mention of signals in the <u>BUGS</u> manpage below.)
+<p class="POD_TEXT">
+To disable this default safe mode, set these values to something higher
+than 0.  At a level of 1, you get backtraces upon receiving any kind
+of warning (this is often annoying) or exception (this is
+often valuable).  Unfortunately, the debugger cannot discern fatal
+exceptions from non-fatal ones.  If <code>dieLevel</code> is even 1, then your
+non-fatal exceptions are also traced and unceremoniously altered if they
+came from <code>eval'd</code> strings or from any kind of <code><a class="POD_LINK" href="perlfunc.html#eval_EXPR">eval</a></code> within modules
+you're attempting to load.  If <code>dieLevel</code> is 2, the debugger doesn't
+care where they came from:  It usurps your exception handler and prints
+out a trace, then modifies all exceptions with its own embellishments.
+This may perhaps be useful for some tracing purposes, but tends to hopelessly
+destroy any program that takes its exception handling seriously.
+</p>
+<dt class="POD_ITEM"><a name="AutoTrace"><code>AutoTrace</code></a>
+<dd>
+Trace mode (similar to <code>t</code> command, but can be put into
+<code>PERLDB_OPTS</code>).
+<dt class="POD_ITEM"><a name="LineInfo"><code>LineInfo</code></a>
+<dd>
+File or pipe to print line number info to.  If it is a pipe (say,
+<code>|visual_perl_db</code>), then a short message is used.  This is the
+mechanism used to interact with a slave editor or visual debugger,
+such as the special <code>vi</code> or <code>emacs</code> hooks, or the <code>ddd</code> graphical
+debugger.
+<dt class="POD_ITEM"><a name="inhibit_exit"><code>inhibit_exit</code></a>
+<dd>
+If 0, allows <i>stepping off</i> the end of the script.
+<dt class="POD_ITEM"><a name="PrintRet"><code>PrintRet</code></a>
+<dd>
+Print return value after <code>r</code> command if set (default).
+<dt class="POD_ITEM"><a name="ornaments"><code>ornaments</code></a>
+<dd>
+Affects screen appearance of the command line (see the <a class="POD_LINK" href="Term/ReadLine.html">Term::ReadLine</a> manpage).
+There is currently no way to disable these, which can render
+some output illegible on some displays, or with some pagers.
+This is considered a bug.
+<dt class="POD_ITEM"><a name="frame"><code>frame</code></a>
+<dd>
+Affects the printing of messages upon entry and exit from subroutines.  If
+<code>frame &amp; 2</code> is false, messages are printed on entry only. (Printing
+on exit might be useful if interspersed with other messages.)
+<p class="POD_TEXT">
+If <code>frame &amp; 4</code>, arguments to functions are printed, plus context
+and caller info.  If <code>frame &amp; 8</code>, overloaded <code>stringify</code> and
+<code><a class="POD_LINK" href="perlfunc.html#tie_VARIABLE_CLASSNA">tie</a></code>d <code>FETCH</code> is enabled on the printed arguments.  If <code>frame
+&amp; 16</code>, the return value from the subroutine is printed.
+</p>
+<p class="POD_TEXT">
+The length at which the argument list is truncated is governed by the
+next option:
+</p>
+<dt class="POD_ITEM"><a name="maxTraceLen"><code>maxTraceLen</code></a>
+<dd>
+Length to truncate the argument list when the <code>frame</code> option's
+bit 4 is set.
+</dl>
+<p class="POD_TEXT">
+The following options affect what happens with <code>V</code>, <code>X</code>, and <code>x</code>
+commands:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="arrayDepth_hashDepth"><code>arrayDepth</code>, <code>hashDepth</code></a>
+<dd>
+Print only first N elements ('' for all).
+<dt class="POD_ITEM"><a name="compactDump_veryComp"><code>compactDump</code>, <code>veryCompact</code></a>
+<dd>
+Change the style of array and hash output.  If <code>compactDump</code>, short array
+may be printed on one line.
+<dt class="POD_ITEM"><a name="globPrint"><code>globPrint</code></a>
+<dd>
+Whether to print contents of globs.
+<dt class="POD_ITEM"><a name="DumpDBFiles"><code>DumpDBFiles</code></a>
+<dd>
+Dump arrays holding debugged files.
+<dt class="POD_ITEM"><a name="DumpPackages"><code>DumpPackages</code></a>
+<dd>
+Dump symbol tables of packages.
+<dt class="POD_ITEM"><a name="DumpReused"><code>DumpReused</code></a>
+<dd>
+Dump contents of &quot;reused&quot; addresses.
+<dt class="POD_ITEM"><a name="quote_HighBit_undefP"><code>quote</code>, <code>HighBit</code>, <code>undefPrint</code></a>
+<dd>
+Change the style of string dump.  The default value for <code>quote</code>
+is <code>auto</code>; one can enable double-quotish or single-quotish format
+by setting it to <code>&quot;</code> or <code>'</code>, respectively.  By default, characters
+with their high bit set are printed verbatim.
+<dt class="POD_ITEM"><a name="UsageOnly"><code>UsageOnly</code></a>
+<dd>
+Rudimentary per-package memory usage dump.  Calculates total
+size of strings found in variables in the package.  This does not
+include lexicals in a module's file scope, or lost in closures.
+</dl>
+<p class="POD_TEXT">
+During startup, options are initialized from <code>$ENV{PERLDB_OPTS}</code>.
+You may place the initialization options <code>TTY</code>, <code>noTTY</code>,
+<code>ReadLine</code>, and <code>NonStop</code> there.
+</p>
+<pre class="POD_TEXT">
+If your rc file contains:
+
+  parse_options(&quot;NonStop=1 LineInfo=db.out AutoTrace&quot;);
+</pre>
+<p class="POD_TEXT">
+then your script will run without human intervention, putting trace
+information into the file <i>db.out</i>.  (If you interrupt it, you'd
+better reset <code>LineInfo</code> to <code>/dev/tty</code> if you expect to see anything.)
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="TTY"><code>TTY</code></a>
+<dd>
+The TTY to use for debugging I/O.
+<dt class="POD_ITEM"><a name="noTTY"><code>noTTY</code></a>
+<dd>
+If set, the debugger goes into <code>NonStop</code> mode and will not connect to a TTY.  If
+interrupted (or if control goes to the debugger via explicit setting of
+$DB::signal or $DB::single from the Perl script), it connects to a TTY
+specified in the <code>TTY</code> option at startup, or to a tty found at
+runtime using the <code>Term::Rendezvous</code> module of your choice.
+<p class="POD_TEXT">
+This module should implement a method named <code>new</code> that returns an object
+with two methods: <code>IN</code> and <code>OUT</code>.  These should return filehandles to use
+for debugging input and output correspondingly.  The <code>new</code> method should
+inspect an argument containing the value of <code>$ENV{PERLDB_NOTTY}</code> at
+startup, or <code>&quot;/tmp/perldbtty$$&quot;</code> otherwise.  This file is not 
+inspected for proper ownership, so security hazards are theoretically
+possible.
+</p>
+<dt class="POD_ITEM"><a name="ReadLine"><code>ReadLine</code></a>
+<dd>
+If false, readline support in the debugger is disabled in order
+to debug applications that themselves use ReadLine.
+<dt class="POD_ITEM"><a name="NonStop"><code>NonStop</code></a>
+<dd>
+If set, the debugger goes into non-interactive mode until interrupted, or
+programmatically by setting $DB::signal or $DB::single.
+</dl>
+<pre class="POD_TEXT">
+Here's an example of using the <code>$ENV{PERLDB_OPTS}</code> variable:
+
+    $ PERLDB_OPTS=&quot;NonStop frame=2&quot; perl -d myprogram
+</pre>
+<p class="POD_TEXT">
+That will run the script <b>myprogram</b> without human intervention,
+printing out the call tree with entry and exit points.  Note that
+<code>NonStop=1 frame=2</code> is equivalent to <code>N f=2</code>, and that originally,
+options could be uniquely abbreviated by the first letter (modulo
+the <code>Dump*</code> options).  It is nevertheless recommended that you
+always spell them out in full for legibility and future compatibility.
+</p>
+<pre class="POD_TEXT">
+Other examples include
+
+    $ PERLDB_OPTS=&quot;NonStop frame=2&quot; perl -d myprogram
+</pre>
+<p class="POD_TEXT">
+which runs script non-interactively, printing info on each entry
+into a subroutine and each executed line into the file named <code>listing</code>.
+(If you interrupt it, you would better reset <code>LineInfo</code> to something
+&quot;interactive&quot;!)
+</p>
+<pre class="POD_TEXT">
+Other examples include (using standard shell syntax to show environment
+variable settings):
+
+  $ ( PERLDB_OPTS=&quot;NonStop frame=1 AutoTrace LineInfo=tperl.out&quot;
+      perl -d myprogram )
+</pre>
+<pre class="POD_TEXT">
+which may be useful for debugging a program that uses <code>Term::ReadLine</code>
+itself.  Do not forget to detach your shell from the TTY in the window that
+corresponds to <code>/dev/ttyXX</code>, say, by issuing a command like
+
+  $ sleep 1000000
+</pre>
+<p class="POD_TEXT">
+See the section on <a class="POD_LINK" href="perldebguts.html#Debugger_Internals">Debugger Internals</a> in the <a class="POD_LINK" href="perldebguts.html">perldebguts</a> manpage for details.
+</p>
+<h3 class="POD_HEAD2"><a name="Debugger_input_outpu">Debugger input/output</a></h3>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Prompt">Prompt</a>
+<dd>
+The debugger prompt is something like
+<pre class="POD_VERBATIM">
+    DB&lt;8&gt;
+</pre>
+<pre class="POD_TEXT">
+or even
+
+    DB&lt;&lt;17&gt;&gt;
+</pre>
+<p class="POD_TEXT">
+where that number is the command number, and which you'd use to
+access with the built-in <b>csh</b>-like history mechanism.  For example,
+<code>!17</code> would repeat command number 17.  The depth of the angle
+brackets indicates the nesting depth of the debugger.  You could
+get more than one set of brackets, for example, if you'd already
+at a breakpoint and then printed the result of a function call that
+itself has a breakpoint, or you step into an expression via <code>s/n/t
+expression</code> command.
+</p>
+<dt class="POD_ITEM"><a name="Multiline_commands">Multiline commands</a>
+<dd>
+If you want to enter a multi-line command, such as a subroutine
+definition with several statements or a format, escape the newline
+that would normally end the debugger command with a backslash.
+Here's an example:
+<pre class="POD_VERBATIM">
+      DB&lt;1&gt; for (1..4) {         \
+      cont:     print &quot;ok\n&quot;;   \
+      cont: }
+      ok
+      ok
+      ok
+      ok
+</pre>
+<p class="POD_TEXT">
+Note that this business of escaping a newline is specific to interactive
+commands typed into the debugger.
+</p>
+<dt class="POD_ITEM"><a name="Stack_backtrace">Stack backtrace</a>
+<dd>
+Here's an example of what a stack backtrace via <code>T</code> command might
+look like:
+<pre class="POD_VERBATIM">
+    $ = main::infested called from file `Ambulation.pm' line 10
+    @ = Ambulation::legs(1, 2, 3, 4) called from file `camel_flea' line 7
+    $ = main::pests('bactrian', 4) called from file `camel_flea' line 4
+</pre>
+<p class="POD_TEXT">
+The left-hand character up there indicates the context in which the
+function was called, with <code>$</code> and <code>@</code> meaning scalar or list
+contexts respectively, and <code>.</code> meaning void context (which is
+actually a sort of scalar context).  The display above says
+that you were in the function <code>main::infested</code> when you ran the
+stack dump, and that it was called in scalar context from line
+10 of the file <i>Ambulation.pm</i>, but without any arguments at all,
+meaning it was called as <code>&amp;infested</code>.  The next stack frame shows
+that the function <code>Ambulation::legs</code> was called in list context
+from the <i>camel_flea</i> file with four arguments.  The last stack
+frame shows that <code>main::pests</code> was called in scalar context,
+also from <i>camel_flea</i>, but from line 4.
+</p>
+<p class="POD_TEXT">
+If you execute the <code>T</code> command from inside an active <code><a class="POD_LINK" href="perlfunc.html#use_Module_LIST">use</a></code>
+statement, the backtrace will contain both a <code><a class="POD_LINK" href="perlfunc.html#require">require</a></code> frame and
+an <code><a class="POD_LINK" href="perlfunc.html#eval_EXPR">eval</a></code>) frame.
+</p>
+<dt class="POD_ITEM"><a name="Line_Listing_Format">Line Listing Format</a>
+<dd>
+This shows the sorts of output the <code>l</code> command can produce:
+<pre class="POD_VERBATIM">
+    DB&lt;&lt;13&gt;&gt; l
+  101:                @i{@i} = ();
+  102:b               @isa{@i,$pack} = ()
+  103                     if(exists $i{$prevpack} || exists $isa{$pack});
+  104             }
+  105
+  106             next
+  107==&gt;              if(exists $isa{$pack});
+  108
+  109:a           if ($extra-- &gt; 0) {
+  110:                %isa = ($pack,1);
+</pre>
+<p class="POD_TEXT">
+Breakable lines are marked with <code>:</code>.  Lines with breakpoints are
+marked by <code>b</code> and those with actions by <code>a</code>.  The line that's
+about to be executed is marked by <code>==&gt;</code>.
+</p>
+<p class="POD_TEXT">
+Please be aware that code in debugger listings may not look the same
+as your original source code.  Line directives and external source
+filters can alter the code before Perl sees it, causing code to move
+from its original positions or take on entirely different forms.
+</p>
+<dt class="POD_ITEM"><a name="Frame_listing">Frame listing</a>
+<dd>
+When the <code>frame</code> option is set, the debugger would print entered (and
+optionally exited) subroutines in different styles.  See the <a class="POD_LINK" href="perldebguts.html">perldebguts</a> manpage
+for incredibly long examples of these.
+</dl>
+<h3 class="POD_HEAD2"><a name="Debugging_compile_ti">Debugging compile-time statements</a></h3>
+<pre class="POD_TEXT">
+If you have compile-time executable statements (such as code within
+BEGIN and CHECK blocks or <code><a class="POD_LINK" href="perlfunc.html#use_Module_LIST">use</a></code> statements), these will <i>not</i> be
+stopped by debugger, although <code><a class="POD_LINK" href="perlfunc.html#require">require</a></code>s and INIT blocks will, and
+compile-time statements can be traced with <code>AutoTrace</code> option set
+in <code>PERLDB_OPTS</code>).  From your own Perl code, however, you can
+transfer control back to the debugger using the following statement,
+which is harmless if the debugger is not running:
+
+    $DB::single = 1;
+</pre>
+<p class="POD_TEXT">
+If you set <code>$DB::single</code> to 2, it's equivalent to having
+just typed the <code>n</code> command, whereas a value of 1 means the <code>s</code>
+command.  The <code>$DB::trace</code>  variable should be set to 1 to simulate
+having typed the <code>t</code> command.
+</p>
+<pre class="POD_TEXT">
+Another way to debug compile-time code is to start the debugger, set a
+breakpoint on the <i>load</i> of some module:
+
+    DB&lt;7&gt; b load f:/perllib/lib/Carp.pm
+  Will stop on load of `f:/perllib/lib/Carp.pm'.
+</pre>
+<p class="POD_TEXT">
+and then restart the debugger using the <code>R</code> command (if possible).  One can use <code>b
+compile subname</code> for the same purpose.
+</p>
+<h3 class="POD_HEAD2"><a name="Debugger_Customizati">Debugger Customization</a></h3>
+<p class="POD_TEXT">
+The debugger probably contains enough configuration hooks that you
+won't ever have to modify it yourself.  You may change the behaviour
+of debugger from within the debugger using its <code>O</code> command, from
+the command line via the <code>PERLDB_OPTS</code> environment variable, and
+from customization files.
+</p>
+<pre class="POD_TEXT">
+You can do some customization by setting up a <code>.perldb</code> file, which
+contains initialization code.  For instance, you could make aliases
+like these (the last one is one people expect to be there):
+
+    $DB::alias{'len'}  = 's/^len(.*)/p length($1)/';
+    $DB::alias{'stop'} = 's/^stop (at|in)/b/';
+    $DB::alias{'ps'}   = 's/^ps\b/p scalar /';
+    $DB::alias{'quit'} = 's/^quit(\s*)/exit/';
+</pre>
+<pre class="POD_TEXT">
+You can change options from <code>.perldb</code> by using calls like this one;
+
+    parse_options(&quot;NonStop=1 LineInfo=db.out AutoTrace=1 frame=2&quot;);
+</pre>
+<p class="POD_TEXT">
+The code is executed in the package <code>DB</code>.  Note that <code>.perldb</code> is
+processed before processing <code>PERLDB_OPTS</code>.  If <code>.perldb</code> defines the
+subroutine <code>afterinit</code>, that function is called after debugger
+initialization ends.  <code>.perldb</code> may be contained in the current
+directory, or in the home directory.  Because this file is sourced
+in by Perl and may contain arbitrary commands, for security reasons,
+it must be owned by the superuser or the current user, and writable
+by no one but its owner.
+</p>
+<pre class="POD_TEXT">
+If you want to modify the debugger, copy <code>perl5db.pl</code> from the
+Perl library to another name and hack it to your heart's content.
+You'll then want to set your <code><a class="POD_LINK" href="perlrun.html#PERL5DB">PERL5DB</a></code> environment variable to say
+something like this:
+
+    BEGIN { require &quot;myperl5db.pl&quot; }
+</pre>
+<p class="POD_TEXT">
+As a last resort, you could also use <code><a class="POD_LINK" href="perlrun.html#PERL5DB">PERL5DB</a></code> to customize the debugger
+by directly setting internal variables or calling debugger functions.
+</p>
+<p class="POD_TEXT">
+Note that any variables and functions that are not documented in
+this document (or in the <a class="POD_LINK" href="perldebguts.html">perldebguts</a> manpage) are considered for internal
+use only, and as such are subject to change without notice.
+</p>
+<h3 class="POD_HEAD2"><a name="Readline_Support">Readline Support</a></h3>
+<p class="POD_TEXT">
+As shipped, the only command-line history supplied is a simplistic one
+that checks for leading exclamation points.  However, if you install
+the Term::ReadKey and Term::ReadLine modules from CPAN, you will
+have full editing capabilities much like GNU <i>readline</i>(3) provides.
+Look for these in the <code>modules/by-module/Term</code> directory on CPAN.
+These do not support normal <b>vi</b> command-line editing, however.
+</p>
+<p class="POD_TEXT">
+A rudimentary command-line completion is also available.
+Unfortunately, the names of lexical variables are not available for
+completion.
+</p>
+<h3 class="POD_HEAD2"><a name="Editor_Support_for_D">Editor Support for Debugging</a></h3>
+<p class="POD_TEXT">
+If you have the FSF's version of <b>emacs</b> installed on your system,
+it can interact with the Perl debugger to provide an integrated
+software development environment reminiscent of its interactions
+with C debuggers.
+</p>
+<p class="POD_TEXT">
+Perl comes with a start file for making <b>emacs</b> act like a
+syntax-directed editor that understands (some of) Perl's syntax.
+Look in the <i>emacs</i> directory of the Perl source distribution.
+</p>
+<p class="POD_TEXT">
+A similar setup by Tom Christiansen for interacting with any
+vendor-shipped <b>vi</b> and the X11 window system is also available.
+This works similarly to the integrated multiwindow support that
+<b>emacs</b> provides, where the debugger drives the editor.  At the
+time of this writing, however, that tool's eventual location in the
+Perl distribution was uncertain.
+</p>
+<p class="POD_TEXT">
+Users of <b>vi</b> should also look into <b>vim</b> and <b>gvim</b>, the mousey
+and windy version, for coloring of Perl keywords.
+</p>
+<p class="POD_TEXT">
+Note that only perl can truly parse Perl, so all such CASE tools
+fall somewhat short of the mark, especially if you don't program
+your Perl as a C programmer might.
+</p>
+<h3 class="POD_HEAD2"><a name="The_Perl_Profiler">The Perl Profiler</a></h3>
+<pre class="POD_TEXT">
+If you wish to supply an alternative debugger for Perl to run, just
+invoke your script with a colon and a package argument given to the
+<b>-d</b> flag.  The most popular alternative debuggers for Perl is the
+Perl profiler.  Devel::DProf is now included with the standard Perl
+distribution.  To profile your Perl program in the file <code>mycode.pl</code>,
+just type:
+
+    $ perl -d:DProf mycode.pl
+</pre>
+<p class="POD_TEXT">
+When the script terminates the profiler will dump the profile
+information to a file called <code>tmon.out</code>.  A tool like <b>dprofpp</b>,
+also supplied with the standard Perl distribution, can be used to
+interpret the information in that profile.
+</p>
+<h2 class="POD_HEAD1"><a name="Debugging_regular_ex">Debugging regular expressions</a></h2>
+<p class="POD_TEXT">
+<code>use re 'debug'</code> enables you to see the gory details of how the
+Perl regular expression engine works.  In order to understand this
+typically voluminous output, one must not only have some idea about
+about how regular expression matching works in general, but also
+know how Perl's regular expressions are internally compiled into
+an automaton.  These matters are explored in some detail in
+the section on <a class="POD_LINK" href="perldebguts.html#Debugging_regular_ex">Debugging regular expressions</a> in the <a class="POD_LINK" href="perldebguts.html">perldebguts</a> manpage.
+</p>
+<h2 class="POD_HEAD1"><a name="Debugging_memory_usa">Debugging memory usage</a></h2>
+<p class="POD_TEXT">
+Perl contains internal support for reporting its own memory usage,
+but this is a fairly advanced concept that requires some understanding
+of how memory allocation works.
+See the section on <a class="POD_LINK" href="perldebguts.html#Debugging_Perl_memor">Debugging Perl memory usage</a> in the <a class="POD_LINK" href="perldebguts.html">perldebguts</a> manpage for the details.
+</p>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+You did try the <b>-w</b> switch, didn't you?
+</p>
+<p class="POD_TEXT">
+the <a class="POD_LINK" href="perldebguts.html">perldebguts</a> manpage,
+the <u>re</u> manpage,
+the <a class="POD_LINK" href="DB.html">DB</a> manpage,
+the <u>Devel::Dprof</u> manpage,
+the <a class="POD_LINK" href="dprofpp.html">dprofpp</a> manpage,
+the <a class="POD_LINK" href="Dumpvalue.html">Dumpvalue</a> manpage,
+and
+the <a class="POD_LINK" href="perlrun.html">perlrun</a> manpage.
+</p>
+<h2 class="POD_HEAD1"><a name="BUGS">BUGS</a></h2>
+<p class="POD_TEXT">
+You cannot get stack frame information or in any fashion debug functions
+that were not compiled by Perl, such as those from C or C++ extensions.
+</p>
+<p class="POD_TEXT">
+If you alter your @_ arguments in a subroutine (such as with <code><a class="POD_LINK" href="perlfunc.html#shift">shift</a></code>
+or <code><a class="POD_LINK" href="perlfunc.html#pop">pop</a></code>, the stack backtrace will not show the original values.
+</p>
+<p class="POD_TEXT">
+The debugger does not currently work in conjunction with the <b>-W</b>
+command-line switch, because it itself is not free of warnings.
+</p>
+<p class="POD_TEXT">
+If you're in a slow syscall (like <code><a class="POD_LINK" href="perlfunc.html#wait">wait</a></code>ing, <code><a class="POD_LINK" href="perlfunc.html#accept_NEWSOCKET_GEN">accept</a></code>ing, or <code><a class="POD_LINK" href="perlfunc.html#read_FILEHANDLE_SCAL1">read</a></code>ing
+from your keyboard or a socket) and haven't set up your own <code>$SIG{INT}</code>
+handler, then you won't be able to CTRL-C your way back to the debugger,
+because the debugger's own <code>$SIG{INT}</code> handler doesn't understand that
+it needs to raise an exception to longjmp(3) out of slow syscalls.
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:35:01 2001
+</body>
+</html>
+

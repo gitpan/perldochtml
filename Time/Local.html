@@ -1,0 +1,147 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>Time::Local</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="../Time/localtime.html">Next:<br>Time::localtime</a></td><td align="left" width="1%"><a  href="../Time/gmtime.html">Previous:<br>Time::gmtime</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="../podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="../podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">Time::Local</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#IMPLEMENTATION">IMPLEMENTATION</a>
+<li><a href="#BUGS">BUGS</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+Time::Local - efficiently compute time from local and GMT time
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+    $time = timelocal($sec,$min,$hours,$mday,$mon,$year);
+    $time = timegm($sec,$min,$hours,$mday,$mon,$year);
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+These routines are the inverse of built-in perl fuctions localtime()
+and gmtime().  They accept a date as a six-element array, and return
+the corresponding time(2) value in seconds since the Epoch (Midnight,
+January 1, 1970).  This value can be positive or negative.
+</p>
+<p class="POD_TEXT">
+It is worth drawing particular attention to the expected ranges for
+the values provided.  While the day of the month is expected to be in
+the range 1..31, the month should be in the range 0..11.  
+This is consistent with the values returned from localtime() and gmtime().
+</p>
+<pre class="POD_TEXT">
+The timelocal() and timegm() functions perform range checking on the
+input $sec, $min, $hours, $mday, and $mon values by default.  If you'd
+rather they didn't, you can explicitly import the timelocal_nocheck()
+and timegm_nocheck() functions.
+
+	use Time::Local 'timelocal_nocheck';
+
+	{
+	    # The 365th day of 1999
+	    print scalar localtime timelocal_nocheck 0,0,0,365,0,99;
+
+	    # The twenty thousandth day since 1970
+	    print scalar localtime timelocal_nocheck 0,0,0,20000,0,70;
+
+	    # And even the 10,000,000th second since 1999!
+	    print scalar localtime timelocal_nocheck 10000000,0,0,1,0,99;
+	}
+</pre>
+<p class="POD_TEXT">
+Your mileage may vary when trying these with minutes and hours,
+and it doesn't work at all for months.
+</p>
+<p class="POD_TEXT">
+Strictly speaking, the year should also be specified in a form consistent
+with localtime(), i.e. the offset from 1900.
+In order to make the interpretation of the year easier for humans,
+however, who are more accustomed to seeing years as two-digit or four-digit
+values, the following conventions are followed:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_"></a>
+
+Years greater than 999 are interpreted as being the actual year,
+rather than the offset from 1900.  Thus, 1963 would indicate the year
+Martin Luther King won the Nobel prize, not the year 2863.
+<li class="POD_ITEM"><a name="_1"></a>
+
+Years in the range 100..999 are interpreted as offset from 1900, 
+so that 112 indicates 2012.  This rule also applies to years less than zero
+(but see note below regarding date range).
+<li class="POD_ITEM"><a name="_2"></a>
+
+Years in the range 0..99 are interpreted as shorthand for years in the
+rolling &quot;current century,&quot; defined as 50 years on either side of the current
+year.  Thus, today, in 1999, 0 would refer to 2000, and 45 to 2045,
+but 55 would refer to 1955.  Twenty years from now, 55 would instead refer
+to 2055.  This is messy, but matches the way people currently think about
+two digit dates.  Whenever possible, use an absolute four digit year instead.
+</ul>
+<p class="POD_TEXT">
+The scheme above allows interpretation of a wide range of dates, particularly
+if 4-digit years are used.
+</p>
+<p class="POD_TEXT">
+Please note, however, that the range of dates that can be actually be handled
+depends on the size of an integer (time_t) on a given platform.  
+Currently, this is 32 bits for most systems, yielding an approximate range 
+from Dec 1901 to Jan 2038.
+</p>
+<p class="POD_TEXT">
+Both timelocal() and timegm() croak if given dates outside the supported
+range.
+</p>
+<h2 class="POD_HEAD1"><a name="IMPLEMENTATION">IMPLEMENTATION</a></h2>
+<p class="POD_TEXT">
+These routines are quite efficient and yet are always guaranteed to agree
+with localtime() and gmtime().  We manage this by caching the start times
+of any months we've seen before.  If we know the start time of the month,
+we can always calculate any time within the month.  The start times
+themselves are guessed by successive approximation starting at the
+current time, since most dates seen in practice are close to the
+current date.  Unlike algorithms that do a binary search (calling gmtime
+once for each bit of the time value, resulting in 32 calls), this algorithm
+calls it at most 6 times, and usually only once or twice.  If you hit
+the month cache, of course, it doesn't call it at all.
+</p>
+<p class="POD_TEXT">
+timelocal() is implemented using the same cache.  We just assume that we're
+translating a GMT time, and then fudge it when we're done for the timezone
+and daylight savings arguments.  Note that the timezone is evaluated for
+each date because countries occasionally change their official timezones.
+Assuming that localtime() corrects for these changes, this routine will
+also be correct.  The daylight savings offset is currently assumed 
+to be one hour.
+</p>
+<h2 class="POD_HEAD1"><a name="BUGS">BUGS</a></h2>
+<p class="POD_TEXT">
+The whole scheme for interpreting two-digit years can be considered a bug.
+</p>
+<p class="POD_TEXT">
+Note that the cache currently handles only years from 1900 through 2155.
+</p>
+<p class="POD_TEXT">
+The proclivity to croak() is probably a bug.
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:37:02 2001
+</body>
+</html>
+

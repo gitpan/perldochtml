@@ -1,0 +1,272 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>Pod::ParseUtils</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="../Pod/Plainer.html">Next:<br>Pod::Plainer</a></td><td align="left" width="1%"><a  href="../Pod/Parser.html">Previous:<br>Pod::Parser</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="../podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="../podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">Pod::ParseUtils</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#Pod_List">Pod::List</a>
+<li><a href="#Pod_Hyperlink">Pod::Hyperlink</a>
+<li><a href="#Pod_Cache">Pod::Cache</a>
+<li><a href="#Pod_Cache_Item">Pod::Cache::Item</a>
+</ul>
+<li><a href="#AUTHOR">AUTHOR</a>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+Pod::ParseUtils - helpers for POD parsing and conversion
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+  use Pod::ParseUtils;
+
+  my $list = new Pod::List;
+  my $link = Pod::Hyperlink-&gt;new('Pod::Parser');
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+<b>Pod::ParseUtils</b> contains a few object-oriented helper packages for
+POD parsing and processing (i.e. in POD formatters and translators).
+</p>
+<h3 class="POD_HEAD2"><a name="Pod_List">Pod::List</a></h3>
+<p class="POD_TEXT">
+<b>Pod::List</b> can be used to hold information about POD lists
+(written as =over ... =item ... =back) for further processing.
+The following methods are available:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Pod_List_new_">Pod::List-&gt;new()</a>
+<dd>
+Create a new list object. Properties may be specified through a hash
+reference like this:
+<pre class="POD_VERBATIM">
+  my $list = Pod::List-&gt;new({ -start =&gt; $., -indent =&gt; 4 });
+</pre>
+<p class="POD_TEXT">
+See the individual methods/properties for details.
+</p>
+<dt class="POD_ITEM"><a name="_list_file_">$list-&gt;file()</a>
+<dd>
+Without argument, retrieves the file name the list is in. This must
+have been set before by either specifying <b>-file</b> in the <b>new()</b>
+method or by calling the <b>file()</b> method with a scalar argument.
+<dt class="POD_ITEM"><a name="_list_start_">$list-&gt;start()</a>
+<dd>
+Without argument, retrieves the line number where the list started.
+This must have been set before by either specifying <b>-start</b> in the
+<b>new()</b> method or by calling the <b>start()</b> method with a scalar
+argument.
+<dt class="POD_ITEM"><a name="_list_indent_">$list-&gt;indent()</a>
+<dd>
+Without argument, retrieves the indent level of the list as specified
+in <code>=over n</code>. This must have been set before by either specifying
+<b>-indent</b> in the <b>new()</b> method or by calling the <b>indent()</b> method
+with a scalar argument.
+<dt class="POD_ITEM"><a name="_list_type_">$list-&gt;type()</a>
+<dd>
+Without argument, retrieves the list type, which can be an arbitrary value,
+e.g. <code>OL</code>, <code>UL</code>, ... when thinking the HTML way.
+This must have been set before by either specifying
+<b>-type</b> in the <b>new()</b> method or by calling the <b>type()</b> method
+with a scalar argument.
+<dt class="POD_ITEM"><a name="_list_rx_">$list-&gt;rx()</a>
+<dd>
+Without argument, retrieves a regular expression for simplifying the 
+individual item strings once the list type has been determined. Usage:
+E.g. when converting to HTML, one might strip the leading number in
+an ordered list as <code>&lt;OL&gt;</code> already prints numbers itself.
+This must have been set before by either specifying
+<b>-rx</b> in the <b>new()</b> method or by calling the <b>rx()</b> method
+with a scalar argument.
+<dt class="POD_ITEM"><a name="_list_item_">$list-&gt;item()</a>
+<dd>
+Without argument, retrieves the array of the items in this list.
+The items may be represented by any scalar.
+If an argument has been given, it is pushed on the list of items.
+<dt class="POD_ITEM"><a name="_list_parent_">$list-&gt;parent()</a>
+<dd>
+Without argument, retrieves information about the parent holding this
+list, which is represented as an arbitrary scalar.
+This must have been set before by either specifying
+<b>-parent</b> in the <b>new()</b> method or by calling the <b>parent()</b> method
+with a scalar argument.
+<dt class="POD_ITEM"><a name="_list_tag_">$list-&gt;tag()</a>
+<dd>
+Without argument, retrieves information about the list tag, which can be
+any scalar.
+This must have been set before by either specifying
+<b>-tag</b> in the <b>new()</b> method or by calling the <b>tag()</b> method
+with a scalar argument.
+</dl>
+<h3 class="POD_HEAD2"><a name="Pod_Hyperlink">Pod::Hyperlink</a></h3>
+<pre class="POD_TEXT">
+<b>Pod::Hyperlink</b> is a class for manipulation of POD hyperlinks. Usage:
+
+  my $link = Pod::Hyperlink-&gt;new('alternative text|page/&quot;section in page&quot;');
+</pre>
+<p class="POD_TEXT">
+The <b>Pod::Hyperlink</b> class is mainly designed to parse the contents of the
+<code>L&lt;...&gt;</code> sequence, providing a simple interface for accessing the
+different parts of a POD hyperlink for further processing. It can also be
+used to construct hyperlinks.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Pod_Hyperlink_new_">Pod::Hyperlink-&gt;new()</a>
+<dd>
+The <b>new()</b> method can either be passed a set of key/value pairs or a single
+scalar value, namely the contents of a <code>L&lt;...&gt;</code> sequence. An object
+of the class <code>Pod::Hyperlink</code> is returned. The value <code><a class="POD_LINK" href="../perlfunc.html#undef">undef</a></code> indicates a
+failure, the error message is stored in <code><a class="POD_LINK" href="../perlvar.html#_30">$@</a></code>.
+<dt class="POD_ITEM"><a name="_link_parse_string_">$link-&gt;parse($string)</a>
+<dd>
+This method can be used to (re)parse a (new) hyperlink, i.e. the contents
+of a <code>L&lt;...&gt;</code> sequence. The result is stored in the current object.
+Warnings are stored in the <b>warnings</b> property.
+E.g. sections like <code>L&lt;open(2)&gt;</code> are deprected, as they do not point
+to Perl documents. <code>L&lt;DBI::foo(3p)&gt;</code> is wrong as well, the manpage
+section can simply be dropped.
+<dt class="POD_ITEM"><a name="_link_markup_string_">$link-&gt;markup($string)</a>
+<dd>
+Set/retrieve the textual value of the link. This string contains special
+markers <code>P&lt;&gt;</code> and <code>Q&lt;&gt;</code> that should be expanded by the
+translator's interior sequence expansion engine to the
+formatter-specific code to highlight/activate the hyperlink. The details
+have to be implemented in the translator.
+<dt class="POD_ITEM"><a name="_link_text_">$link-&gt;text()</a>
+<dd>
+This method returns the textual representation of the hyperlink as above,
+but without markers (read only). Depending on the link type this is one of
+the following alternatives (the + and * denote the portions of the text
+that are marked up):
+<pre class="POD_VERBATIM">
+  the +perl+ manpage
+  the *$|* entry in the +perlvar+ manpage
+  the section on *OPTIONS* in the +perldoc+ manpage
+  the section on *DESCRIPTION* elsewhere in this document
+</pre>
+<dt class="POD_ITEM"><a name="_link_warning_">$link-&gt;warning()</a>
+<dd>
+After parsing, this method returns any warnings encountered during the
+parsing process.
+<dt class="POD_ITEM"><a name="_link_file_">$link-&gt;file()</a>
+<dt><a name="_link_line_">$link-&gt;line()</a>
+<dd>
+Just simple slots for storing information about the line and the file
+the link was encountered in. Has to be filled in manually.
+<dt class="POD_ITEM"><a name="_link_page_">$link-&gt;page()</a>
+<dd>
+This method sets or returns the POD page this link points to.
+<dt class="POD_ITEM"><a name="_link_node_">$link-&gt;node()</a>
+<dd>
+As above, but the destination node text of the link.
+<dt class="POD_ITEM"><a name="_link_alttext_">$link-&gt;alttext()</a>
+<dd>
+Sets or returns an alternative text specified in the link.
+<dt class="POD_ITEM"><a name="_link_type_">$link-&gt;type()</a>
+<dd>
+The node type, either <code>section</code> or <code>item</code>. As an unofficial type,
+there is also <code>hyperlink</code>, derived from e.g. <code>L&lt;http://perl.com&gt;</code>
+<dt class="POD_ITEM"><a name="_link_link_">$link-&gt;link()</a>
+<dd>
+Returns the link as contents of <code>L&lt;&gt;</code>. Reciprocal to <b>parse()</b>.
+</dl>
+<h3 class="POD_HEAD2"><a name="Pod_Cache">Pod::Cache</a></h3>
+<p class="POD_TEXT">
+<b>Pod::Cache</b> holds information about a set of POD documents,
+especially the nodes for hyperlinks.
+The following methods are available:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Pod_Cache_new_">Pod::Cache-&gt;new()</a>
+<dd>
+Create a new cache object. This object can hold an arbitrary number of
+POD documents of class Pod::Cache::Item.
+<dt class="POD_ITEM"><a name="_cache_item_">$cache-&gt;item()</a>
+<dd>
+Add a new item to the cache. Without arguments, this method returns a
+list of all cache elements.
+<dt class="POD_ITEM"><a name="_cache_find_page_nam">$cache-&gt;find_page($name)</a>
+<dd>
+Look for a POD document named <code>$name</code> in the cache. Returns the
+reference to the corresponding Pod::Cache::Item object or undef if
+not found.
+</dl>
+<h3 class="POD_HEAD2"><a name="Pod_Cache_Item">Pod::Cache::Item</a></h3>
+<p class="POD_TEXT">
+<b>Pod::Cache::Item</b> holds information about individual POD documents,
+that can be grouped in a Pod::Cache object.
+It is intended to hold information about the hyperlink nodes of POD
+documents.
+The following methods are available:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Pod_Cache_Item_new_">Pod::Cache::Item-&gt;new()</a>
+<dd>
+Create a new object.
+<dt class="POD_ITEM"><a name="_cacheitem_page_">$cacheitem-&gt;page()</a>
+<dd>
+Set/retrieve the POD document name (e.g. &quot;Pod::Parser&quot;).
+<dt class="POD_ITEM"><a name="_cacheitem_descripti">$cacheitem-&gt;description()</a>
+<dd>
+Set/retrieve the POD short description as found in the <code>=head1 NAME</code>
+section.
+<dt class="POD_ITEM"><a name="_cacheitem_path_">$cacheitem-&gt;path()</a>
+<dd>
+Set/retrieve the POD file storage path.
+<dt class="POD_ITEM"><a name="_cacheitem_file_">$cacheitem-&gt;file()</a>
+<dd>
+Set/retrieve the POD file name.
+<dt class="POD_ITEM"><a name="_cacheitem_nodes_">$cacheitem-&gt;nodes()</a>
+<dd>
+Add a node (or a list of nodes) to the document's node list. Note that
+the order is kept, i.e. start with the first node and end with the last.
+If no argument is given, the current list of nodes is returned in the
+same order the nodes have been added.
+A node can be any scalar, but usually is a pair of node string and
+unique id for the <code>find_node</code> method to work correctly.
+<dt class="POD_ITEM"><a name="_cacheitem_find_node">$cacheitem-&gt;find_node($name)</a>
+<dd>
+Look for a node or index entry named <code>$name</code> in the object.
+Returns the unique id of the node (i.e. the second element of the array
+stored in the node arry) or undef if not found.
+<dt class="POD_ITEM"><a name="_cacheitem_idx_">$cacheitem-&gt;idx()</a>
+<dd>
+Add an index entry (or a list of them) to the document's index list. Note that
+the order is kept, i.e. start with the first node and end with the last.
+If no argument is given, the current list of index entries is returned in the
+same order the entries have been added.
+An index entry can be any scalar, but usually is a pair of string and
+unique id.
+</dl>
+<h2 class="POD_HEAD1"><a name="AUTHOR">AUTHOR</a></h2>
+<p class="POD_TEXT">
+Marek Rouchal &lt;marek@saftsack.fs.uni-bayreuth.de&gt;, borrowing
+a lot of things from the <a class="POD_LINK" href="../pod2man.html">pod2man</a> manpage and the <u>pod2roff</u> manpage as well as other POD
+processing tools by Tom Christiansen, Brad Appleton and Russ Allbery.
+</p>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+the <a class="POD_LINK" href="../pod2man.html">pod2man</a> manpage, the <u>pod2roff</u> manpage, the <a class="POD_LINK" href="../Pod/Parser.html">Pod::Parser</a> manpage, the <a class="POD_LINK" href="../Pod/Checker.html">Pod::Checker</a> manpage,
+the <a class="POD_LINK" href="../pod2html.html">pod2html</a> manpage
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:36:53 2001
+</body>
+</html>
+

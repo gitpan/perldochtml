@@ -1,0 +1,372 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>perllol</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="perlmod.html">Next:<br>perlmod</a></td><td align="left" width="1%"><a  href="perllocale.html">Previous:<br>perllocale</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">perllol</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#Declaration_and_Acce">Declaration and Access of Arrays of Arrays</a>
+<li><a href="#Growing_Your_Own">Growing Your Own</a>
+<li><a href="#Access_and_Printing">Access and Printing</a>
+<li><a href="#Slices">Slices</a>
+</ul>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+<li><a href="#AUTHOR">AUTHOR</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+perllol - Manipulating Arrays of Arrays in Perl
+</p>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<h3 class="POD_HEAD2"><a name="Declaration_and_Acce">Declaration and Access of Arrays of Arrays</a></h3>
+<p class="POD_TEXT">
+The simplest thing to build an array of arrays (sometimes imprecisely
+called a list of lists).  It's reasonably easy to understand, and
+almost everything that applies here will also be applicable later
+on with the fancier data structures.
+</p>
+<pre class="POD_TEXT">
+An array of an array is just a regular old array @AoA that you can
+get at with two subscripts, like <code>$AoA[3][2]</code>.  Here's a declaration
+of the array:
+
+    # assign to our array, an array of array references
+    @AoA = (
+	   [ &quot;fred&quot;, &quot;barney&quot; ],
+	   [ &quot;george&quot;, &quot;jane&quot;, &quot;elroy&quot; ],
+	   [ &quot;homer&quot;, &quot;marge&quot;, &quot;bart&quot; ],
+    );
+
+    print $AoA[2][2];
+  bart
+</pre>
+<pre class="POD_TEXT">
+Now you should be very careful that the outer bracket type
+is a round one, that is, a parenthesis.  That's because you're assigning to
+an @array, so you need parentheses.  If you wanted there <i>not</i> to be an @AoA,
+but rather just a reference to it, you could do something more like this:
+
+    # assign a reference to array of array references
+    $ref_to_AoA = [
+	[ &quot;fred&quot;, &quot;barney&quot;, &quot;pebbles&quot;, &quot;bambam&quot;, &quot;dino&quot;, ],
+	[ &quot;homer&quot;, &quot;bart&quot;, &quot;marge&quot;, &quot;maggie&quot;, ],
+	[ &quot;george&quot;, &quot;jane&quot;, &quot;elroy&quot;, &quot;judy&quot;, ],
+    ];
+
+    print $ref_to_AoA-&gt;[2][2];
+</pre>
+<pre class="POD_TEXT">
+Notice that the outer bracket type has changed, and so our access syntax
+has also changed.  That's because unlike C, in perl you can't freely
+interchange arrays and references thereto.  $ref_to_AoA is a reference to an
+array, whereas @AoA is an array proper.  Likewise, <code>$AoA[2]</code> is not an
+array, but an array ref.  So how come you can write these:
+
+    $AoA[2][2]
+    $ref_to_AoA-&gt;[2][2]
+</pre>
+<pre class="POD_TEXT">
+instead of having to write these:
+
+    $AoA[2]-&gt;[2]
+    $ref_to_AoA-&gt;[2]-&gt;[2]
+</pre>
+<p class="POD_TEXT">
+Well, that's because the rule is that on adjacent brackets only (whether
+square or curly), you are free to omit the pointer dereferencing arrow.
+But you cannot do so for the very first one if it's a scalar containing
+a reference, which means that $ref_to_AoA always needs it.
+</p>
+<h3 class="POD_HEAD2"><a name="Growing_Your_Own">Growing Your Own</a></h3>
+<p class="POD_TEXT">
+That's all well and good for declaration of a fixed data structure,
+but what if you wanted to add new elements on the fly, or build
+it up entirely from scratch?
+</p>
+<pre class="POD_TEXT">
+First, let's look at reading it in from a file.  This is something like
+adding a row at a time.  We'll assume that there's a flat file in which
+each line is a row and each word an element.  If you're trying to develop an
+@AoA array containing all these, here's the right way to do that:
+
+    while (&lt;&gt;) {
+	@tmp = split;
+	push @AoA, [ @tmp ];
+    }
+</pre>
+<pre class="POD_TEXT">
+You might also have loaded that from a function:
+
+    for $i ( 1 .. 10 ) {
+	$AoA[$i] = [ somefunc($i) ];
+    }
+</pre>
+<pre class="POD_TEXT">
+Or you might have had a temporary variable sitting around with the
+array in it.
+
+    for $i ( 1 .. 10 ) {
+	@tmp = somefunc($i);
+	$AoA[$i] = [ @tmp ];
+    }
+</pre>
+<pre class="POD_TEXT">
+It's very important that you make sure to use the <code>[]</code> array reference
+constructor.  That's because this will be very wrong:
+
+    $AoA[$i] = @tmp;
+</pre>
+<p class="POD_TEXT">
+You see, assigning a named array like that to a scalar just counts the
+number of elements in @tmp, which probably isn't what you want.
+</p>
+<pre class="POD_TEXT">
+If you are running under <code>use strict</code>, you'll have to add some
+declarations to make it happy:
+
+    use strict;
+    my(@AoA, @tmp);
+    while (&lt;&gt;) {
+	@tmp = split;
+	push @AoA, [ @tmp ];
+    }
+</pre>
+<pre class="POD_TEXT">
+Of course, you don't need the temporary array to have a name at all:
+
+    while (&lt;&gt;) {
+	push @AoA, [ split ];
+    }
+</pre>
+<pre class="POD_TEXT">
+You also don't have to use push().  You could just make a direct assignment
+if you knew where you wanted to put it:
+
+    my (@AoA, $i, $line);
+    for $i ( 0 .. 10 ) {
+	$line = &lt;&gt;;
+	$AoA[$i] = [ split ' ', $line ];
+    }
+</pre>
+<pre class="POD_TEXT">
+or even just
+
+    my (@AoA, $i);
+    for $i ( 0 .. 10 ) {
+	$AoA[$i] = [ split ' ', &lt;&gt; ];
+    }
+</pre>
+<pre class="POD_TEXT">
+You should in general be leery of using functions that could
+potentially return lists in scalar context without explicitly stating
+such.  This would be clearer to the casual reader:
+
+    my (@AoA, $i);
+    for $i ( 0 .. 10 ) {
+	$AoA[$i] = [ split ' ', scalar(&lt;&gt;) ];
+    }
+</pre>
+<pre class="POD_TEXT">
+If you wanted to have a $ref_to_AoA variable as a reference to an array,
+you'd have to do something like this:
+
+    while (&lt;&gt;) {
+	push @$ref_to_AoA, [ split ];
+    }
+</pre>
+<pre class="POD_TEXT">
+Now you can add new rows.  What about adding new columns?  If you're
+dealing with just matrices, it's often easiest to use simple assignment:
+
+    for $x (1 .. 10) {
+	for $y (1 .. 10) {
+	    $AoA[$x][$y] = func($x, $y);
+	}
+    }
+
+    for $x ( 3, 7, 9 ) {
+	$AoA[$x][20] += func2($x);
+    }
+</pre>
+<p class="POD_TEXT">
+It doesn't matter whether those elements are already
+there or not: it'll gladly create them for you, setting
+intervening elements to <code><a class="POD_LINK" href="perlfunc.html#undef">undef</a></code> as need be.
+</p>
+<pre class="POD_TEXT">
+If you wanted just to append to a row, you'd have
+to do something a bit funnier looking:
+
+    # add new columns to an existing row
+    push @{ $AoA[0] }, &quot;wilma&quot;, &quot;betty&quot;;
+</pre>
+<pre class="POD_TEXT">
+Notice that I <i>couldn't</i> say just:
+
+    push $AoA[0], &quot;wilma&quot;, &quot;betty&quot;;  # WRONG!
+</pre>
+<p class="POD_TEXT">
+In fact, that wouldn't even compile.  How come?  Because the argument
+to push() must be a real array, not just a reference to such.
+</p>
+<h3 class="POD_HEAD2"><a name="Access_and_Printing">Access and Printing</a></h3>
+<pre class="POD_TEXT">
+Now it's time to print your data structure out.  How
+are you going to do that?  Well, if you want only one
+of the elements, it's trivial:
+
+    print $AoA[0][0];
+</pre>
+<pre class="POD_TEXT">
+If you want to print the whole thing, though, you can't
+say
+
+    print @AoA;		# WRONG
+</pre>
+<pre class="POD_TEXT">
+because you'll get just references listed, and perl will never
+automatically dereference things for you.  Instead, you have to
+roll yourself a loop or two.  This prints the whole structure,
+using the shell-style for() construct to loop across the outer
+set of subscripts.
+
+    for $aref ( @AoA ) {
+	print &quot;\t [ @$aref ],\n&quot;;
+    }
+</pre>
+<pre class="POD_TEXT">
+If you wanted to keep track of subscripts, you might do this:
+
+    for $i ( 0 .. $#AoA ) {
+	print &quot;\t elt $i is [ @{$AoA[$i]} ],\n&quot;;
+    }
+</pre>
+<pre class="POD_TEXT">
+or maybe even this.  Notice the inner loop.
+
+    for $i ( 0 .. $#AoA ) {
+	for $j ( 0 .. $#{$AoA[$i]} ) {
+	    print &quot;elt $i $j is $AoA[$i][$j]\n&quot;;
+	}
+    }
+</pre>
+<pre class="POD_TEXT">
+As you can see, it's getting a bit complicated.  That's why
+sometimes is easier to take a temporary on your way through:
+
+    for $i ( 0 .. $#AoA ) {
+	$aref = $AoA[$i];
+	for $j ( 0 .. $#{$aref} ) {
+	    print &quot;elt $i $j is $AoA[$i][$j]\n&quot;;
+	}
+    }
+</pre>
+<pre class="POD_TEXT">
+Hmm... that's still a bit ugly.  How about this:
+
+    for $i ( 0 .. $#AoA ) {
+	$aref = $AoA[$i];
+	$n = @$aref - 1;
+	for $j ( 0 .. $n ) {
+	    print &quot;elt $i $j is $AoA[$i][$j]\n&quot;;
+	}
+    }
+</pre>
+<h3 class="POD_HEAD2"><a name="Slices">Slices</a></h3>
+<p class="POD_TEXT">
+If you want to get at a slice (part of a row) in a multidimensional
+array, you're going to have to do some fancy subscripting.  That's
+because while we have a nice synonym for single elements via the
+pointer arrow for dereferencing, no such convenience exists for slices.
+(Remember, of course, that you can always write a loop to do a slice
+operation.)
+</p>
+<pre class="POD_TEXT">
+Here's how to do one operation using a loop.  We'll assume an @AoA
+variable as before.
+
+    @part = ();
+    $x = 4;
+    for ($y = 7; $y &lt; 13; $y++) {
+	push @part, $AoA[$x][$y];
+    }
+</pre>
+<pre class="POD_TEXT">
+That same loop could be replaced with a slice operation:
+
+    @part = @{ $AoA[4] } [ 7..12 ];
+</pre>
+<p class="POD_TEXT">
+but as you might well imagine, this is pretty rough on the reader.
+</p>
+<pre class="POD_TEXT">
+Ah, but what if you wanted a <i>two-dimensional slice</i>, such as having
+$x run from 4..8 and $y run from 7 to 12?  Hmm... here's the simple way:
+
+    @newAoA = ();
+    for ($startx = $x = 4; $x &lt;= 8; $x++) {
+	for ($starty = $y = 7; $y &lt;= 12; $y++) {
+	    $newAoA[$x - $startx][$y - $starty] = $AoA[$x][$y];
+	}
+    }
+</pre>
+<pre class="POD_TEXT">
+We can reduce some of the looping through slices
+
+    for ($x = 4; $x &lt;= 8; $x++) {
+	push @newAoA, [ @{ $AoA[$x] } [ 7..12 ] ];
+    }
+</pre>
+<pre class="POD_TEXT">
+If you were into Schwartzian Transforms, you would probably
+have selected map for that
+
+    @newAoA = map { [ @{ $AoA[$_] } [ 7..12 ] ] } 4 .. 8;
+</pre>
+<pre class="POD_TEXT">
+Although if your manager accused of seeking job security (or rapid
+insecurity) through inscrutable code, it would be hard to argue. :-)
+If I were you, I'd put that in a function:
+
+    @newAoA = splice_2D( \@AoA, 4 =&gt; 8, 7 =&gt; 12 );
+    sub splice_2D {
+	my $lrr = shift; 	# ref to array of array refs!
+	my ($x_lo, $x_hi,
+	    $y_lo, $y_hi) = @_;
+
+	return map {
+	    [ @{ $lrr-&gt;[$_] } [ $y_lo .. $y_hi ] ]
+	} $x_lo .. $x_hi;
+    }
+</pre>
+<p></p>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+perldata(1), perlref(1), perldsc(1)
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHOR">AUTHOR</a></h2>
+<p class="POD_TEXT">
+Tom Christiansen &lt;<code>tchrist@perl.com</code>&gt;
+</p>
+<p class="POD_TEXT">
+Last update: Thu Jun  4 16:16:23 MDT 1998
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:35:46 2001
+</body>
+</html>
+

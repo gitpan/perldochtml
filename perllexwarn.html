@@ -1,0 +1,575 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>perllexwarn</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="perllocale.html">Next:<br>perllocale</a></td><td align="left" width="1%"><a  href="perlipc.html">Previous:<br>perlipc</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">perllexwarn</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#Default_Warnings_and">Default Warnings and Optional Warnings</a>
+<li><a href="#What_s_wrong_with_w_">What's wrong with <b>-w</b> and <code><a class="POD_LINK" href="perlvar.html#_W">$^W</a></code></a>
+<li><a href="#Controlling_Warnings">Controlling Warnings from the Command Line</a>
+<li><a href="#Backward_Compatibili">Backward Compatibility</a>
+<li><a href="#Category_Hierarchy">Category Hierarchy</a>
+<li><a href="#Fatal_Warnings">Fatal Warnings</a>
+<li><a href="#Reporting_Warnings_f">Reporting Warnings from a Module</a>
+</ul>
+<li><a href="#TODO">TODO</a>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+<li><a href="#AUTHOR">AUTHOR</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+perllexwarn - Perl Lexical Warnings
+</p>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+The <code>use warnings</code> pragma is a replacement for both the command line
+flag <b>-w</b> and the equivalent Perl variable, <code><a class="POD_LINK" href="perlvar.html#_W">$^W</a></code>.
+</p>
+<p class="POD_TEXT">
+The pragma works just like the existing &quot;strict&quot; pragma.
+This means that the scope of the warning pragma is limited to the
+enclosing block. It also means that the pragma setting will not
+leak across files (via <code><a class="POD_LINK" href="perlfunc.html#use_Module_LIST">use</a></code>, <code><a class="POD_LINK" href="perlfunc.html#require">require</a></code> or <code><a class="POD_LINK" href="perlfunc.html#do_EXPR">do</a></code>). This allows
+authors to independently define the degree of warning checks that will
+be applied to their module.
+</p>
+<p class="POD_TEXT">
+By default, optional warnings are disabled, so any legacy code that
+doesn't attempt to control the warnings will work unchanged.
+</p>
+<pre class="POD_TEXT">
+All warnings are enabled in a block by either of these:
+
+    use warnings ;
+    use warnings 'all' ;
+</pre>
+<pre class="POD_TEXT">
+Similarly all warnings are disabled in a block by either of these:
+
+    no warnings ;
+    no warnings 'all' ;
+</pre>
+<pre class="POD_TEXT">
+For example, consider the code below:
+
+    use warnings ;
+    my @a ;
+    {
+        no warnings ;
+	my $b = @a[0] ;
+    }
+    my $c = @a[0];
+</pre>
+<p class="POD_TEXT">
+The code in the enclosing block has warnings enabled, but the inner
+block has them disabled. In this case that means the assignment to the
+scalar <code>$c</code> will trip the <code>&quot;Scalar value @a[0] better written as $a[0]&quot;</code>
+warning, but the assignment to the scalar <code>$b</code> will not.
+</p>
+<h3 class="POD_HEAD2"><a name="Default_Warnings_and">Default Warnings and Optional Warnings</a></h3>
+<p class="POD_TEXT">
+Before the introduction of lexical warnings, Perl had two classes of
+warnings: mandatory and optional.
+</p>
+<pre class="POD_TEXT">
+As its name suggests, if your code tripped a mandatory warning, you
+would get a warning whether you wanted it or not.
+For example, the code below would always produce an <code>&quot;isn't numeric&quot;</code>
+warning about the &quot;2:&quot;.
+
+    my $a = &quot;2:&quot; + 3;
+</pre>
+<pre class="POD_TEXT">
+With the introduction of lexical warnings, mandatory warnings now become
+<i>default</i> warnings. The difference is that although the previously
+mandatory warnings are still enabled by default, they can then be
+subsequently enabled or disabled with the lexical warning pragma. For
+example, in the code below, an <code>&quot;isn't numeric&quot;</code> warning will only
+be reported for the <code>$a</code> variable.
+
+    my $a = &quot;2:&quot; + 3;
+    no warnings ;
+    my $b = &quot;2:&quot; + 3;
+</pre>
+<p class="POD_TEXT">
+Note that neither the <b>-w</b> flag or the <code><a class="POD_LINK" href="perlvar.html#_W">$^W</a></code> can be used to
+disable/enable default warnings. They are still mandatory in this case.
+</p>
+<h3 class="POD_HEAD2"><a name="What_s_wrong_with_w_">What's wrong with <b>-w</b> and <code><a class="POD_LINK" href="perlvar.html#_W">$^W</a></code></a></h3>
+<p class="POD_TEXT">
+Although very useful, the big problem with using <b>-w</b> on the command
+line to enable warnings is that it is all or nothing. Take the typical
+scenario when you are writing a Perl program. Parts of the code you
+will write yourself, but it's very likely that you will make use of
+pre-written Perl modules. If you use the <b>-w</b> flag in this case, you
+end up enabling warnings in pieces of code that you haven't written.
+</p>
+<pre class="POD_TEXT">
+Similarly, using <code><a class="POD_LINK" href="perlvar.html#_W">$^W</a></code> to either disable or enable blocks of code is
+fundamentally flawed. For a start, say you want to disable warnings in
+a block of code. You might expect this to be enough to do the trick:
+
+     {
+         local ($^W) = 0 ;
+	 my $a =+ 2 ;
+	 my $b ; chop $b ;
+     }
+</pre>
+<p class="POD_TEXT">
+When this code is run with the <b>-w</b> flag, a warning will be produced
+for the <code>$a</code> line -- <code>&quot;Reversed += operator&quot;</code>.
+</p>
+<pre class="POD_TEXT">
+The problem is that Perl has both compile-time and run-time warnings. To
+disable compile-time warnings you need to rewrite the code like this:
+
+     {
+         BEGIN { $^W = 0 }
+	 my $a =+ 2 ;
+	 my $b ; chop $b ;
+     }
+</pre>
+<pre class="POD_TEXT">
+The other big problem with <code><a class="POD_LINK" href="perlvar.html#_W">$^W</a></code> is the way you can inadvertently
+change the warning setting in unexpected places in your code. For example,
+when the code below is run (without the <b>-w</b> flag), the second call
+to <code>doit</code> will trip a <code>&quot;Use of uninitialized value&quot;</code> warning, whereas
+the first will not.
+
+    sub doit
+    {
+        my $b ; chop $b ;
+    }
+
+    doit() ;
+
+    {
+        local ($^W) = 1 ;
+        doit()
+    }
+</pre>
+<p class="POD_TEXT">
+This is a side-effect of <code><a class="POD_LINK" href="perlvar.html#_W">$^W</a></code> being dynamically scoped.
+</p>
+<p class="POD_TEXT">
+Lexical warnings get around these limitations by allowing finer control
+over where warnings can or can't be tripped.
+</p>
+<h3 class="POD_HEAD2"><a name="Controlling_Warnings">Controlling Warnings from the Command Line</a></h3>
+<p class="POD_TEXT">
+There are three Command Line flags that can be used to control when
+warnings are (or aren't) produced:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_w"><b>-w</b></a>
+<dd>
+This is  the existing flag. If the lexical warnings pragma is <b>not</b>
+used in any of you code, or any of the modules that you use, this flag
+will enable warnings everywhere. See the <a class="POD_LINK" href="#Backward_Compatibili">Backward Compatibility</a> entry elsewhere in this document for
+details of how this flag interacts with lexical warnings.
+<dt class="POD_ITEM"><a name="_W"><b>-W</b></a>
+<dd>
+If the <b>-W</b> flag is used on the command line, it will enable all warnings
+throughout the program regardless of whether warnings were disabled
+locally using <code>no warnings</code> or <code>$^W =0</code>. This includes all files that get
+included via <code><a class="POD_LINK" href="perlfunc.html#use_Module_LIST">use</a></code>, <code><a class="POD_LINK" href="perlfunc.html#require">require</a></code> or <code><a class="POD_LINK" href="perlfunc.html#do_EXPR">do</a></code>.
+Think of it as the Perl equivalent of the &quot;lint&quot; command.
+<dt class="POD_ITEM"><a name="_X"><b>-X</b></a>
+<dd>
+Does the exact opposite to the <b>-W</b> flag, i.e. it disables all warnings.
+</dl>
+<h3 class="POD_HEAD2"><a name="Backward_Compatibili">Backward Compatibility</a></h3>
+<p class="POD_TEXT">
+If you are used with working with a version of Perl prior to the
+introduction of lexically scoped warnings, or have code that uses both
+lexical warnings and <code><a class="POD_LINK" href="perlvar.html#_W">$^W</a></code>, this section will describe how they interact.
+</p>
+<p class="POD_TEXT">
+How Lexical Warnings interact with <b>-w</b>/<code><a class="POD_LINK" href="perlvar.html#_W">$^W</a></code>:
+</p>
+<ol class="POD_LIST">
+<li class="POD_ITEM"><a name="_"></a>
+
+If none of the three command line flags (<b>-w</b>, <b>-W</b> or <b>-X</b>) that
+control warnings is used and neither <code><a class="POD_LINK" href="perlvar.html#_W">$^W</a></code> or the <code>warnings</code> pragma
+are used, then default warnings will be enabled and optional warnings
+disabled.
+This means that legacy code that doesn't attempt to control the warnings
+will work unchanged.
+<li class="POD_ITEM"><a name="_1"></a>
+
+The <b>-w</b> flag just sets the global <code><a class="POD_LINK" href="perlvar.html#_W">$^W</a></code> variable as in 5.005 -- this
+means that any legacy code that currently relies on manipulating <code><a class="POD_LINK" href="perlvar.html#_W">$^W</a></code>
+to control warning behavior will still work as is.
+<li class="POD_ITEM"><a name="_2"></a>
+
+Apart from now being a boolean, the <code><a class="POD_LINK" href="perlvar.html#_W">$^W</a></code> variable operates in exactly
+the same horrible uncontrolled global way, except that it cannot
+disable/enable default warnings.
+<li class="POD_ITEM"><a name="_3"></a>
+
+If a piece of code is under the control of the <code>warnings</code> pragma,
+both the <code><a class="POD_LINK" href="perlvar.html#_W">$^W</a></code> variable and the <b>-w</b> flag will be ignored for the
+scope of the lexical warning.
+<li class="POD_ITEM"><a name="_4"></a>
+
+The only way to override a lexical warnings setting is with the <b>-W</b>
+or <b>-X</b> command line flags.
+</ol>
+<p class="POD_TEXT">
+The combined effect of 3 &amp; 4 is that it will allow code which uses
+the <code>warnings</code> pragma to control the warning behavior of $^W-type
+code (using a <code>local $^W=0</code>) if it really wants to, but not vice-versa.
+</p>
+<h3 class="POD_HEAD2"><a name="Category_Hierarchy">Category Hierarchy</a></h3>
+<p class="POD_TEXT">
+A hierarchy of &quot;categories&quot; have been defined to allow groups of warnings
+to be enabled/disabled in isolation.
+</p>
+<pre class="POD_TEXT">
+The current hierarchy is:
+
+  all -+
+       |
+       +- chmod
+       |
+       +- closure
+       |
+       +- exiting
+       |
+       +- glob
+       |
+       +- io -----------+
+       |                |
+       |                +- closed
+       |                |
+       |                +- exec
+       |                |
+       |                +- newline
+       |                |
+       |                +- pipe
+       |                |
+       |                +- unopened
+       |
+       +- misc
+       |
+       +- numeric
+       |
+       +- once
+       |
+       +- overflow
+       |
+       +- pack
+       |
+       +- portable
+       |
+       +- recursion
+       |
+       +- redefine
+       |
+       +- regexp
+       |
+       +- severe -------+
+       |                |
+       |                +- debugging
+       |                |
+       |                +- inplace
+       |                |
+       |                +- internal
+       |                |
+       |                +- malloc
+       |
+       +- signal
+       |
+       +- substr
+       |
+       +- syntax -------+
+       |                |
+       |                +- ambiguous
+       |                |
+       |                +- bareword
+       |                |
+       |                +- deprecated
+       |                |
+       |                +- digit
+       |                |
+       |                +- parenthesis
+       |                |
+       |                +- precedence
+       |                |
+       |                +- printf
+       |                |
+       |                +- prototype
+       |                |
+       |                +- qw
+       |                |
+       |                +- reserved
+       |                |
+       |                +- semicolon
+       |
+       +- taint
+       |
+       +- umask
+       |
+       +- uninitialized
+       |
+       +- unpack
+       |
+       +- untie
+       |
+       +- utf8
+       |
+       +- void
+       |
+       +- y2k
+</pre>
+<pre class="POD_TEXT">
+Just like the &quot;strict&quot; pragma any of these categories can be combined
+
+    use warnings qw(void redefine) ;
+    no warnings qw(io syntax untie) ;
+</pre>
+<pre class="POD_TEXT">
+Also like the &quot;strict&quot; pragma, if there is more than one instance of the
+<code>warnings</code> pragma in a given scope the cumulative effect is additive.
+
+    use warnings qw(void) ; # only &quot;void&quot; warnings enabled
+    ...
+    use warnings qw(io) ;   # only &quot;void&quot; &amp; &quot;io&quot; warnings enabled
+    ...
+    no warnings qw(void) ;  # only &quot;io&quot; warnings enabled
+</pre>
+<p class="POD_TEXT">
+To determine which category a specific warning has been assigned to see
+the <a class="POD_LINK" href="perldiag.html">perldiag</a> manpage.
+</p>
+<h3 class="POD_HEAD2"><a name="Fatal_Warnings">Fatal Warnings</a></h3>
+<pre class="POD_TEXT">
+The presence of the word &quot;FATAL&quot; in the category list will escalate any
+warnings detected from the categories specified in the lexical scope
+into fatal errors. In the code below, the use of <code><a class="POD_LINK" href="perlfunc.html#time">time</a></code>, <code><a class="POD_LINK" href="perlfunc.html#length">length</a></code>
+and <code><a class="POD_LINK" href="perlfunc.html#join_EXPR_LIST">join</a></code> can all produce a <code>&quot;Useless use of xxx in void context&quot;</code>
+warning.
+
+    use warnings ;
+
+    time ;
+
+    {
+        use warnings FATAL =&gt; qw(void) ;
+        length &quot;abc&quot; ;
+    }
+
+    join &quot;&quot;, 1,2,3 ;
+
+    print &quot;done\n&quot; ;
+</pre>
+<pre class="POD_TEXT">
+When run it produces this output
+
+    Useless use of time in void context at fatal line 3.
+    Useless use of length in void context at fatal line 7.
+</pre>
+<p class="POD_TEXT">
+The scope where <code><a class="POD_LINK" href="perlfunc.html#length">length</a></code> is used has escalated the <code>void</code> warnings
+category into a fatal error, so the program terminates immediately it
+encounters the warning.
+</p>
+<p></p>
+<h3 class="POD_HEAD2"><a name="Reporting_Warnings_f">Reporting Warnings from a Module</a></h3>
+<p class="POD_TEXT">
+The <code>warnings</code> pragma provides a number of functions that are useful for
+module authors. These are used when you want to report a module-specific
+warning to a calling module has enabled warnings via the <code>warnings</code>
+pragma.
+</p>
+<pre class="POD_TEXT">
+Consider the module <code>MyMod::Abc</code> below.
+
+    package MyMod::Abc;
+
+    use warnings::register;
+
+    sub open {
+        my $path = shift ;
+        if (warnings::enabled() &amp;&amp; $path !~ m#^/#) {
+            warnings::warn(&quot;changing relative path to /tmp/&quot;);
+            $path = &quot;/tmp/$path&quot; ; 
+        }
+    }
+
+    1 ;
+</pre>
+<pre class="POD_TEXT">
+The call to <code>warnings::register</code> will create a new warnings category
+called &quot;MyMod::abc&quot;, i.e. the new category name matches the current
+package name. The <code><a class="POD_LINK" href="perlfunc.html#open_FILEHANDLE">open</a></code> function in the module will display a warning
+message if it gets given a relative path as a parameter. This warnings
+will only be displayed if the code that uses <code>MyMod::Abc</code> has actually
+enabled them with the <code>warnings</code> pragma like below.
+
+    use MyMod::Abc;
+    use warnings 'MyMod::Abc';
+    ...
+    abc::open(&quot;../fred.txt&quot;);
+</pre>
+<pre class="POD_TEXT">
+It is also possible to test whether the pre-defined warnings categories are
+set in the calling module with the <code>warnings::enabled</code> function. Consider
+this snippet of code:
+
+    package MyMod::Abc;
+
+    sub open {
+        warnings::warnif(&quot;deprecated&quot;, 
+                         &quot;open is deprecated, use new instead&quot;) ;
+        new(@_) ;
+    }
+
+    sub new
+    ...
+    1 ;
+</pre>
+<pre class="POD_TEXT">
+The function <code><a class="POD_LINK" href="perlfunc.html#open_FILEHANDLE">open</a></code> has been deprecated, so code has been included to
+display a warning message whenever the calling module has (at least) the
+&quot;deprecated&quot; warnings category enabled. Something like this, say.
+
+    use warnings 'deprecated';
+    use MyMod::Abc;
+    ...
+    MyMod::Abc::open($filename) ;
+</pre>
+<pre class="POD_TEXT">
+Either the <code>warnings::warn</code> or <code>warnings::warnif</code> function should be
+used to actually display the warnings message. This is because they can
+make use of the feature that allows warnings to be escalated into fatal
+errors. So in this case
+
+    use MyMod::Abc;
+    use warnings FATAL =&gt; 'MyMod::Abc';
+    ...
+    MyMod::Abc::open('../fred.txt');
+</pre>
+<p class="POD_TEXT">
+the <code>warnings::warnif</code> function will detect this and die after
+displaying the warning message.
+</p>
+<p class="POD_TEXT">
+The three warnings functions, <code>warnings::warn</code>, <code>warnings::warnif</code>
+and <code>warnings::enabled</code> can optionally take an object reference in place
+of a category name. In this case the functions will use the class name
+of the object as the warnings category.
+</p>
+<pre class="POD_TEXT">
+Consider this example:
+
+    package Original ;
+
+    no warnings ;
+    use warnings::register ;
+
+    sub new
+    {
+        my $class = shift ;
+        bless [], $class ;
+    }
+
+    sub check
+    {
+        my $self = shift ;
+        my $value = shift ;
+
+        if ($value % 2 &amp;&amp; warnings::enabled($self))
+          { warnings::warn($self, &quot;Odd numbers are unsafe&quot;) }
+    }
+
+    sub doit
+    {
+        my $self = shift ;
+        my $value = shift ;
+        $self-&gt;check($value) ;
+        # ...
+    }
+
+    1 ;
+
+    package Derived ;
+
+    use warnings::register ;
+    use Original ;
+    our @ISA = qw( Original ) ;
+    sub new
+    {
+        my $class = shift ;
+        bless [], $class ;
+    }
+</pre>
+<pre>
+    1 ;
+</pre>
+<pre class="POD_TEXT">
+The code below makes use of both modules, but it only enables warnings from 
+<code>Derived</code>.
+
+    use Original ;
+    use Derived ;
+    use warnings 'Derived';
+    my $a = new Original ;
+    $a-&gt;doit(1) ;
+    my $b = new Derived ;
+    $a-&gt;doit(1) ;
+</pre>
+<pre class="POD_TEXT">
+When this code is run only the <code>Derived</code> object, <code>$b</code>, will generate
+a warning.
+
+    Odd numbers are unsafe at main.pl line 7
+</pre>
+<p class="POD_TEXT">
+Notice also that the warning is reported at the line where the object is first
+used.
+</p>
+<h2 class="POD_HEAD1"><a name="TODO">TODO</a></h2>
+<pre class="POD_VERBATIM">
+  perl5db.pl
+    The debugger saves and restores C&lt;$^W&gt; at runtime. I haven't checked
+    whether the debugger will still work with the lexical warnings
+    patch applied.
+
+  diagnostics.pm
+    I *think* I've got diagnostics to work with the lexical warnings
+    patch, but there were design decisions made in diagnostics to work
+    around the limitations of C&lt;$^W&gt;. Now that those limitations are gone,
+    the module should be revisited.
+
+  document calling the warnings::* functions from XS
+</pre>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+the <a class="POD_LINK" href="warnings.html">warnings</a> manpage, the <a class="POD_LINK" href="perldiag.html">perldiag</a> manpage.
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHOR">AUTHOR</a></h2>
+<p class="POD_TEXT">
+Paul Marquess
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:35:44 2001
+</body>
+</html>
+

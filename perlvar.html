@@ -1,0 +1,1217 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>perlvar</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="perlxs.html">Next:<br>perlxs</a></td><td align="left" width="1%"><a  href="perlutil.html">Previous:<br>perlutil</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">perlvar</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<ul>
+<li><a href="#Predefined_Names">Predefined Names</a>
+<li><a href="#Error_Indicators">Error Indicators</a>
+<li><a href="#Technical_Note_on_th">Technical Note on the Syntax of Variable Names</a>
+</ul>
+<li><a href="#BUGS">BUGS</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+perlvar - Perl predefined variables
+</p>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<h3 class="POD_HEAD2"><a name="Predefined_Names">Predefined Names</a></h3>
+<pre class="POD_TEXT">
+The following names have special meaning to Perl.  Most 
+punctuation names have reasonable mnemonics, or analogs in the
+shells.  Nevertheless, if you wish to use long variable names,
+you need only say
+
+    use English;
+</pre>
+<p class="POD_TEXT">
+at the top of your program.  This will alias all the short names to the
+long names in the current package.  Some even have medium names,
+generally borrowed from <b>awk</b>.
+</p>
+<pre class="POD_TEXT">
+If you don't mind the performance hit, variables that depend on the
+currently selected filehandle may instead be set by calling an
+appropriate object method on the IO::Handle object.  (Summary lines
+below for this contain the word HANDLE.)  First you must say
+
+    use IO::Handle;
+</pre>
+<pre class="POD_TEXT">
+after which you may use either
+
+    method HANDLE EXPR
+</pre>
+<pre class="POD_TEXT">
+or more safely,
+
+    HANDLE-&gt;method(EXPR)
+</pre>
+<p class="POD_TEXT">
+Each method returns the old value of the IO::Handle attribute.
+The methods each take an optional EXPR, which if supplied specifies the
+new value for the IO::Handle attribute in question.  If not supplied,
+most methods do nothing to the current value--except for
+autoflush(), which will assume a 1 for you, just to be different.
+Because loading in the IO::Handle class is an expensive operation, you should
+learn how to use the regular built-in variables.
+</p>
+<p class="POD_TEXT">
+A few of these variables are considered &quot;read-only&quot;.  This means that if
+you try to assign to this variable, either directly or indirectly through
+a reference, you'll raise a run-time exception.
+</p>
+<p class="POD_TEXT">
+The following list is ordered by scalar variables first, then the
+arrays, then the hashes.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_ARG">$ARG</a>
+<dt><a name="_">$_</a>
+<dd>
+The default input and pattern-searching space.  The following pairs are
+equivalent:
+<pre class="POD_VERBATIM">
+    while (&lt;&gt;) {...}	# equivalent only in while!
+    while (defined($_ = &lt;&gt;)) {...}
+
+    /^Subject:/
+    $_ =~ /^Subject:/
+
+    tr/a-z/A-Z/
+    $_ =~ tr/a-z/A-Z/
+
+    chomp
+    chomp($_)
+</pre>
+<p class="POD_TEXT">
+Here are the places where Perl will assume $_ even if you
+don't use it:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_1"></a>
+
+Various unary functions, including functions like ord() and int(), as well
+as the all file tests (<code>-f</code>, <code><a class="POD_LINK" href="perlrun.html#_d">-d</a></code>) except for <code>-t</code>, which defaults to
+STDIN.
+<li class="POD_ITEM"><a name="_2"></a>
+
+Various list functions like print() and unlink().
+<li class="POD_ITEM"><a name="_3"></a>
+
+The pattern matching operations <code><a class="POD_LINK" href="perlfunc.html#m_">m//</a></code>, <code><a class="POD_LINK" href="perlfunc.html#s_">s///</a></code>, and <code><a class="POD_LINK" href="perlfunc.html#tr_">tr///</a></code> when used
+without an <code>=~</code> operator.
+<li class="POD_ITEM"><a name="_4"></a>
+
+The default iterator variable in a <code>foreach</code> loop if no other
+variable is supplied.
+<li class="POD_ITEM"><a name="_5"></a>
+
+The implicit iterator variable in the grep() and map() functions.
+<li class="POD_ITEM"><a name="_6"></a>
+
+The default place to put an input record when a <code>&lt;FH&gt;</code>
+operation's result is tested by itself as the sole criterion of a <code>while</code>
+test.  Outside a <code>while</code> test, this will not happen.
+</ul>
+<p class="POD_TEXT">
+(Mnemonic: underline is understood in certain operations.)
+</p>
+</dl>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_digits_">$&lt;<i>digits</i>&gt;</a>
+<dd>
+Contains the subpattern from the corresponding set of capturing
+parentheses from the last pattern match, not counting patterns
+matched in nested blocks that have been exited already.  (Mnemonic:
+like \digits.)  These variables are all read-only and dynamically
+scoped to the current BLOCK.
+<dt class="POD_ITEM"><a name="_MATCH">$MATCH</a>
+<dt><a name="_7">$&amp;</a>
+<dd>
+The string matched by the last successful pattern match (not counting
+any matches hidden within a BLOCK or eval() enclosed by the current
+BLOCK).  (Mnemonic: like &amp; in some editors.)  This variable is read-only
+and dynamically scoped to the current BLOCK.
+<p class="POD_TEXT">
+The use of this variable anywhere in a program imposes a considerable
+performance penalty on all regular expression matches.  See the <u>BUGS</u> manpage.
+</p>
+<dt class="POD_ITEM"><a name="_PREMATCH">$PREMATCH</a>
+<dt><a name="_8">$`</a>
+<dd>
+The string preceding whatever was matched by the last successful
+pattern match (not counting any matches hidden within a BLOCK or eval
+enclosed by the current BLOCK).  (Mnemonic: <code>`</code> often precedes a quoted
+string.)  This variable is read-only.
+<p class="POD_TEXT">
+The use of this variable anywhere in a program imposes a considerable
+performance penalty on all regular expression matches.  See the <u>BUGS</u> manpage.
+</p>
+<dt class="POD_ITEM"><a name="_POSTMATCH">$POSTMATCH</a>
+<dt><a name="_9">$'</a>
+<dd>
+The string following whatever was matched by the last successful
+pattern match (not counting any matches hidden within a BLOCK or eval()
+enclosed by the current BLOCK).  (Mnemonic: <code>'</code> often follows a quoted
+string.)  Example:
+<pre class="POD_VERBATIM">
+    $_ = 'abcdefghi';
+    /def/;
+    print &quot;$`:$&amp;:$'\n&quot;;  	# prints abc:def:ghi
+</pre>
+<p class="POD_TEXT">
+This variable is read-only and dynamically scoped to the current BLOCK.
+</p>
+<p class="POD_TEXT">
+The use of this variable anywhere in a program imposes a considerable
+performance penalty on all regular expression matches.  See the <u>BUGS</u> manpage.
+</p>
+<dt class="POD_ITEM"><a name="_LAST_PAREN_MATCH">$LAST_PAREN_MATCH</a>
+<dt><a name="_10">$+</a>
+<dd>
+The last bracket matched by the last search pattern.  This is useful if
+you don't know which one of a set of alternative patterns matched.  For
+example:
+<pre class="POD_VERBATIM">
+    /Version: (.*)|Revision: (.*)/ &amp;&amp; ($rev = $+);
+</pre>
+<p class="POD_TEXT">
+(Mnemonic: be positive and forward looking.)
+This variable is read-only and dynamically scoped to the current BLOCK.
+</p>
+<dt class="POD_ITEM"><a name="_LAST_MATCH_END">@LAST_MATCH_END</a>
+<dt><a name="_11">@+</a>
+<dd>
+This array holds the offsets of the ends of the last successful
+submatches in the currently active dynamic scope.  <code>$+[0]</code> is
+the offset into the string of the end of the entire match.  This
+is the same value as what the <code><a class="POD_LINK" href="perlfunc.html#pos">pos</a></code> function returns when called
+on the variable that was matched against.  The <i>n</i>th element
+of this array holds the offset of the <i>n</i>th submatch, so
+<code>$+[1]</code> is the offset past where $1 ends, <code>$+[2]</code> the offset
+past where $2 ends, and so on.  You can use <code>$#+</code> to determine
+how many subgroups were in the last successful match.  See the
+examples given for the <code><a class="POD_LINK" href="perlvar.html#_24">@-</a></code> variable.
+<dt class="POD_ITEM"><a name="_MULTILINE_MATCHING">$MULTILINE_MATCHING</a>
+<dt><a name="_12">$*</a>
+<dd>
+Set to a non-zero integer value to do multi-line matching within a
+string, 0 (or undefined) to tell Perl that it can assume that strings
+contain a single line, for the purpose of optimizing pattern matches.
+Pattern matches on strings containing multiple newlines can produce
+confusing results when <code>$*</code> is 0 or undefined. Default is undefined.
+(Mnemonic: * matches multiple things.) This variable influences the
+interpretation of only <code>^</code> and <code>$</code>. A literal newline can be searched
+for even when <code>$* == 0</code>.
+<p class="POD_TEXT">
+Use of <code><a class="POD_LINK" href="perlvar.html#_12">$*</a></code> is deprecated in modern Perl, supplanted by 
+the <code>/s</code> and <code>/m</code> modifiers on pattern matching.
+</p>
+<p class="POD_TEXT">
+Assigning a non-numerical value to <code><a class="POD_LINK" href="perlvar.html#_12">$*</a></code> triggers a warning (and makes
+<code><a class="POD_LINK" href="perlvar.html#_12">$*</a></code> act if <code>$* == 0</code>), while assigning a numerical value to <code><a class="POD_LINK" href="perlvar.html#_12">$*</a></code>
+makes that an implicit <code><a class="POD_LINK" href="perlfunc.html#int">int</a></code> is applied on the value.
+</p>
+<dt class="POD_ITEM"><a name="input_line_number_HA">input_line_number HANDLE EXPR</a>
+<dt><a name="_INPUT_LINE_NUMBER">$INPUT_LINE_NUMBER</a>
+<dt><a name="_NR">$NR</a>
+<dt><a name="_13">$.</a>
+<dd>
+The current input record number for the last file handle from which
+you just read() (or called a <code><a class="POD_LINK" href="perlfunc.html#seek_FILEHANDLE_POSI">seek</a></code> or <code><a class="POD_LINK" href="perlfunc.html#tell">tell</a></code> on).  The value
+may be different from the actual physical line number in the file,
+depending on what notion of &quot;line&quot; is in effect--see <code><a class="POD_LINK" href="perlvar.html#_14">$/</a></code> on how
+to change that.  An explicit close on a filehandle resets the line
+number.  Because <code>&lt;&gt;</code> never does an explicit close, line
+numbers increase across ARGV files (but see examples in the <a class="POD_LINK" href="perlfunc.html#eof">eof</a> entry in the <a class="POD_LINK" href="perlfunc.html">perlfunc</a> manpage).
+Consider this variable read-only: setting it does not reposition
+the seek pointer; you'll have to do that on your own.  Localizing <code>$.</code>
+has the effect of also localizing Perl's notion of &quot;the last read
+filehandle&quot;.  (Mnemonic: many programs use &quot;.&quot; to mean the current line
+number.)
+<dt class="POD_ITEM"><a name="input_record_separat">input_record_separator HANDLE EXPR</a>
+<dt><a name="_INPUT_RECORD_SEPARA">$INPUT_RECORD_SEPARATOR</a>
+<dt><a name="_RS">$RS</a>
+<dt><a name="_14">$/</a>
+<dd>
+The input record separator, newline by default.  This 
+influences Perl's idea of what a &quot;line&quot; is.  Works like <b>awk</b>'s RS
+variable, including treating empty lines as a terminator if set to
+the null string.  (An empty line cannot contain any spaces
+or tabs.)  You may set it to a multi-character string to match a
+multi-character terminator, or to <code><a class="POD_LINK" href="perlfunc.html#undef">undef</a></code> to read through the end
+of file.  Setting it to <code>&quot;\n\n&quot;</code> means something slightly
+different than setting to <code>&quot;&quot;</code>, if the file contains consecutive
+empty lines.  Setting to <code>&quot;&quot;</code> will treat two or more consecutive
+empty lines as a single empty line.  Setting to <code>&quot;\n\n&quot;</code> will
+blindly assume that the next input character belongs to the next
+paragraph, even if it's a newline.  (Mnemonic: / delimits
+line boundaries when quoting poetry.)
+<pre class="POD_VERBATIM">
+    undef $/;		# enable &quot;slurp&quot; mode
+    $_ = &lt;FH&gt;;		# whole file now here
+    s/\n[ \t]+/ /g;
+</pre>
+<p class="POD_TEXT">
+Remember: the value of <code><a class="POD_LINK" href="perlvar.html#_14">$/</a></code> is a string, not a regex.  <b>awk</b> has to be
+better for something. :-)
+</p>
+<pre class="POD_TEXT">
+Setting <code><a class="POD_LINK" href="perlvar.html#_14">$/</a></code> to a reference to an integer, scalar containing an integer, or
+scalar that's convertible to an integer will attempt to read records
+instead of lines, with the maximum record size being the referenced
+integer.  So this:
+
+    $/ = \32768; # or \&quot;32768&quot;, or \$var_containing_32768
+    open(FILE, $myfile);
+    $_ = &lt;FILE&gt;;
+</pre>
+<p class="POD_TEXT">
+will read a record of no more than 32768 bytes from FILE.  If you're
+not reading from a record-oriented file (or your OS doesn't have
+record-oriented files), then you'll likely get a full chunk of data
+with every read.  If a record is larger than the record size you've
+set, you'll get the record back in pieces.
+</p>
+<p class="POD_TEXT">
+On VMS, record reads are done with the equivalent of <code><a class="POD_LINK" href="perlfunc.html#sysread_FILEHANDLE_S">sysread</a></code>,
+so it's best not to mix record and non-record reads on the same
+file.  (This is unlikely to be a problem, because any file you'd
+want to read in record mode is probably unusable in line mode.)
+Non-VMS systems do normal I/O, so it's safe to mix record and
+non-record reads of a file.
+</p>
+<p class="POD_TEXT">
+See also the section on <a class="POD_LINK" href="perlport.html#Newlines">Newlines</a> in the <a class="POD_LINK" href="perlport.html">perlport</a> manpage.  Also see <code><a class="POD_LINK" href="perlvar.html#_13">$.</a></code>.
+</p>
+<dt class="POD_ITEM"><a name="autoflush_HANDLE_EXP">autoflush HANDLE EXPR</a>
+<dt><a name="_OUTPUT_AUTOFLUSH">$OUTPUT_AUTOFLUSH</a>
+<dt><a name="_15">$|</a>
+<dd>
+If set to nonzero, forces a flush right away and after every write
+or print on the currently selected output channel.  Default is 0
+(regardless of whether the channel is really buffered by the
+system or not; <code>$|</code> tells you only whether you've asked Perl
+explicitly to flush after each write).  STDOUT will
+typically be line buffered if output is to the terminal and block
+buffered otherwise.  Setting this variable is useful primarily when
+you are outputting to a pipe or socket, such as when you are running
+a Perl program under <b>rsh</b> and want to see the output as it's
+happening.  This has no effect on input buffering.  See the <a class="POD_LINK" href="perlfunc.html#getc">getc</a> entry in the <a class="POD_LINK" href="perlfunc.html">perlfunc</a> manpage
+for that.  (Mnemonic: when you want your pipes to be piping hot.)
+<dt class="POD_ITEM"><a name="output_field_separat">output_field_separator HANDLE EXPR</a>
+<dt><a name="_OUTPUT_FIELD_SEPARA">$OUTPUT_FIELD_SEPARATOR</a>
+<dt><a name="_OFS">$OFS</a>
+<dt><a name="_16">$,</a>
+<dd>
+The output field separator for the print operator.  Ordinarily the
+print operator simply prints out its arguments without further
+adornment.  To get behavior more like <b>awk</b>, set this variable as
+you would set <b>awk</b>'s OFS variable to specify what is printed
+between fields.  (Mnemonic: what is printed when there is a &quot;,&quot; in
+your print statement.)
+<dt class="POD_ITEM"><a name="output_record_separa">output_record_separator HANDLE EXPR</a>
+<dt><a name="_OUTPUT_RECORD_SEPAR">$OUTPUT_RECORD_SEPARATOR</a>
+<dt><a name="_ORS">$ORS</a>
+<dt><a name="_17">$\</a>
+<dd>
+The output record separator for the print operator.  Ordinarily the
+print operator simply prints out its arguments as is, with no
+trailing newline or other end-of-record string added.  To get
+behavior more like <b>awk</b>, set this variable as you would set
+<b>awk</b>'s ORS variable to specify what is printed at the end of the
+print.  (Mnemonic: you set <code>$\</code> instead of adding &quot;\n&quot; at the
+end of the print.  Also, it's just like <code><a class="POD_LINK" href="perlvar.html#_14">$/</a></code>, but it's what you
+get &quot;back&quot; from Perl.)
+<dt class="POD_ITEM"><a name="_LIST_SEPARATOR">$LIST_SEPARATOR</a>
+<dt><a name="_18">$&quot;</a>
+<dd>
+This is like <code><a class="POD_LINK" href="perlvar.html#_16">$,</a></code> except that it applies to array and slice values
+interpolated into a double-quoted string (or similar interpreted
+string).  Default is a space.  (Mnemonic: obvious, I think.)
+<dt class="POD_ITEM"><a name="_SUBSCRIPT_SEPARATOR">$SUBSCRIPT_SEPARATOR</a>
+<dt><a name="_SUBSEP">$SUBSEP</a>
+<dt><a name="_19">$;</a>
+<dd>
+The subscript separator for multidimensional array emulation.  If you
+refer to a hash element as
+<pre class="POD_VERBATIM">
+    $foo{$a,$b,$c}
+</pre>
+<pre class="POD_TEXT">
+it really means
+
+    $foo{join($;, $a, $b, $c)}
+</pre>
+<pre class="POD_TEXT">
+But don't put
+
+    @foo{$a,$b,$c}	# a slice--note the @
+</pre>
+<pre class="POD_TEXT">
+which means
+
+    ($foo{$a},$foo{$b},$foo{$c})
+</pre>
+<p class="POD_TEXT">
+Default is &quot;\034&quot;, the same as SUBSEP in <b>awk</b>.  If your
+keys contain binary data there might not be any safe value for <code><a class="POD_LINK" href="perlvar.html#_19">$;</a></code>.
+(Mnemonic: comma (the syntactic subscript separator) is a
+semi-semicolon.  Yeah, I know, it's pretty lame, but <code><a class="POD_LINK" href="perlvar.html#_16">$,</a></code> is already
+taken for something more important.)
+</p>
+<p class="POD_TEXT">
+Consider using &quot;real&quot; multidimensional arrays as described
+in the <a class="POD_LINK" href="perllol.html">perllol</a> manpage.
+</p>
+<dt class="POD_ITEM"><a name="_OFMT">$OFMT</a>
+<dt><a name="_20">$#</a>
+<dd>
+The output format for printed numbers.  This variable is a half-hearted
+attempt to emulate <b>awk</b>'s OFMT variable.  There are times, however,
+when <b>awk</b> and Perl have differing notions of what counts as 
+numeric.  The initial value is &quot;%.<i>n</i>g&quot;, where <i>n</i> is the value
+of the macro DBL_DIG from your system's <code>float.h</code>.  This is different from
+<b>awk</b>'s default OFMT setting of &quot;%.6g&quot;, so you need to set <code>$#</code>
+explicitly to get <b>awk</b>'s value.  (Mnemonic: # is the number sign.)
+<p class="POD_TEXT">
+Use of <code><a class="POD_LINK" href="perlvar.html#_20">$#</a></code> is deprecated.
+</p>
+<dt class="POD_ITEM"><a name="format_page_number_H">format_page_number HANDLE EXPR</a>
+<dt><a name="_FORMAT_PAGE_NUMBER">$FORMAT_PAGE_NUMBER</a>
+<dt><a name="_21">$%</a>
+<dd>
+The current page number of the currently selected output channel.
+Used with formats.
+(Mnemonic: % is page number in <b>nroff</b>.)
+<dt class="POD_ITEM"><a name="format_lines_per_pag">format_lines_per_page HANDLE EXPR</a>
+<dt><a name="_FORMAT_LINES_PER_PA">$FORMAT_LINES_PER_PAGE</a>
+<dt><a name="_22">$=</a>
+<dd>
+The current page length (printable lines) of the currently selected
+output channel.  Default is 60.  
+Used with formats.
+(Mnemonic: = has horizontal lines.)
+<dt class="POD_ITEM"><a name="format_lines_left_HA">format_lines_left HANDLE EXPR</a>
+<dt><a name="_FORMAT_LINES_LEFT">$FORMAT_LINES_LEFT</a>
+<dt><a name="_23">$-</a>
+<dd>
+The number of lines left on the page of the currently selected output
+channel.  
+Used with formats.
+(Mnemonic: lines_on_page - lines_printed.)
+<dt class="POD_ITEM"><a name="_LAST_MATCH_START">@LAST_MATCH_START</a>
+<dt><a name="_24">@-</a>
+<dd>
+$-[0] is the offset of the start of the last successful match.
+<code>$-[</code><i>n</i><code>]</code> is the offset of the start of the substring matched by
+<i>n</i>-th subpattern, or undef if the subpattern did not match.
+<p class="POD_TEXT">
+Thus after a match against $_, $&amp; coincides with <code>substr $_, $-[0],
+$+[0] - $-[0]</code>.  Similarly, <code>$</code><i>n</i> coincides with <code>substr $_, $-[</code><i>n</i><code>],
+$+[</code><i>n</i><code>] - $-[</code><i>n</i><code>]</code> if <code>$-[</code><i>n</i><code>]</code> is defined, and $+ coincides with
+<code>substr $_, $-[$#-], $+[$#-]</code>.  One can use <code>$#-</code> to find the last
+matched subgroup in the last successful match.  Contrast with
+<code>$#+</code>, the number of subgroups in the regular expression.  Compare
+with <code><a class="POD_LINK" href="perlvar.html#_11">@+</a></code>.
+</p>
+<p class="POD_TEXT">
+This array holds the offsets of the beginnings of the last
+successful submatches in the currently active dynamic scope.
+<code>$-[0]</code> is the offset into the string of the beginning of the
+entire match.  The <i>n</i>th element of this array holds the offset
+of the <i>n</i>th submatch, so <code>$+[1]</code> is the offset where $1
+begins, <code>$+[2]</code> the offset where $2 begins, and so on.
+You can use <code>$#-</code> to determine how many subgroups were in the
+last successful match.  Compare with the <code><a class="POD_LINK" href="perlvar.html#_11">@+</a></code> variable.
+</p>
+<p class="POD_TEXT">
+After a match against some variable $var:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_is_the_same_as_subs"><code><a class="POD_LINK" href="perlvar.html#_8">$`</a></code> is the same as <code>substr($var, 0, $-[0])</code></a>
+<dt><a name="_is_the_same_as_subs1"><code><a class="POD_LINK" href="perlvar.html#_7">$&amp;</a></code> is the same as <code>substr($var, $-[0], $+[0] - $-[0])</code></a>
+<dt><a name="_is_the_same_as_subs2"><code><a class="POD_LINK" href="perlvar.html#_9">$'</a></code> is the same as <code>substr($var, $+[0])</code></a>
+<dt><a name="_1_is_the_same_as_su"><code>$1</code> is the same as <code>substr($var, $-[1], $+[1] - $-[1])</code></a>
+<dt><a name="_2_is_the_same_as_su"><code>$2</code> is the same as <code>substr($var, $-[2], $+[2] - $-[2])</code></a>
+<dt><a name="_3_is_the_same_as_su"><code>$3</code> is the same as <code>substr $var, $-[3], $+[3] - $-[3])</code></a>
+<dd></dl>
+<dt class="POD_ITEM"><a name="format_name_HANDLE_E">format_name HANDLE EXPR</a>
+<dt><a name="_FORMAT_NAME">$FORMAT_NAME</a>
+<dt><a name="_25">$~</a>
+<dd>
+The name of the current report format for the currently selected output
+channel.  Default is the name of the filehandle.  (Mnemonic: brother to
+<code><a class="POD_LINK" href="perlvar.html#_26">$^</a></code>.)
+<dt class="POD_ITEM"><a name="format_top_name_HAND">format_top_name HANDLE EXPR</a>
+<dt><a name="_FORMAT_TOP_NAME">$FORMAT_TOP_NAME</a>
+<dt><a name="_26">$^</a>
+<dd>
+The name of the current top-of-page format for the currently selected
+output channel.  Default is the name of the filehandle with _TOP
+appended.  (Mnemonic: points to top of page.)
+<dt class="POD_ITEM"><a name="format_line_break_ch">format_line_break_characters HANDLE EXPR</a>
+<dt><a name="_FORMAT_LINE_BREAK_C">$FORMAT_LINE_BREAK_CHARACTERS</a>
+<dt><a name="_27">$:</a>
+<dd>
+The current set of characters after which a string may be broken to
+fill continuation fields (starting with ^) in a format.  Default is
+&quot;&nbsp;\n-&quot;, to break on whitespace or hyphens.  (Mnemonic: a &quot;colon&quot; in
+poetry is a part of a line.)
+<dt class="POD_ITEM"><a name="format_formfeed_HAND">format_formfeed HANDLE EXPR</a>
+<dt><a name="_FORMAT_FORMFEED">$FORMAT_FORMFEED</a>
+<dt><a name="_L">$^L</a>
+<dd>
+What formats output as a form feed.  Default is \f.
+<dt class="POD_ITEM"><a name="_ACCUMULATOR">$ACCUMULATOR</a>
+<dt><a name="_A">$^A</a>
+<dd>
+The current value of the write() accumulator for format() lines.  A format
+contains formline() calls that put their result into <code>$^A</code>.  After
+calling its format, write() prints out the contents of <code>$^A</code> and empties.
+So you never really see the contents of <code>$^A</code> unless you call
+formline() yourself and then look at it.  See the <a class="POD_LINK" href="perlform.html">perlform</a> manpage and
+the <a class="POD_LINK" href="perlfunc.html">formline()</a> entry in the <a class="POD_LINK" href="perlfunc.html">perlfunc</a> manpage.
+<dt class="POD_ITEM"><a name="_CHILD_ERROR">$CHILD_ERROR</a>
+<dt><a name="_28">$?</a>
+<dd>
+The status returned by the last pipe close, backtick (<code>``</code>) command,
+successful call to wait() or waitpid(), or from the system()
+operator.  This is just the 16-bit status word returned by the
+wait() system call (or else is made up to look like it).  Thus, the
+exit value of the subprocess is really (<code>$? &gt;&gt; 8</code>), and
+<code>$? &amp; 127</code> gives which signal, if any, the process died from, and
+<code>$? &amp; 128</code> reports whether there was a core dump.  (Mnemonic:
+similar to <b>sh</b> and <b>ksh</b>.)
+<p class="POD_TEXT">
+Additionally, if the <code>h_errno</code> variable is supported in C, its value
+is returned via $? if any <code>gethost*()</code> function fails.
+</p>
+<p class="POD_TEXT">
+If you have installed a signal handler for <code>SIGCHLD</code>, the
+value of <code><a class="POD_LINK" href="perlvar.html#_28">$?</a></code> will usually be wrong outside that handler.
+</p>
+<pre class="POD_TEXT">
+Inside an <code>END</code> subroutine <code><a class="POD_LINK" href="perlvar.html#_28">$?</a></code> contains the value that is going to be
+given to <code>exit()</code>.  You can modify <code><a class="POD_LINK" href="perlvar.html#_28">$?</a></code> in an <code>END</code> subroutine to
+change the exit status of your program.  For example:
+
+    END {
+	$? = 1 if $? == 255;  # die would make it 255
+    }
+</pre>
+<p class="POD_TEXT">
+Under VMS, the pragma <code>use vmsish 'status'</code> makes <code><a class="POD_LINK" href="perlvar.html#_28">$?</a></code> reflect the
+actual VMS exit status, instead of the default emulation of POSIX
+status.
+</p>
+<p class="POD_TEXT">
+Also see the <a class="POD_LINK" href="#Error_Indicators">Error Indicators</a> entry elsewhere in this document.
+</p>
+<dt class="POD_ITEM"><a name="_OS_ERROR">$OS_ERROR</a>
+<dt><a name="_ERRNO">$ERRNO</a>
+<dt><a name="_29">$!</a>
+<dd>
+If used numerically, yields the current value of the C <code>errno</code>
+variable, with all the usual caveats.  (This means that you shouldn't
+depend on the value of <code>$!</code> to be anything in particular unless
+you've gotten a specific error return indicating a system error.)
+If used an a string, yields the corresponding system error string.
+You can assign a number to <code>$!</code> to set <i>errno</i> if, for instance,
+you want <code>&quot;$!&quot;</code> to return the string for error <i>n</i>, or you want
+to set the exit value for the die() operator.  (Mnemonic: What just
+went bang?)
+<p class="POD_TEXT">
+Also see the <a class="POD_LINK" href="#Error_Indicators">Error Indicators</a> entry elsewhere in this document.
+</p>
+<dt class="POD_ITEM"><a name="_EXTENDED_OS_ERROR">$EXTENDED_OS_ERROR</a>
+<dt><a name="_E">$^E</a>
+<dd>
+Error information specific to the current operating system.  At
+the moment, this differs from <code><a class="POD_LINK" href="perlvar.html#_29">$!</a></code> under only VMS, OS/2, and Win32
+(and for MacPerl).  On all other platforms, <code>$^E</code> is always just
+the same as <code><a class="POD_LINK" href="perlvar.html#_29">$!</a></code>.
+<p class="POD_TEXT">
+Under VMS, <code><a class="POD_LINK" href="perlvar.html#_E">$^E</a></code> provides the VMS status value from the last
+system error.  This is more specific information about the last
+system error than that provided by <code><a class="POD_LINK" href="perlvar.html#_29">$!</a></code>.  This is particularly
+important when <code><a class="POD_LINK" href="perlvar.html#_29">$!</a></code> is set to <b>EVMSERR</b>.
+</p>
+<p class="POD_TEXT">
+Under OS/2, <code><a class="POD_LINK" href="perlvar.html#_E">$^E</a></code> is set to the error code of the last call to
+OS/2 API either via CRT, or directly from perl.
+</p>
+<p class="POD_TEXT">
+Under Win32, <code><a class="POD_LINK" href="perlvar.html#_E">$^E</a></code> always returns the last error information
+reported by the Win32 call <code>GetLastError()</code> which describes
+the last error from within the Win32 API.  Most Win32-specific
+code will report errors via <code><a class="POD_LINK" href="perlvar.html#_E">$^E</a></code>.  ANSI C and Unix-like calls
+set <code>errno</code> and so most portable Perl code will report errors
+via <code><a class="POD_LINK" href="perlvar.html#_29">$!</a></code>.
+</p>
+<p class="POD_TEXT">
+Caveats mentioned in the description of <code><a class="POD_LINK" href="perlvar.html#_29">$!</a></code> generally apply to
+<code><a class="POD_LINK" href="perlvar.html#_E">$^E</a></code>, also.  (Mnemonic: Extra error explanation.)
+</p>
+<p class="POD_TEXT">
+Also see the <a class="POD_LINK" href="#Error_Indicators">Error Indicators</a> entry elsewhere in this document.
+</p>
+<dt class="POD_ITEM"><a name="_EVAL_ERROR">$EVAL_ERROR</a>
+<dt><a name="_30">$@</a>
+<dd>
+The Perl syntax error message from the last eval() operator.  If null, the
+last eval() parsed and executed correctly (although the operations you
+invoked may have failed in the normal fashion).  (Mnemonic: Where was
+the syntax error &quot;at&quot;?)
+<p class="POD_TEXT">
+Warning messages are not collected in this variable.  You can,
+however, set up a routine to process warnings by setting <code>$SIG{__WARN__}</code>
+as described below.
+</p>
+<p class="POD_TEXT">
+Also see the <a class="POD_LINK" href="#Error_Indicators">Error Indicators</a> entry elsewhere in this document.
+</p>
+<dt class="POD_ITEM"><a name="_PROCESS_ID">$PROCESS_ID</a>
+<dt><a name="_PID">$PID</a>
+<dt><a name="_31">$$</a>
+<dd>
+The process number of the Perl running this script.  You should
+consider this variable read-only, although it will be altered
+across fork() calls.  (Mnemonic: same as shells.)
+<dt class="POD_ITEM"><a name="_REAL_USER_ID">$REAL_USER_ID</a>
+<dt><a name="_UID">$UID</a>
+<dt><a name="_32">$&lt;</a>
+<dd>
+The real uid of this process.  (Mnemonic: it's the uid you came <i>from</i>,
+if you're running setuid.)  You can change both the real uid and
+the effective uid at the same time by using POSIX::setuid().
+<dt class="POD_ITEM"><a name="_EFFECTIVE_USER_ID">$EFFECTIVE_USER_ID</a>
+<dt><a name="_EUID">$EUID</a>
+<dt><a name="_33">$&gt;</a>
+<dd>
+The effective uid of this process.  Example:
+<pre class="POD_VERBATIM">
+    $&lt; = $&gt;;		# set real to effective uid
+    ($&lt;,$&gt;) = ($&gt;,$&lt;);	# swap real and effective uid
+</pre>
+<p class="POD_TEXT">
+You can change both the effective uid and the real uid at the same
+time by using POSIX::setuid().
+</p>
+<p class="POD_TEXT">
+(Mnemonic: it's the uid you went <i>to</i>, if you're running setuid.)
+<code><a class="POD_LINK" href="perlvar.html#_32">$&lt;</a></code> and <code><a class="POD_LINK" href="perlvar.html#_33">$&gt;</a></code> can be swapped only on machines
+supporting setreuid().
+</p>
+<dt class="POD_ITEM"><a name="_REAL_GROUP_ID">$REAL_GROUP_ID</a>
+<dt><a name="_GID">$GID</a>
+<dt><a name="_34">$(</a>
+<dd>
+The real gid of this process.  If you are on a machine that supports
+membership in multiple groups simultaneously, gives a space separated
+list of groups you are in.  The first number is the one returned by
+getgid(), and the subsequent ones by getgroups(), one of which may be
+the same as the first number.
+<p class="POD_TEXT">
+However, a value assigned to <code><a class="POD_LINK" href="perlvar.html#_34">$(</a></code> must be a single number used to
+set the real gid.  So the value given by <code><a class="POD_LINK" href="perlvar.html#_34">$(</a></code> should <i>not</i> be assigned
+back to <code><a class="POD_LINK" href="perlvar.html#_34">$(</a></code> without being forced numeric, such as by adding zero.
+</p>
+<p class="POD_TEXT">
+You can change both the real gid and the effective gid at the same
+time by using POSIX::setgid().
+</p>
+<p class="POD_TEXT">
+(Mnemonic: parentheses are used to <i>group</i> things.  The real gid is the
+group you <i>left</i>, if you're running setgid.)
+</p>
+<dt class="POD_ITEM"><a name="_EFFECTIVE_GROUP_ID">$EFFECTIVE_GROUP_ID</a>
+<dt><a name="_EGID">$EGID</a>
+<dt><a name="_35">$)</a>
+<dd>
+The effective gid of this process.  If you are on a machine that
+supports membership in multiple groups simultaneously, gives a space
+separated list of groups you are in.  The first number is the one
+returned by getegid(), and the subsequent ones by getgroups(), one of
+which may be the same as the first number.
+<p class="POD_TEXT">
+Similarly, a value assigned to <code><a class="POD_LINK" href="perlvar.html#_35">$)</a></code> must also be a space-separated
+list of numbers.  The first number sets the effective gid, and
+the rest (if any) are passed to setgroups().  To get the effect of an
+empty list for setgroups(), just repeat the new effective gid; that is,
+to force an effective gid of 5 and an effectively empty setgroups()
+list, say <code> $) = &quot;5 5&quot; </code>.
+</p>
+<p class="POD_TEXT">
+You can change both the effective gid and the real gid at the same
+time by using POSIX::setgid() (use only a single numeric argument).
+</p>
+<p class="POD_TEXT">
+(Mnemonic: parentheses are used to <i>group</i> things.  The effective gid
+is the group that's <i>right</i> for you, if you're running setgid.)
+</p>
+<p class="POD_TEXT">
+<code><a class="POD_LINK" href="perlvar.html#_32">$&lt;</a></code>, <code><a class="POD_LINK" href="perlvar.html#_33">$&gt;</a></code>, <code><a class="POD_LINK" href="perlvar.html#_34">$(</a></code> and <code><a class="POD_LINK" href="perlvar.html#_35">$)</a></code> can be set only on
+machines that support the corresponding <i>set[re][ug]id()</i> routine.  <code><a class="POD_LINK" href="perlvar.html#_34">$(</a></code>
+and <code><a class="POD_LINK" href="perlvar.html#_35">$)</a></code> can be swapped only on machines supporting setregid().
+</p>
+<dt class="POD_ITEM"><a name="_PROGRAM_NAME">$PROGRAM_NAME</a>
+<dt><a name="_0">$0</a>
+<dd>
+Contains the name of the program being executed.  On some operating
+systems assigning to <code>$0</code> modifies the argument area that the <b>ps</b>
+program sees.  This is more useful as a way of indicating the current
+program state than it is for hiding the program you're running.
+(Mnemonic: same as <b>sh</b> and <b>ksh</b>.)
+<p class="POD_TEXT">
+Note for BSD users: setting <code><a class="POD_LINK" href="perlvar.html#_0">$0</a></code> does not completely remove &quot;perl&quot;
+from the ps(1) output.  For example, setting <code><a class="POD_LINK" href="perlvar.html#_0">$0</a></code> to <code>&quot;foobar&quot;</code> will
+result in <code>&quot;perl: foobar (perl)&quot;</code>.  This is an operating system
+feature.
+</p>
+<dt class="POD_ITEM"><a name="_36">$[</a>
+<dd>
+The index of the first element in an array, and of the first character
+in a substring.  Default is 0, but you could theoretically set it
+to 1 to make Perl behave more like <b>awk</b> (or Fortran) when
+subscripting and when evaluating the index() and substr() functions.
+(Mnemonic: [ begins subscripts.)
+<p class="POD_TEXT">
+As of release 5 of Perl, assignment to <code><a class="POD_LINK" href="perlvar.html#_36">$[</a></code> is treated as a compiler
+directive, and cannot influence the behavior of any other file.
+Its use is highly discouraged.
+</p>
+<dt class="POD_ITEM"><a name="_37">$]</a>
+<dd>
+The version + patchlevel / 1000 of the Perl interpreter.  This variable
+can be used to determine whether the Perl interpreter executing a
+script is in the right range of versions.  (Mnemonic: Is this version
+of perl in the right bracket?)  Example:
+<pre class="POD_VERBATIM">
+    warn &quot;No checksumming!\n&quot; if $] &lt; 3.019;
+</pre>
+<p class="POD_TEXT">
+See also the documentation of <code><a class="POD_LINK" href="perlfunc.html#use_VERSION">use VERSION</a></code> and <code><a class="POD_LINK" href="perlfunc.html#require_VERSION">require VERSION</a></code>
+for a convenient way to fail if the running Perl interpreter is too old.
+</p>
+<p class="POD_TEXT">
+The use of this variable is deprecated.  The floating point representation
+can sometimes lead to inaccurate numeric comparisons.  See <code><a class="POD_LINK" href="perlvar.html#_V">$^V</a></code> for a
+more modern representation of the Perl version that allows accurate string
+comparisons.
+</p>
+<dt class="POD_ITEM"><a name="_COMPILING">$COMPILING</a>
+<dt><a name="_C">$^C</a>
+<dd>
+The current value of the flag associated with the <b>-c</b> switch.
+Mainly of use with <b>-MO=...</b> to allow code to alter its behavior
+when being compiled, such as for example to AUTOLOAD at compile
+time rather than normal, deferred loading.  See the <a class="POD_LINK" href="perlcc.html">perlcc</a> manpage.  Setting
+<code>$^C = 1</code> is similar to calling <code>B::minus_c</code>.
+<dt class="POD_ITEM"><a name="_DEBUGGING">$DEBUGGING</a>
+<dt><a name="_D">$^D</a>
+<dd>
+The current value of the debugging flags.  (Mnemonic: value of <b>-D</b>
+switch.)
+<dt class="POD_ITEM"><a name="_SYSTEM_FD_MAX">$SYSTEM_FD_MAX</a>
+<dt><a name="_F">$^F</a>
+<dd>
+The maximum system file descriptor, ordinarily 2.  System file
+descriptors are passed to exec()ed processes, while higher file
+descriptors are not.  Also, during an open(), system file descriptors are
+preserved even if the open() fails.  (Ordinary file descriptors are
+closed before the open() is attempted.)  The close-on-exec
+status of a file descriptor will be decided according to the value of
+<code>$^F</code> when the corresponding file, pipe, or socket was opened, not the
+time of the exec().
+<dt class="POD_ITEM"><a name="_H">$^H</a>
+<dd>
+WARNING: This variable is strictly for internal use only.  Its availability,
+behavior, and contents are subject to change without notice.
+<p class="POD_TEXT">
+This variable contains compile-time hints for the Perl interpreter.  At the
+end of compilation of a BLOCK the value of this variable is restored to the
+value when the interpreter started to compile the BLOCK.
+</p>
+<p class="POD_TEXT">
+When perl begins to parse any block construct that provides a lexical scope
+(e.g., eval body, required file, subroutine body, loop body, or conditional
+block), the existing value of $^H is saved, but its value is left unchanged.
+When the compilation of the block is completed, it regains the saved value.
+Between the points where its value is saved and restored, code that
+executes within BEGIN blocks is free to change the value of $^H.
+</p>
+<p class="POD_TEXT">
+This behavior provides the semantic of lexical scoping, and is used in,
+for instance, the <code>use strict</code> pragma.
+</p>
+<pre class="POD_TEXT">
+The contents should be an integer; different bits of it are used for
+different pragmatic flags.  Here's an example:
+
+    sub add_100 { $^H |= 0x100 }
+
+    sub foo {
+	BEGIN { add_100() }
+	bar-&gt;baz($boon);
+    }
+</pre>
+<p class="POD_TEXT">
+Consider what happens during execution of the BEGIN block.  At this point
+the BEGIN block has already been compiled, but the body of foo() is still
+being compiled.  The new value of $^H will therefore be visible only while
+the body of foo() is being compiled.
+</p>
+<pre class="POD_TEXT">
+Substitution of the above BEGIN block with:
+
+    BEGIN { require strict; strict-&gt;import('vars') }
+</pre>
+<pre class="POD_TEXT">
+demonstrates how <code>use strict 'vars'</code> is implemented.  Here's a conditional
+version of the same lexical pragma:
+
+    BEGIN { require strict; strict-&gt;import('vars') if $condition }
+</pre>
+<dt class="POD_ITEM"><a name="_H1">%^H</a>
+<dd>
+WARNING: This variable is strictly for internal use only.  Its availability,
+behavior, and contents are subject to change without notice.
+<p class="POD_TEXT">
+The %^H hash provides the same scoping semantic as $^H.  This makes it
+useful for implementation of lexically scoped pragmas.
+</p>
+<dt class="POD_ITEM"><a name="_INPLACE_EDIT">$INPLACE_EDIT</a>
+<dt><a name="_I">$^I</a>
+<dd>
+The current value of the inplace-edit extension.  Use <code><a class="POD_LINK" href="perlfunc.html#undef">undef</a></code> to disable
+inplace editing.  (Mnemonic: value of <b>-i</b> switch.)
+<dt class="POD_ITEM"><a name="_M">$^M</a>
+<dd>
+By default, running out of memory is an untrappable, fatal error.
+However, if suitably built, Perl can use the contents of <code>$^M</code>
+as an emergency memory pool after die()ing.  Suppose that your Perl
+were compiled with -DPERL_EMERGENCY_SBRK and used Perl's malloc.
+Then
+<pre class="POD_VERBATIM">
+    $^M = 'a' x (1 &lt;&lt; 16);
+</pre>
+<p class="POD_TEXT">
+would allocate a 64K buffer for use in an emergency.  See the
+<code>INSTALL</code> file in the Perl distribution for information on how to
+enable this option.  To discourage casual use of this advanced
+feature, there is no <a class="POD_LINK" href="English.html">English</a> long name for this variable.
+</p>
+<dt class="POD_ITEM"><a name="_OSNAME">$OSNAME</a>
+<dt><a name="_O">$^O</a>
+<dd>
+The name of the operating system under which this copy of Perl was
+built, as determined during the configuration process.  The value
+is identical to <code>$Config{'osname'}</code>.  See also the <u>Config</u> manpage and the 
+<b>-V</b> command-line switch documented in the <a class="POD_LINK" href="perlrun.html">perlrun</a> manpage.
+<dt class="POD_ITEM"><a name="_PERLDB">$PERLDB</a>
+<dt><a name="_P">$^P</a>
+<dd>
+The internal variable for debugging support.  The meanings of the
+various bits are subject to change, but currently indicate:
+<ol class="POD_LIST">
+<li class="POD_ITEM"><a name="x01">x01</a>
+
+Debug subroutine enter/exit.
+<li class="POD_ITEM"><a name="x02">x02</a>
+
+Line-by-line debugging.
+<li class="POD_ITEM"><a name="x04">x04</a>
+
+Switch off optimizations.
+<li class="POD_ITEM"><a name="x08">x08</a>
+
+Preserve more data for future interactive inspections.
+<li class="POD_ITEM"><a name="x10">x10</a>
+
+Keep info about source lines on which a subroutine is defined.
+<li class="POD_ITEM"><a name="x20">x20</a>
+
+Start with single-step on.
+<li class="POD_ITEM"><a name="x40">x40</a>
+
+Use subroutine address instead of name when reporting.
+<li class="POD_ITEM"><a name="x80">x80</a>
+
+Report <code>goto &amp;subroutine</code> as well.
+<li class="POD_ITEM"><a name="x100">x100</a>
+
+Provide informative &quot;file&quot; names for evals based on the place they were compiled.
+<li class="POD_ITEM"><a name="x200">x200</a>
+
+Provide informative names to anonymous subroutines based on the place they
+were compiled.
+</ol>
+<p class="POD_TEXT">
+Some bits may be relevant at compile-time only, some at
+run-time only.  This is a new mechanism and the details may change.
+</p>
+<dt class="POD_ITEM"><a name="_LAST_REGEXP_CODE_RE">$LAST_REGEXP_CODE_RESULT</a>
+<dt><a name="_R">$^R</a>
+<dd>
+The result of evaluation of the last successful <code>(?{ code })</code>
+regular expression assertion (see the <a class="POD_LINK" href="perlre.html">perlre</a> manpage).  May be written to.
+<dt class="POD_ITEM"><a name="_EXCEPTIONS_BEING_CA">$EXCEPTIONS_BEING_CAUGHT</a>
+<dt><a name="_S">$^S</a>
+<dd>
+Current state of the interpreter.  Undefined if parsing of the current
+module/eval is not finished (may happen in $SIG{__DIE__} and
+$SIG{__WARN__} handlers).  True if inside an eval(), otherwise false.
+<dt class="POD_ITEM"><a name="_BASETIME">$BASETIME</a>
+<dt><a name="_T">$^T</a>
+<dd>
+The time at which the program began running, in seconds since the
+epoch (beginning of 1970).  The values returned by the <b>-M</b>, <b>-A</b>,
+and <b>-C</b> filetests are based on this value.
+<dt class="POD_ITEM"><a name="_PERL_VERSION">$PERL_VERSION</a>
+<dt><a name="_V">$^V</a>
+<dd>
+The revision, version, and subversion of the Perl interpreter, represented
+as a string composed of characters with those ordinals.  Thus in Perl v5.6.0
+it equals <code>chr(5) . chr(6) . chr(0)</code> and will return true for
+<code>$^V eq v5.6.0</code>.  Note that the characters in this string value can
+potentially be in Unicode range.
+<pre class="POD_TEXT">
+This can be used to determine whether the Perl interpreter executing a
+script is in the right range of versions.  (Mnemonic: use ^V for Version
+Control.)  Example:
+
+    warn &quot;No &quot;our&quot; declarations!\n&quot; if $^V and $^V lt v5.6.0;
+</pre>
+<p class="POD_TEXT">
+See the documentation of <code><a class="POD_LINK" href="perlfunc.html#use_VERSION">use VERSION</a></code> and <code><a class="POD_LINK" href="perlfunc.html#require_VERSION">require VERSION</a></code>
+for a convenient way to fail if the running Perl interpreter is too old.
+</p>
+<p class="POD_TEXT">
+See also <code><a class="POD_LINK" href="perlvar.html#_37">$]</a></code> for an older representation of the Perl version.
+</p>
+<dt class="POD_ITEM"><a name="_WARNING">$WARNING</a>
+<dt><a name="_W">$^W</a>
+<dd>
+The current value of the warning switch, initially true if <b>-w</b>
+was used, false otherwise, but directly modifiable.  (Mnemonic:
+related to the <b>-w</b> switch.)  See also the <a class="POD_LINK" href="warnings.html">warnings</a> manpage.
+<dt class="POD_ITEM"><a name="_WARNING_BITS_">${^WARNING_BITS}</a>
+<dd>
+The current set of warning checks enabled by the <code>use warnings</code> pragma.
+See the documentation of <code>warnings</code> for more details.
+<dt class="POD_ITEM"><a name="_WIDE_SYSTEM_CALLS_">${^WIDE_SYSTEM_CALLS}</a>
+<dd>
+Global flag that enables system calls made by Perl to use wide character
+APIs native to the system, if available.  This is currently only implemented
+on the Windows platform.
+<p class="POD_TEXT">
+This can also be enabled from the command line using the <code><a class="POD_LINK" href="perlrun.html#_C">-C</a></code> switch.
+</p>
+<p class="POD_TEXT">
+The initial value is typically <code></code> for compatibility with Perl versions
+earlier than 5.6, but may be automatically set to <code>1</code> by Perl if the system
+provides a user-settable default (e.g., <code>$ENV{LC_CTYPE}</code>).
+</p>
+<p class="POD_TEXT">
+The <code>bytes</code> pragma always overrides the effect of this flag in the current
+lexical scope.  See the <a class="POD_LINK" href="bytes.html">bytes</a> manpage.
+</p>
+<dt class="POD_ITEM"><a name="_EXECUTABLE_NAME">$EXECUTABLE_NAME</a>
+<dt><a name="_X">$^X</a>
+<dd>
+The name that the Perl binary itself was executed as, from C's <code>argv[0]</code>.
+This may not be a full pathname, nor even necessarily in your path.
+<dt class="POD_ITEM"><a name="_ARGV">$ARGV</a>
+<dd>
+contains the name of the current file when reading from &lt;&gt;.
+<dt class="POD_ITEM"><a name="_ARGV1">@ARGV</a>
+<dd>
+The array @ARGV contains the command-line arguments intended for
+the script.  <code>$#ARGV</code> is generally the number of arguments minus
+one, because <code>$ARGV[0]</code> is the first argument, <i>not</i> the program's
+command name itself.  See <code><a class="POD_LINK" href="perlvar.html#_0">$0</a></code> for the command name.
+<dt class="POD_ITEM"><a name="_INC">@INC</a>
+<dd>
+The array @INC contains the list of places that the <code><a class="POD_LINK" href="perlfunc.html#do_EXPR">do EXPR</a></code>,
+<code><a class="POD_LINK" href="perlfunc.html#require">require</a></code>, or <code><a class="POD_LINK" href="perlfunc.html#use_Module_LIST">use</a></code> constructs look for their library files.  It
+initially consists of the arguments to any <b>-I</b> command-line
+switches, followed by the default Perl library, probably
+<code>/usr/local/lib/perl</code>, followed by &quot;.&quot;, to represent the current
+directory.  If you need to modify this at runtime, you should use
+the <code>use lib</code> pragma to get the machine-dependent library properly
+loaded also:
+<pre class="POD_VERBATIM">
+    use lib '/mypath/libdir/';
+    use SomeMod;
+</pre>
+<dt class="POD_ITEM"><a name="_38">@_</a>
+<dd>
+Within a subroutine the array @_ contains the parameters passed to that
+subroutine.  See the <a class="POD_LINK" href="perlsub.html">perlsub</a> manpage.
+<dt class="POD_ITEM"><a name="_INC1">%INC</a>
+<dd>
+The hash %INC contains entries for each filename included via the
+<code><a class="POD_LINK" href="perlfunc.html#do_EXPR">do</a></code>, <code><a class="POD_LINK" href="perlfunc.html#require">require</a></code>, or <code><a class="POD_LINK" href="perlfunc.html#use_Module_LIST">use</a></code> operators.  The key is the filename
+you specified (with module names converted to pathnames), and the
+value is the location of the file found.  The <code><a class="POD_LINK" href="perlfunc.html#require">require</a></code>
+operator uses this hash to determine whether a particular file has
+already been included.
+<dt class="POD_ITEM"><a name="_ENV">%ENV</a>
+<dt><a name="_ENV_expr_">$ENV{expr}</a>
+<dd>
+The hash %ENV contains your current environment.  Setting a
+value in <code>ENV</code> changes the environment for any child processes
+you subsequently fork() off.
+<dt class="POD_ITEM"><a name="_SIG">%SIG</a>
+<dt><a name="_SIG_expr_">$SIG{expr}</a>
+<dd>
+The hash %SIG contains signal handlers for signals.  For example:
+<pre class="POD_VERBATIM">
+    sub handler {	# 1st argument is signal name
+	my($sig) = @_;
+	print &quot;Caught a SIG$sig--shutting down\n&quot;;
+	close(LOG);
+	exit(0);
+    }
+
+    $SIG{'INT'}  = \&amp;handler;
+    $SIG{'QUIT'} = \&amp;handler;
+    ...
+    $SIG{'INT'}  = 'DEFAULT';	# restore default action
+    $SIG{'QUIT'} = 'IGNORE';	# ignore SIGQUIT
+</pre>
+<p class="POD_TEXT">
+Using a value of <code>'IGNORE'</code> usually has the effect of ignoring the
+signal, except for the <code>CHLD</code> signal.  See the <a class="POD_LINK" href="perlipc.html">perlipc</a> manpage for more about
+this special case.
+</p>
+<pre class="POD_TEXT">
+Here are some other examples:
+
+    $SIG{&quot;PIPE&quot;} = &quot;Plumber&quot;;   # assumes main::Plumber (not recommended)
+    $SIG{&quot;PIPE&quot;} = \&amp;Plumber;   # just fine; assume current Plumber
+    $SIG{&quot;PIPE&quot;} = *Plumber;    # somewhat esoteric
+    $SIG{&quot;PIPE&quot;} = Plumber();   # oops, what did Plumber() return??
+</pre>
+<p class="POD_TEXT">
+Be sure not to use a bareword as the name of a signal handler,
+lest you inadvertently call it.
+</p>
+<pre class="POD_TEXT">
+If your system has the sigaction() function then signal handlers are
+installed using it.  This means you get reliable signal handling.  If
+your system has the SA_RESTART flag it is used when signals handlers are
+installed.  This means that system calls for which restarting is supported
+continue rather than returning when a signal arrives.  If you want your
+system calls to be interrupted by signal delivery then do something like
+this:
+
+    use POSIX ':signal_h';
+
+    my $alarm = 0;
+    sigaction SIGALRM, new POSIX::SigAction sub { $alarm = 1 }
+    	or die &quot;Error setting SIGALRM handler: $!\n&quot;;
+</pre>
+<p class="POD_TEXT">
+See the <u>POSIX</u> manpage.
+</p>
+<pre class="POD_TEXT">
+Certain internal hooks can be also set using the %SIG hash.  The
+routine indicated by <code>$SIG{__WARN__}</code> is called when a warning message is
+about to be printed.  The warning message is passed as the first
+argument.  The presence of a __WARN__ hook causes the ordinary printing
+of warnings to STDERR to be suppressed.  You can use this to save warnings
+in a variable, or turn warnings into fatal errors, like this:
+
+    local $SIG{__WARN__} = sub { die $_[0] };
+    eval $proggie;
+</pre>
+<p class="POD_TEXT">
+The routine indicated by <code>$SIG{__DIE__}</code> is called when a fatal exception
+is about to be thrown.  The error message is passed as the first
+argument.  When a __DIE__ hook routine returns, the exception
+processing continues as it would have in the absence of the hook,
+unless the hook routine itself exits via a <code><a class="POD_LINK" href="perlfunc.html#goto_EXPR">goto</a></code>, a loop exit, or a die().
+The <code>__DIE__</code> handler is explicitly disabled during the call, so that you
+can die from a <code>__DIE__</code> handler.  Similarly for <code>__WARN__</code>.
+</p>
+<p class="POD_TEXT">
+Due to an implementation glitch, the <code>$SIG{__DIE__}</code> hook is called
+even inside an eval().  Do not use this to rewrite a pending exception
+in <code><a class="POD_LINK" href="perlvar.html#_30">$@</a></code>, or as a bizarre substitute for overriding CORE::GLOBAL::die().
+This strange action at a distance may be fixed in a future release
+so that <code>$SIG{__DIE__}</code> is only called if your program is about
+to exit, as was the original intent.  Any other use is deprecated.
+</p>
+<pre class="POD_TEXT">
+<code>__DIE__</code>/<code>__WARN__</code> handlers are very special in one respect:
+they may be called to report (probable) errors found by the parser.
+In such a case the parser may be in inconsistent state, so any
+attempt to evaluate Perl code from such a handler will probably
+result in a segfault.  This means that warnings or errors that
+result from parsing Perl should be used with extreme caution, like
+this:
+
+    require Carp if defined $^S;
+    Carp::confess(&quot;Something wrong&quot;) if defined &amp;Carp::confess;
+    die &quot;Something wrong, but could not load Carp to give backtrace...
+         To see backtrace try starting Perl with -MCarp switch&quot;;
+</pre>
+<p class="POD_TEXT">
+Here the first line will load Carp <i>unless</i> it is the parser who
+called the handler.  The second line will print backtrace and die if
+Carp was available.  The third line will be executed only if Carp was
+not available.
+</p>
+<p class="POD_TEXT">
+See the <a class="POD_LINK" href="perlfunc.html#die_LIST">die</a> entry in the <a class="POD_LINK" href="perlfunc.html">perlfunc</a> manpage, the <a class="POD_LINK" href="perlfunc.html#warn_LIST">warn</a> entry in the <a class="POD_LINK" href="perlfunc.html">perlfunc</a> manpage, the <a class="POD_LINK" href="perlfunc.html#eval_EXPR">eval</a> entry in the <a class="POD_LINK" href="perlfunc.html">perlfunc</a> manpage, and
+the <a class="POD_LINK" href="warnings.html">warnings</a> manpage for additional information.
+</p>
+</dl>
+<h3 class="POD_HEAD2"><a name="Error_Indicators">Error Indicators</a></h3>
+<p class="POD_TEXT">
+The variables <code><a class="POD_LINK" href="perlvar.html#_30">$@</a></code>, <code><a class="POD_LINK" href="perlvar.html#_29">$!</a></code>, <code><a class="POD_LINK" href="perlvar.html#_E">$^E</a></code>, and <code><a class="POD_LINK" href="perlvar.html#_28">$?</a></code> contain information
+about different types of error conditions that may appear during
+execution of a Perl program.  The variables are shown ordered by
+the &quot;distance&quot; between the subsystem which reported the error and
+the Perl process.  They correspond to errors detected by the Perl
+interpreter, C library, operating system, or an external program,
+respectively.
+</p>
+<pre class="POD_TEXT">
+To illustrate the differences between these variables, consider the 
+following Perl expression, which uses a single-quoted string:
+
+    eval q{
+	open PIPE, &quot;/cdrom/install |&quot;;
+	@res = &lt;PIPE&gt;;
+	close PIPE or die &quot;bad pipe: $?, $!&quot;;
+    };
+</pre>
+<p class="POD_TEXT">
+After execution of this statement all 4 variables may have been set.
+</p>
+<p class="POD_TEXT">
+<code><a class="POD_LINK" href="perlvar.html#_30">$@</a></code> is set if the string to be <code><a class="POD_LINK" href="perlfunc.html#eval_EXPR">eval</a></code>-ed did not compile (this
+may happen if <code><a class="POD_LINK" href="perlfunc.html#open_FILEHANDLE">open</a></code> or <code><a class="POD_LINK" href="perlfunc.html#close">close</a></code> were imported with bad prototypes),
+or if Perl code executed during evaluation die()d .  In these cases
+the value of $@ is the compile error, or the argument to <code><a class="POD_LINK" href="perlfunc.html#die_LIST">die</a></code>
+(which will interpolate <code><a class="POD_LINK" href="perlvar.html#_29">$!</a></code> and <code><a class="POD_LINK" href="perlvar.html#_28">$?</a></code>!).  (See also the <a class="POD_LINK" href="Fatal.html">Fatal</a> manpage,
+though.)
+</p>
+<p class="POD_TEXT">
+When the eval() expression above is executed, open(), <code>&lt;PIPE&gt;</code>,
+and <code><a class="POD_LINK" href="perlfunc.html#close">close</a></code> are translated to calls in the C run-time library and
+thence to the operating system kernel.  <code><a class="POD_LINK" href="perlvar.html#_29">$!</a></code> is set to the C library's
+<code>errno</code> if one of these calls fails.
+</p>
+<p class="POD_TEXT">
+Under a few operating systems, <code><a class="POD_LINK" href="perlvar.html#_E">$^E</a></code> may contain a more verbose
+error indicator, such as in this case, &quot;CDROM tray not closed.&quot;
+Systems that do not support extended error messages leave <code><a class="POD_LINK" href="perlvar.html#_E">$^E</a></code>
+the same as <code><a class="POD_LINK" href="perlvar.html#_29">$!</a></code>.
+</p>
+<p class="POD_TEXT">
+Finally, <code><a class="POD_LINK" href="perlvar.html#_28">$?</a></code> may be set to non-0 value if the external program
+<code>/cdrom/install</code> fails.  The upper eight bits reflect specific
+error conditions encountered by the program (the program's exit()
+value).   The lower eight bits reflect mode of failure, like signal
+death and core dump information  See wait(2) for details.  In
+contrast to <code><a class="POD_LINK" href="perlvar.html#_29">$!</a></code> and <code><a class="POD_LINK" href="perlvar.html#_E">$^E</a></code>, which are set only if error condition
+is detected, the variable <code><a class="POD_LINK" href="perlvar.html#_28">$?</a></code> is set on each <code><a class="POD_LINK" href="perlfunc.html#wait">wait</a></code> or pipe
+<code><a class="POD_LINK" href="perlfunc.html#close">close</a></code>, overwriting the old value.  This is more like <code><a class="POD_LINK" href="perlvar.html#_30">$@</a></code>, which
+on every eval() is always set on failure and cleared on success.
+</p>
+<p class="POD_TEXT">
+For more details, see the individual descriptions at <code><a class="POD_LINK" href="perlvar.html#_30">$@</a></code>, <code><a class="POD_LINK" href="perlvar.html#_29">$!</a></code>, <code><a class="POD_LINK" href="perlvar.html#_E">$^E</a></code>,
+and <code><a class="POD_LINK" href="perlvar.html#_28">$?</a></code>.
+</p>
+<h3 class="POD_HEAD2"><a name="Technical_Note_on_th">Technical Note on the Syntax of Variable Names</a></h3>
+<p class="POD_TEXT">
+Variable names in Perl can have several formats.  Usually, they
+must begin with a letter or underscore, in which case they can be
+arbitrarily long (up to an internal limit of 251 characters) and
+may contain letters, digits, underscores, or the special sequence
+<code>::</code> or <code>'</code>.  In this case, the part before the last <code>::</code> or
+<code>'</code> is taken to be a <i>package qualifier</i>; see the <a class="POD_LINK" href="perlmod.html">perlmod</a> manpage.
+</p>
+<p class="POD_TEXT">
+Perl variable names may also be a sequence of digits or a single
+punctuation or control character.  These names are all reserved for
+special uses by Perl; for example, the all-digits names are used
+to hold data captured by backreferences after a regular expression
+match.  Perl has a special syntax for the single-control-character
+names: It understands <code>^X</code> (caret <code>X</code>) to mean the control-<code>X</code>
+character.  For example, the notation <code><a class="POD_LINK" href="perlvar.html#_W">$^W</a></code> (dollar-sign caret
+<code>W</code>) is the scalar variable whose name is the single character
+control-<code>W</code>.  This is better than typing a literal control-<code>W</code>
+into your program.
+</p>
+<p class="POD_TEXT">
+Finally, new in Perl 5.6, Perl variable names may be alphanumeric
+strings that begin with control characters (or better yet, a caret).
+These variables must be written in the form <code>${^Foo}</code>; the braces
+are not optional.  <code>${^Foo}</code> denotes the scalar variable whose
+name is a control-<code>F</code> followed by two <code>o</code>'s.  These variables are
+reserved for future special uses by Perl, except for the ones that
+begin with <code>^_</code> (control-underscore or caret-underscore).  No
+control-character name that begins with <code>^_</code> will acquire a special
+meaning in any future version of Perl; such names may therefore be
+used safely in programs.  <code>$^_</code> itself, however, <i>is</i> reserved.
+</p>
+<pre class="POD_TEXT">
+Perl identifiers that begin with digits, control characters, or
+punctuation characters are exempt from the effects of the <code><a class="POD_LINK" href="perlfunc.html#package">package</a></code>
+declaration and are always forced to be in package <code>main</code>.  A few
+other names are also exempt:
+
+	ENV		STDIN
+	INC		STDOUT
+	ARGV		STDERR
+	ARGVOUT
+	SIG
+</pre>
+<p class="POD_TEXT">
+In particular, the new special <code>${^_XYZ}</code> variables are always taken
+to be in package <code>main</code>, regardless of any <code><a class="POD_LINK" href="perlfunc.html#package">package</a></code> declarations
+presently in scope.
+</p>
+<h2 class="POD_HEAD1"><a name="BUGS">BUGS</a></h2>
+<p class="POD_TEXT">
+Due to an unfortunate accident of Perl's implementation, <code>use
+English</code> imposes a considerable performance penalty on all regular
+expression matches in a program, regardless of whether they occur
+in the scope of <code>use English</code>.  For that reason, saying <code>use
+English</code> in libraries is strongly discouraged.  See the
+Devel::SawAmpersand module documentation from CPAN
+(http://www.perl.com/CPAN/modules/by-module/Devel/)
+for more information.
+</p>
+<p class="POD_TEXT">
+Having to even think about the <code><a class="POD_LINK" href="perlvar.html#_S">$^S</a></code> variable in your exception
+handlers is simply wrong.  <code>$SIG{__DIE__}</code> as currently implemented
+invites grievous and difficult to track down errors.  Avoid it
+and use an <code>END{}</code> or CORE::GLOBAL::die override instead.
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:36:42 2001
+</body>
+</html>
+

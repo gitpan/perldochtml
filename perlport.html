@@ -1,0 +1,2184 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>perlport</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="perlre.html">Next:<br>perlre</a></td><td align="left" width="1%"><a  href="perlpod.html">Previous:<br>perlpod</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">perlport</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#ISSUES">ISSUES</a>
+<ul>
+<li><a href="#Newlines">Newlines</a>
+<li><a href="#Numbers_endianness_a">Numbers endianness and Width</a>
+<li><a href="#Files_and_Filesystem">Files and Filesystems</a>
+<li><a href="#System_Interaction">System Interaction</a>
+<li><a href="#Interprocess_Communi">Interprocess Communication (IPC)</a>
+<li><a href="#External_Subroutines">External Subroutines (XS)</a>
+<li><a href="#Standard_Modules">Standard Modules</a>
+<li><a href="#Time_and_Date">Time and Date</a>
+<li><a href="#Character_sets_and_c">Character sets and character encoding</a>
+<li><a href="#Internationalisation">Internationalisation</a>
+<li><a href="#System_Resources">System Resources</a>
+<li><a href="#Security">Security</a>
+<li><a href="#Style">Style</a>
+</ul>
+<li><a href="#CPAN_Testers">CPAN Testers</a>
+<li><a href="#PLATFORMS">PLATFORMS</a>
+<ul>
+<li><a href="#Unix">Unix</a>
+<li><a href="#DOS_and_Derivatives">DOS and Derivatives</a>
+<li><a href="#Mac_OS">Mac&nbsp;OS</a>
+<li><a href="#VMS">VMS</a>
+<li><a href="#VOS">VOS</a>
+<li><a href="#EBCDIC_Platforms">EBCDIC Platforms</a>
+<li><a href="#Acorn_RISC_OS">Acorn RISC OS</a>
+<li><a href="#Other_perls">Other perls</a>
+</ul>
+<li><a href="#FUNCTION_IMPLEMENTAT">FUNCTION IMPLEMENTATIONS</a>
+<ul>
+<li><a href="#Alphabetical_Listing">Alphabetical Listing of Perl Functions</a>
+</ul>
+<li><a href="#CHANGES">CHANGES</a>
+<li><a href="#Supported_Platforms">Supported Platforms</a>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+<li><a href="#AUTHORS_CONTRIBUTORS">AUTHORS / CONTRIBUTORS</a>
+<li><a href="#VERSION">VERSION</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+perlport - Writing portable Perl
+</p>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+Perl runs on numerous operating systems.  While most of them share
+much in common, they also have their own unique features.
+</p>
+<p class="POD_TEXT">
+This document is meant to help you to find out what constitutes portable
+Perl code.  That way once you make a decision to write portably,
+you know where the lines are drawn, and you can stay within them.
+</p>
+<p class="POD_TEXT">
+There is a tradeoff between taking full advantage of one particular
+type of computer and taking advantage of a full range of them.
+Naturally, as you broaden your range and become more diverse, the
+common factors drop, and you are left with an increasingly smaller
+area of common ground in which you can operate to accomplish a
+particular task.  Thus, when you begin attacking a problem, it is
+important to consider under which part of the tradeoff curve you
+want to operate.  Specifically, you must decide whether it is
+important that the task that you are coding have the full generality
+of being portable, or whether to just get the job done right now.
+This is the hardest choice to be made.  The rest is easy, because
+Perl provides many choices, whichever way you want to approach your
+problem.
+</p>
+<p class="POD_TEXT">
+Looking at it another way, writing portable code is usually about
+willfully limiting your available choices.  Naturally, it takes
+discipline and sacrifice to do that.  The product of portability
+and convenience may be a constant.  You have been warned.
+</p>
+<p class="POD_TEXT">
+Be aware of two important points:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Not_all_Perl_program">Not all Perl programs have to be portable</a>
+<dd>
+There is no reason you should not use Perl as a language to glue Unix
+tools together, or to prototype a Macintosh application, or to manage the
+Windows registry.  If it makes no sense to aim for portability for one
+reason or another in a given program, then don't bother.
+<dt class="POD_ITEM"><a name="Nearly_all_of_Perl_a">Nearly all of Perl already <i>is</i> portable</a>
+<dd>
+Don't be fooled into thinking that it is hard to create portable Perl
+code.  It isn't.  Perl tries its level-best to bridge the gaps between
+what's available on different platforms, and all the means available to
+use those features.  Thus almost all Perl code runs on any machine
+without modification.  But there are some significant issues in
+writing portable code, and this document is entirely about those issues.
+</dl>
+<p class="POD_TEXT">
+Here's the general rule: When you approach a task commonly done
+using a whole range of platforms, think about writing portable
+code.  That way, you don't sacrifice much by way of the implementation
+choices you can avail yourself of, and at the same time you can give
+your users lots of platform choices.  On the other hand, when you have to
+take advantage of some unique feature of a particular platform, as is
+often the case with systems programming (whether for Unix, Windows,
+Mac&nbsp;OS, VMS, etc.), consider writing platform-specific code.
+</p>
+<p class="POD_TEXT">
+When the code will run on only two or three operating systems, you
+may need to consider only the differences of those particular systems.
+The important thing is to decide where the code will run and to be
+deliberate in your decision.
+</p>
+<p class="POD_TEXT">
+The material below is separated into three main sections: main issues of
+portability (the section on <a class="POD_LINK" href="#ISSUES">ISSUES</a> elsewhere in this document, platform-specific issues (the section on <a class="POD_LINK" href="#PLATFORMS">PLATFORMS</a> elsewhere in this document, and
+built-in perl functions that behave differently on various ports
+(the section on <a class="POD_LINK" href="#FUNCTION_IMPLEMENTAT">FUNCTION IMPLEMENTATIONS</a> elsewhere in this document.
+</p>
+<p class="POD_TEXT">
+This information should not be considered complete; it includes possibly
+transient information about idiosyncrasies of some of the ports, almost
+all of which are in a state of constant evolution.  Thus, this material
+should be considered a perpetual work in progress
+(&lt;IMG SRC=&quot;yellow_sign.gif&quot; ALT=&quot;Under Construction&quot;&gt;).
+</p>
+<h2 class="POD_HEAD1"><a name="ISSUES">ISSUES</a></h2>
+<h3 class="POD_HEAD2"><a name="Newlines">Newlines</a></h3>
+<p class="POD_TEXT">
+In most operating systems, lines in files are terminated by newlines.
+Just what is used as a newline may vary from OS to OS.  Unix
+traditionally uses <code>\012</code>, one type of DOSish I/O uses <code>\015\012</code>,
+and Mac&nbsp;OS uses <code>\015</code>.
+</p>
+<p class="POD_TEXT">
+Perl uses <code>\n</code> to represent the &quot;logical&quot; newline, where what is
+logical may depend on the platform in use.  In MacPerl, <code>\n</code> always
+means <code>\015</code>.  In DOSish perls, <code>\n</code> usually means <code>\012</code>, but
+when accessing a file in &quot;text&quot; mode, STDIO translates it to (or
+from) <code>\015\012</code>, depending on whether you're reading or writing.
+Unix does the same thing on ttys in canonical mode.  <code>\015\012</code>
+is commonly referred to as CRLF.
+</p>
+<pre class="POD_TEXT">
+A common cause of unportable programs is the misuse of chop() to trim
+newlines:
+
+    # XXX UNPORTABLE!
+    while(&lt;FILE&gt;) {
+        chop;
+        @array = split(/:/);
+        #...
+    }
+</pre>
+<p class="POD_TEXT">
+You can get away with this on Unix and MacOS (they have a single
+character end-of-line), but the same program will break under DOSish
+perls because you're only chop()ing half the end-of-line.  Instead,
+chomp() should be used to trim newlines.  The Dunce::Files module can
+help audit your code for misuses of chop().
+</p>
+<p class="POD_TEXT">
+When dealing with binary files (or text files in binary mode) be sure
+to explicitly set $/ to the appropriate value for your file format
+before using chomp().
+</p>
+<p class="POD_TEXT">
+Because of the &quot;text&quot; mode translation, DOSish perls have limitations
+in using <code><a class="POD_LINK" href="perlfunc.html#seek_FILEHANDLE_POSI">seek</a></code> and <code><a class="POD_LINK" href="perlfunc.html#tell">tell</a></code> on a file accessed in &quot;text&quot; mode.
+Stick to <code><a class="POD_LINK" href="perlfunc.html#seek_FILEHANDLE_POSI">seek</a></code>-ing to locations you got from <code><a class="POD_LINK" href="perlfunc.html#tell">tell</a></code> (and no
+others), and you are usually free to use <code><a class="POD_LINK" href="perlfunc.html#seek_FILEHANDLE_POSI">seek</a></code> and <code><a class="POD_LINK" href="perlfunc.html#tell">tell</a></code> even
+in &quot;text&quot; mode.  Using <code><a class="POD_LINK" href="perlfunc.html#seek_FILEHANDLE_POSI">seek</a></code> or <code><a class="POD_LINK" href="perlfunc.html#tell">tell</a></code> or other file operations
+may be non-portable.  If you use <code><a class="POD_LINK" href="perlfunc.html#binmode_FILEHANDLE">binmode</a></code> on a file, however, you
+can usually <code><a class="POD_LINK" href="perlfunc.html#seek_FILEHANDLE_POSI">seek</a></code> and <code><a class="POD_LINK" href="perlfunc.html#tell">tell</a></code> with arbitrary values in safety.
+</p>
+<pre class="POD_TEXT">
+A common misconception in socket programming is that <code>\n</code> eq <code>\012</code>
+everywhere.  When using protocols such as common Internet protocols,
+<code>\012</code> and <code>\015</code> are called for specifically, and the values of
+the logical <code>\n</code> and <code>\r</code> (carriage return) are not reliable.
+
+    print SOCKET &quot;Hi there, client!\r\n&quot;;      # WRONG
+    print SOCKET &quot;Hi there, client!\015\012&quot;;  # RIGHT
+</pre>
+<pre class="POD_TEXT">
+However, using <code>\015\012</code> (or <code>\cM\cJ</code>, or <code>\x0D\x0A</code>) can be tedious
+and unsightly, as well as confusing to those maintaining the code.  As
+such, the Socket module supplies the Right Thing for those who want it.
+
+    use Socket qw(:DEFAULT :crlf);
+    print SOCKET &quot;Hi there, client!$CRLF&quot;      # RIGHT
+</pre>
+<pre class="POD_TEXT">
+When reading from a socket, remember that the default input record
+separator <code><a class="POD_LINK" href="perlvar.html#_14">$/</a></code> is <code>\n</code>, but robust socket code will recognize as
+either <code>\012</code> or <code>\015\012</code> as end of line:
+
+    while (&lt;SOCKET&gt;) {
+        # ...
+    }
+</pre>
+<pre class="POD_TEXT">
+Because both CRLF and LF end in LF, the input record separator can
+be set to LF and any CR stripped later.  Better to write:
+
+    use Socket qw(:DEFAULT :crlf);
+    local($/) = LF;      # not needed if $/ is already \012
+
+    while (&lt;SOCKET&gt;) {
+        s/$CR?$LF/\n/;   # not sure if socket uses LF or CRLF, OK
+    #   s/\015?\012/\n/; # same thing
+    }
+</pre>
+<p class="POD_TEXT">
+This example is preferred over the previous one--even for Unix
+platforms--because now any <code>\015</code>'s (<code>\cM</code>'s) are stripped out
+(and there was much rejoicing).
+</p>
+<pre class="POD_TEXT">
+Similarly, functions that return text data--such as a function that
+fetches a web page--should sometimes translate newlines before
+returning the data, if they've not yet been translated to the local
+newline representation.  A single line of code will often suffice:
+
+    $data =~ s/\015?\012/\n/g;
+    return $data;
+</pre>
+<pre class="POD_TEXT">
+Some of this may be confusing.  Here's a handy reference to the ASCII CR
+and LF characters.  You can print it out and stick it in your wallet.
+
+    LF  ==  \012  ==  \x0A  ==  \cJ  ==  ASCII 10
+    CR  ==  \015  ==  \x0D  ==  \cM  ==  ASCII 13
+
+             | Unix | DOS  | Mac  |
+        ---------------------------
+        \n   |  LF  |  LF  |  CR  |
+        \r   |  CR  |  CR  |  LF  |
+        \n * |  LF  | CRLF |  CR  |
+        \r * |  CR  |  CR  |  LF  |
+        ---------------------------
+        * text-mode STDIO
+</pre>
+<p class="POD_TEXT">
+The Unix column assumes that you are not accessing a serial line
+(like a tty) in canonical mode.  If you are, then CR on input becomes
+&quot;\n&quot;, and &quot;\n&quot; on output becomes CRLF.
+</p>
+<p class="POD_TEXT">
+These are just the most common definitions of <code>\n</code> and <code>\r</code> in Perl.
+There may well be others.
+</p>
+<h3 class="POD_HEAD2"><a name="Numbers_endianness_a">Numbers endianness and Width</a></h3>
+<p class="POD_TEXT">
+Different CPUs store integers and floating point numbers in different
+orders (called <i>endianness</i>) and widths (32-bit and 64-bit being the
+most common today).  This affects your programs when they attempt to transfer
+numbers in binary format from one CPU architecture to another,
+usually either &quot;live&quot; via network connection, or by storing the
+numbers to secondary storage such as a disk file or tape.
+</p>
+<p class="POD_TEXT">
+Conflicting storage orders make utter mess out of the numbers.  If a
+little-endian host (Intel, VAX) stores 0x12345678 (305419896 in
+decimal), a big-endian host (Motorola, Sparc, PA) reads it as
+0x78563412 (2018915346 in decimal).  Alpha and MIPS can be either:
+Digital/Compaq used/uses them in little-endian mode; SGI/Cray uses
+them in big-endian mode.  To avoid this problem in network (socket)
+connections use the <code><a class="POD_LINK" href="perlfunc.html#pack_TEMPLATE_LIST">pack</a></code> and <code><a class="POD_LINK" href="perlfunc.html#unpack_TEMPLATE_EXPR">unpack</a></code> formats <code>n</code> and <code>N</code>, the
+&quot;network&quot; orders.  These are guaranteed to be portable.
+</p>
+<pre class="POD_TEXT">
+You can explore the endianness of your platform by unpacking a
+data structure packed in native format such as:
+
+    print unpack(&quot;h*&quot;, pack(&quot;s2&quot;, 1, 2)), &quot;\n&quot;;
+    # '10002000' on e.g. Intel x86 or Alpha 21064 in little-endian mode
+    # '00100020' on e.g. Motorola 68040
+</pre>
+<pre class="POD_TEXT">
+If you need to distinguish between endian architectures you could use
+either of the variables set like so:
+
+    $is_big_endian   = unpack(&quot;h*&quot;, pack(&quot;s&quot;, 1)) =~ /01/;
+    $is_little_endian = unpack(&quot;h*&quot;, pack(&quot;s&quot;, 1)) =~ /^1/;
+</pre>
+<p class="POD_TEXT">
+Differing widths can cause truncation even between platforms of equal
+endianness.  The platform of shorter width loses the upper parts of the
+number.  There is no good solution for this problem except to avoid
+transferring or storing raw binary numbers.
+</p>
+<p class="POD_TEXT">
+One can circumnavigate both these problems in two ways.  Either
+transfer and store numbers always in text format, instead of raw
+binary, or else consider using modules like Data::Dumper (included in
+the standard distribution as of Perl 5.005) and Storable.  Keeping
+all data as text significantly simplifies matters.
+</p>
+<h3 class="POD_HEAD2"><a name="Files_and_Filesystem">Files and Filesystems</a></h3>
+<p class="POD_TEXT">
+Most platforms these days structure files in a hierarchical fashion.
+So, it is reasonably safe to assume that all platforms support the
+notion of a &quot;path&quot; to uniquely identify a file on the system.  How
+that path is really written, though, differs considerably.
+</p>
+<p class="POD_TEXT">
+Although similar, file path specifications differ between Unix,
+Windows, Mac&nbsp;OS, OS/2, VMS, VOS, RISC&nbsp;OS, and probably others.
+Unix, for example, is one of the few OSes that has the elegant idea
+of a single root directory.
+</p>
+<p class="POD_TEXT">
+DOS, OS/2, VMS, VOS, and Windows can work similarly to Unix with <code>/</code>
+as path separator, or in their own idiosyncratic ways (such as having
+several root directories and various &quot;unrooted&quot; device files such NIL:
+and LPT:).
+</p>
+<p class="POD_TEXT">
+Mac&nbsp;OS uses <code>:</code> as a path separator instead of <code>/</code>.
+</p>
+<p class="POD_TEXT">
+The filesystem may support neither hard links (<code><a class="POD_LINK" href="perlfunc.html#link_OLDFILE_NEWFILE">link</a></code>) nor
+symbolic links (<code><a class="POD_LINK" href="perlfunc.html#symlink_OLDFILE_NEWF">symlink</a></code>, <code><a class="POD_LINK" href="perlfunc.html#readlink">readlink</a></code>, <code><a class="POD_LINK" href="perlfunc.html#lstat">lstat</a></code>).
+</p>
+<p class="POD_TEXT">
+The filesystem may support neither access timestamp nor change
+timestamp (meaning that about the only portable timestamp is the
+modification timestamp), or one second granularity of any timestamps
+(e.g. the FAT filesystem limits the time granularity to two seconds).
+</p>
+<p class="POD_TEXT">
+VOS perl can emulate Unix filenames with <code>/</code> as path separator.  The
+native pathname characters greater-than, less-than, number-sign, and
+percent-sign are always accepted.
+</p>
+<p class="POD_TEXT">
+RISC&nbsp;OS perl can emulate Unix filenames with <code>/</code> as path
+separator, or go native and use <code>.</code> for path separator and <code>:</code> to
+signal filesystems and disk names.
+</p>
+<pre class="POD_TEXT">
+If all this is intimidating, have no (well, maybe only a little)
+fear.  There are modules that can help.  The File::Spec modules
+provide methods to do the Right Thing on whatever platform happens
+to be running the program.
+
+    use File::Spec::Functions;
+    chdir(updir());        # go up one directory
+    $file = catfile(curdir(), 'temp', 'file.txt');
+    # on Unix and Win32, './temp/file.txt'
+    # on Mac OS, ':temp:file.txt'
+    # on VMS, '[.temp]file.txt'
+</pre>
+<p class="POD_TEXT">
+File::Spec is available in the standard distribution as of version
+5.004_05.  File::Spec::Functions is only in File::Spec 0.7 and later,
+and some versions of perl come with version 0.6.  If File::Spec
+is not updated to 0.7 or later, you must use the object-oriented
+interface from File::Spec (or upgrade File::Spec).
+</p>
+<p class="POD_TEXT">
+In general, production code should not have file paths hardcoded.
+Making them user-supplied or read from a configuration file is
+better, keeping in mind that file path syntax varies on different
+machines.
+</p>
+<p class="POD_TEXT">
+This is especially noticeable in scripts like Makefiles and test suites,
+which often assume <code>/</code> as a path separator for subdirectories.
+</p>
+<p class="POD_TEXT">
+Also of use is File::Basename from the standard distribution, which
+splits a pathname into pieces (base filename, full path to directory,
+and file suffix).
+</p>
+<p class="POD_TEXT">
+Even when on a single platform (if you can call Unix a single platform),
+remember not to count on the existence or the contents of particular
+system-specific files or directories, like <code>/etc/passwd</code>,
+<code>/etc/sendmail.conf</code>, <code>/etc/resolv.conf</code>, or even <code>/tmp/</code>.  For
+example, <code>/etc/passwd</code> may exist but not contain the encrypted
+passwords, because the system is using some form of enhanced security.
+Or it may not contain all the accounts, because the system is using NIS. 
+If code does need to rely on such a file, include a description of the
+file and its format in the code's documentation, then make it easy for
+the user to override the default location of the file.
+</p>
+<p class="POD_TEXT">
+Don't assume a text file will end with a newline.  They should,
+but people forget.
+</p>
+<p class="POD_TEXT">
+Do not have two files of the same name with different case, like
+<code>test.pl</code> and <code>Test.pl</code>, as many platforms have case-insensitive
+filenames.  Also, try not to have non-word characters (except for <code>.</code>)
+in the names, and keep them to the 8.3 convention, for maximum
+portability, onerous a burden though this may appear.
+</p>
+<p class="POD_TEXT">
+Likewise, when using the AutoSplit module, try to keep your functions to
+8.3 naming and case-insensitive conventions; or, at the least,
+make it so the resulting files have a unique (case-insensitively)
+first 8 characters.
+</p>
+<p class="POD_TEXT">
+Whitespace in filenames is tolerated on most systems, but not all.
+Many systems (DOS, VMS) cannot have more than one <code>.</code> in their filenames.
+</p>
+<pre class="POD_TEXT">
+Don't assume <code>&gt;</code> won't be the first character of a filename.
+Always use <code>&lt;</code> explicitly to open a file for reading,
+unless you want the user to be able to specify a pipe open.
+
+    open(FILE, &quot;&lt; $existing_file&quot;) or die $!;
+</pre>
+<p class="POD_TEXT">
+If filenames might use strange characters, it is safest to open it
+with <code><a class="POD_LINK" href="perlfunc.html#sysopen_FILEHANDLE_F">sysopen</a></code> instead of <code><a class="POD_LINK" href="perlfunc.html#open_FILEHANDLE">open</a></code>.  <code><a class="POD_LINK" href="perlfunc.html#open_FILEHANDLE">open</a></code> is magic and can
+translate characters like <code>&gt;</code>, <code>&lt;</code>, and <code>|</code>, which may
+be the wrong thing to do.  (Sometimes, though, it's the right thing.)
+</p>
+<h3 class="POD_HEAD2"><a name="System_Interaction">System Interaction</a></h3>
+<p class="POD_TEXT">
+Not all platforms provide a command line.  These are usually platforms
+that rely primarily on a Graphical User Interface (GUI) for user
+interaction.  A program requiring a command line interface might
+not work everywhere.  This is probably for the user of the program
+to deal with, so don't stay up late worrying about it.
+</p>
+<p class="POD_TEXT">
+Some platforms can't delete or rename files held open by the system.
+Remember to <code><a class="POD_LINK" href="perlfunc.html#close">close</a></code> files when you are done with them.  Don't
+<code><a class="POD_LINK" href="perlfunc.html#unlink">unlink</a></code> or <code><a class="POD_LINK" href="perlfunc.html#rename_OLDNAME_NEWNA">rename</a></code> an open file.  Don't <code><a class="POD_LINK" href="perlfunc.html#tie_VARIABLE_CLASSNA">tie</a></code> or <code><a class="POD_LINK" href="perlfunc.html#open_FILEHANDLE">open</a></code> a
+file already tied or opened; <code><a class="POD_LINK" href="perlfunc.html#untie_VARIABLE">untie</a></code> or <code><a class="POD_LINK" href="perlfunc.html#close">close</a></code> it first.
+</p>
+<p class="POD_TEXT">
+Don't open the same file more than once at a time for writing, as some
+operating systems put mandatory locks on such files.
+</p>
+<p class="POD_TEXT">
+Don't count on a specific environment variable existing in <code><a class="POD_LINK" href="perlvar.html#_ENV">%ENV</a></code>.
+Don't count on <code><a class="POD_LINK" href="perlvar.html#_ENV">%ENV</a></code> entries being case-sensitive, or even
+case-preserving.  Don't try to clear %ENV by saying <code>%ENV = ();</code>, or,
+if you really have to, make it conditional on <code>$^O ne 'VMS'</code> since in
+VMS the <code><a class="POD_LINK" href="perlvar.html#_ENV">%ENV</a></code> table is much more than a per-process key-value string
+table.
+</p>
+<p class="POD_TEXT">
+Don't count on signals or <code><a class="POD_LINK" href="perlvar.html#_SIG">%SIG</a></code> for anything.
+</p>
+<p class="POD_TEXT">
+Don't count on filename globbing.  Use <code><a class="POD_LINK" href="perlfunc.html#opendir_DIRHANDLE_EX">opendir</a></code>, <code><a class="POD_LINK" href="perlfunc.html#readdir_DIRHANDLE">readdir</a></code>, and
+<code><a class="POD_LINK" href="perlfunc.html#closedir_DIRHANDLE">closedir</a></code> instead.
+</p>
+<p class="POD_TEXT">
+Don't count on per-program environment variables, or per-program current
+directories.
+</p>
+<p class="POD_TEXT">
+Don't count on specific values of <code><a class="POD_LINK" href="perlvar.html#_29">$!</a></code>.
+</p>
+<h3 class="POD_HEAD2"><a name="Interprocess_Communi">Interprocess Communication (IPC)</a></h3>
+<p class="POD_TEXT">
+In general, don't directly access the system in code meant to be
+portable.  That means, no <code><a class="POD_LINK" href="perlfunc.html#system_LIST">system</a></code>, <code><a class="POD_LINK" href="perlfunc.html#exec_PROGRAM_LIST">exec</a></code>, <code><a class="POD_LINK" href="perlfunc.html#fork">fork</a></code>, <code><a class="POD_LINK" href="perlfunc.html#pipe_READHANDLE_WRIT">pipe</a></code>,
+<code>``</code>, <code>qx//</code>, <code><a class="POD_LINK" href="perlfunc.html#open_FILEHANDLE">open</a></code> with a <code>|</code>, nor any of the other things
+that makes being a perl hacker worth being.
+</p>
+<p class="POD_TEXT">
+Commands that launch external processes are generally supported on
+most platforms (though many of them do not support any type of
+forking).  The problem with using them arises from what you invoke
+them on.  External tools are often named differently on different
+platforms, may not be available in the same location, might accept
+different arguments, can behave differently, and often present their
+results in a platform-dependent way.  Thus, you should seldom depend
+on them to produce consistent results. (Then again, if you're calling 
+<i>netstat -a</i>, you probably don't expect it to run on both Unix and CP/M.)
+</p>
+<pre class="POD_TEXT">
+One especially common bit of Perl code is opening a pipe to <b>sendmail</b>:
+
+    open(MAIL, '|/usr/lib/sendmail -t') 
+	or die &quot;cannot fork sendmail: $!&quot;;
+</pre>
+<p class="POD_TEXT">
+This is fine for systems programming when sendmail is known to be
+available.  But it is not fine for many non-Unix systems, and even
+some Unix systems that may not have sendmail installed.  If a portable
+solution is needed, see the various distributions on CPAN that deal
+with it.  Mail::Mailer and Mail::Send in the MailTools distribution are
+commonly used, and provide several mailing methods, including mail,
+sendmail, and direct SMTP (via Net::SMTP) if a mail transfer agent is
+not available.  Mail::Sendmail is a standalone module that provides
+simple, platform-independent mailing.
+</p>
+<p class="POD_TEXT">
+The Unix System V IPC (<code>msg*(), sem*(), shm*()</code>) is not available
+even on all Unix platforms.
+</p>
+<p class="POD_TEXT">
+The rule of thumb for portable code is: Do it all in portable Perl, or
+use a module (that may internally implement it with platform-specific
+code, but expose a common interface).
+</p>
+<h3 class="POD_HEAD2"><a name="External_Subroutines">External Subroutines (XS)</a></h3>
+<p class="POD_TEXT">
+XS code can usually be made to work with any platform, but dependent
+libraries, header files, etc., might not be readily available or
+portable, or the XS code itself might be platform-specific, just as Perl
+code might be.  If the libraries and headers are portable, then it is
+normally reasonable to make sure the XS code is portable, too.
+</p>
+<p class="POD_TEXT">
+A different type of portability issue arises when writing XS code:
+availability of a C compiler on the end-user's system.  C brings
+with it its own portability issues, and writing XS code will expose
+you to some of those.  Writing purely in Perl is an easier way to
+achieve portability.
+</p>
+<h3 class="POD_HEAD2"><a name="Standard_Modules">Standard Modules</a></h3>
+<p class="POD_TEXT">
+In general, the standard modules work across platforms.  Notable
+exceptions are the CPAN module (which currently makes connections to external
+programs that may not be available), platform-specific modules (like
+ExtUtils::MM_VMS), and DBM modules.
+</p>
+<p class="POD_TEXT">
+There is no one DBM module available on all platforms.
+SDBM_File and the others are generally available on all Unix and DOSish
+ports, but not in MacPerl, where only NBDM_File and DB_File are
+available.
+</p>
+<p class="POD_TEXT">
+The good news is that at least some DBM module should be available, and
+AnyDBM_File will use whichever module it can find.  Of course, then
+the code needs to be fairly strict, dropping to the greatest common
+factor (e.g., not exceeding 1K for each record), so that it will
+work with any DBM module.  See the <a class="POD_LINK" href="AnyDBM_File.html">AnyDBM_File</a> manpage for more details.
+</p>
+<h3 class="POD_HEAD2"><a name="Time_and_Date">Time and Date</a></h3>
+<p class="POD_TEXT">
+The system's notion of time of day and calendar date is controlled in
+widely different ways.  Don't assume the timezone is stored in <code>$ENV{TZ}</code>,
+and even if it is, don't assume that you can control the timezone through
+that variable.
+</p>
+<p class="POD_TEXT">
+Don't assume that the epoch starts at 00:00:00, January 1, 1970,
+because that is OS- and implementation-specific.  It is better to store a date
+in an unambiguous representation.  The ISO-8601 standard defines
+&quot;YYYY-MM-DD&quot; as the date format.  A text representation (like &quot;1987-12-18&quot;)
+can be easily converted into an OS-specific value using a module like
+Date::Parse.  An array of values, such as those returned by
+<code><a class="POD_LINK" href="perlfunc.html#localtime_EXPR">localtime</a></code>, can be converted to an OS-specific representation using
+Time::Local.
+</p>
+<pre class="POD_TEXT">
+When calculating specific times, such as for tests in time or date modules,
+it may be appropriate to calculate an offset for the epoch.
+
+    require Time::Local;
+    $offset = Time::Local::timegm(0, 0, 0, 1, 0, 70);
+</pre>
+<p class="POD_TEXT">
+The value for <code>$offset</code> in Unix will be <code></code>, but in Mac OS will be
+some large number.  <code>$offset</code> can then be added to a Unix time value
+to get what should be the proper value on any system.
+</p>
+<h3 class="POD_HEAD2"><a name="Character_sets_and_c">Character sets and character encoding</a></h3>
+<p class="POD_TEXT">
+Assume little about character sets.  Assume nothing about
+numerical values (<code><a class="POD_LINK" href="perlfunc.html#ord">ord</a></code>, <code><a class="POD_LINK" href="perlfunc.html#chr">chr</a></code>) of characters.  Do not
+assume that the alphabetic characters are encoded contiguously (in
+the numeric sense).  Do not assume anything about the ordering of the
+characters.  The lowercase letters may come before or after the
+uppercase letters; the lowercase and uppercase may be interlaced so
+that both `a' and `A' come before `b'; the accented and other
+international characters may be interlaced so that &auml; comes
+before `b'.
+</p>
+<h3 class="POD_HEAD2"><a name="Internationalisation">Internationalisation</a></h3>
+<p class="POD_TEXT">
+If you may assume POSIX (a rather large assumption), you may read
+more about the POSIX locale system from the <a class="POD_LINK" href="perllocale.html">perllocale</a> manpage.  The locale
+system at least attempts to make things a little bit more portable,
+or at least more convenient and native-friendly for non-English
+users.  The system affects character sets and encoding, and date
+and time formatting--amongst other things.
+</p>
+<h3 class="POD_HEAD2"><a name="System_Resources">System Resources</a></h3>
+<pre class="POD_TEXT">
+If your code is destined for systems with severely constrained (or
+missing!) virtual memory systems then you want to be <i>especially</i> mindful
+of avoiding wasteful constructs such as:
+
+    # NOTE: this is no longer &quot;bad&quot; in perl5.005
+    for (0..10000000) {}                       # bad
+    for (my $x = 0; $x &lt;= 10000000; ++$x) {}   # good
+
+    @lines = &lt;VERY_LARGE_FILE&gt;;                # bad
+
+    while (&lt;FILE&gt;) {$file .= $_}               # sometimes bad
+    $file = join('', &lt;FILE&gt;);                  # better
+</pre>
+<p class="POD_TEXT">
+The last two constructs may appear unintuitive to most people.  The
+first repeatedly grows a string, whereas the second allocates a
+large chunk of memory in one go.  On some systems, the second is
+more efficient that the first.
+</p>
+<h3 class="POD_HEAD2"><a name="Security">Security</a></h3>
+<p class="POD_TEXT">
+Most multi-user platforms provide basic levels of security, usually
+implemented at the filesystem level.  Some, however, do
+not--unfortunately.  Thus the notion of user id, or &quot;home&quot; directory,
+or even the state of being logged-in, may be unrecognizable on many
+platforms.  If you write programs that are security-conscious, it
+is usually best to know what type of system you will be running
+under so that you can write code explicitly for that platform (or
+class of platforms).
+</p>
+<h3 class="POD_HEAD2"><a name="Style">Style</a></h3>
+<p class="POD_TEXT">
+For those times when it is necessary to have platform-specific code,
+consider keeping the platform-specific code in one place, making porting
+to other platforms easier.  Use the Config module and the special
+variable <code><a class="POD_LINK" href="perlvar.html#_O">$^O</a></code> to differentiate platforms, as described in
+the section on <a class="POD_LINK" href="#PLATFORMS">PLATFORMS</a> elsewhere in this document.
+</p>
+<p class="POD_TEXT">
+Be careful in the tests you supply with your module or programs.
+Module code may be fully portable, but its tests might not be.  This
+often happens when tests spawn off other processes or call external
+programs to aid in the testing, or when (as noted above) the tests
+assume certain things about the filesystem and paths.  Be careful
+not to depend on a specific output style for errors, such as when
+checking <code><a class="POD_LINK" href="perlvar.html#_29">$!</a></code> after an system call.  Some platforms expect a certain
+output format, and perl on those platforms may have been adjusted
+accordingly.  Most specifically, don't anchor a regex when testing
+an error value.
+</p>
+<h2 class="POD_HEAD1"><a name="CPAN_Testers">CPAN Testers</a></h2>
+<p class="POD_TEXT">
+Modules uploaded to CPAN are tested by a variety of volunteers on
+different platforms.  These CPAN testers are notified by mail of each
+new upload, and reply to the list with PASS, FAIL, NA (not applicable to
+this platform), or UNKNOWN (unknown), along with any relevant notations.
+</p>
+<p class="POD_TEXT">
+The purpose of the testing is twofold: one, to help developers fix any
+problems in their code that crop up because of lack of testing on other
+platforms; two, to provide users with information about whether
+a given module works on a given platform.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Mailing_list_cpan_te">Mailing list: cpan-testers@perl.org</a>
+<dt><a name="Testing_results_http">Testing results: http://testers.cpan.org/</a>
+<dd></dl>
+<h2 class="POD_HEAD1"><a name="PLATFORMS">PLATFORMS</a></h2>
+
+As of version 5.002, Perl is built with a <code><a class="POD_LINK" href="perlvar.html#_O">$^O</a></code> variable that
+indicates the operating system it was built on.  This was implemented
+to help speed up code that would otherwise have to <code>use Config</code>
+and use the value of <code>$Config{osname}</code>.  Of course, to get more
+detailed information about the system, looking into <code>%Config</code> is
+certainly recommended.
+<p class="POD_TEXT">
+<code>%Config</code> cannot always be trusted, however, because it was built
+at compile time.  If perl was built in one place, then transferred
+elsewhere, some values may be wrong.  The values may even have been
+edited after the fact.
+</p>
+<h3 class="POD_HEAD2"><a name="Unix">Unix</a></h3>
+<pre class="POD_TEXT">
+Perl works on a bewildering variety of Unix and Unix-like platforms (see
+e.g. most of the files in the <code>hints/</code> directory in the source code kit).
+On most of these systems, the value of <code><a class="POD_LINK" href="perlvar.html#_O">$^O</a></code> (hence <code>$Config{'osname'}</code>,
+too) is determined either by lowercasing and stripping punctuation from the
+first field of the string returned by typing <code>uname -a</code> (or a similar command)
+at the shell prompt or by testing the file system for the presence of
+uniquely named files such as a kernel or header file.  Here, for example,
+are a few of the more popular Unix flavors:
+
+    uname         $^O        $Config{'archname'}
+    --------------------------------------------
+    AIX           aix        aix
+    BSD/OS        bsdos      i386-bsdos
+    dgux          dgux       AViiON-dgux
+    DYNIX/ptx     dynixptx   i386-dynixptx
+    FreeBSD       freebsd    freebsd-i386    
+    Linux         linux      arm-linux
+    Linux         linux      i386-linux
+    Linux         linux      i586-linux
+    Linux         linux      ppc-linux
+    HP-UX         hpux       PA-RISC1.1
+    IRIX          irix       irix
+    Mac OS X      rhapsody   rhapsody
+    MachTen PPC   machten    powerpc-machten
+    NeXT 3        next       next-fat
+    NeXT 4        next       OPENSTEP-Mach
+    openbsd       openbsd    i386-openbsd
+    OSF1          dec_osf    alpha-dec_osf
+    reliantunix-n svr4       RM400-svr4
+    SCO_SV        sco_sv     i386-sco_sv
+    SINIX-N       svr4       RM400-svr4
+    sn4609        unicos     CRAY_C90-unicos
+    sn6521        unicosmk   t3e-unicosmk
+    sn9617        unicos     CRAY_J90-unicos
+    SunOS         solaris    sun4-solaris
+    SunOS         solaris    i86pc-solaris
+    SunOS4        sunos      sun4-sunos
+</pre>
+<p class="POD_TEXT">
+Because the value of <code>$Config{archname}</code> may depend on the
+hardware architecture, it can vary more than the value of <code><a class="POD_LINK" href="perlvar.html#_O">$^O</a></code>.
+</p>
+<h3 class="POD_HEAD2"><a name="DOS_and_Derivatives">DOS and Derivatives</a></h3>
+<pre class="POD_TEXT">
+Perl has long been ported to Intel-style microcomputers running under
+systems like PC-DOS, MS-DOS, OS/2, and most Windows platforms you can
+bring yourself to mention (except for Windows CE, if you count that).
+Users familiar with <i>COMMAND.COM</i> or <i>CMD.EXE</i> style shells should
+be aware that each of these file specifications may have subtle
+differences:
+
+    $filespec0 = &quot;c:/foo/bar/file.txt&quot;;
+    $filespec1 = &quot;c:\\foo\\bar\\file.txt&quot;;
+    $filespec2 = 'c:\foo\bar\file.txt';
+    $filespec3 = 'c:\\foo\\bar\\file.txt';
+</pre>
+<p class="POD_TEXT">
+System calls accept either <code>/</code> or <code>\</code> as the path separator.
+However, many command-line utilities of DOS vintage treat <code>/</code> as
+the option prefix, so may get confused by filenames containing <code>/</code>.
+Aside from calling any external programs, <code>/</code> will work just fine,
+and probably better, as it is more consistent with popular usage,
+and avoids the problem of remembering what to backwhack and what
+not to.
+</p>
+<p class="POD_TEXT">
+The DOS FAT filesystem can accommodate only &quot;8.3&quot; style filenames.  Under
+the &quot;case-insensitive, but case-preserving&quot; HPFS (OS/2) and NTFS (NT)
+filesystems you may have to be careful about case returned with functions
+like <code><a class="POD_LINK" href="perlfunc.html#readdir_DIRHANDLE">readdir</a></code> or used with functions like <code><a class="POD_LINK" href="perlfunc.html#open_FILEHANDLE">open</a></code> or <code><a class="POD_LINK" href="perlfunc.html#opendir_DIRHANDLE_EX">opendir</a></code>.
+</p>
+<p class="POD_TEXT">
+DOS also treats several filenames as special, such as AUX, PRN,
+NUL, CON, COM1, LPT1, LPT2, etc.  Unfortunately, sometimes these
+filenames won't even work if you include an explicit directory
+prefix.  It is best to avoid such filenames, if you want your code
+to be portable to DOS and its derivatives.  It's hard to know what
+these all are, unfortunately.
+</p>
+<p class="POD_TEXT">
+Users of these operating systems may also wish to make use of
+scripts such as <i>pl2bat.bat</i> or <i>pl2cmd</i> to
+put wrappers around your scripts.
+</p>
+<p class="POD_TEXT">
+Newline (<code>\n</code>) is translated as <code>\015\012</code> by STDIO when reading from
+and writing to files (see the section on <a class="POD_LINK" href="#Newlines">Newlines</a> elsewhere in this document).  <code>binmode(FILEHANDLE)</code>
+will keep <code>\n</code> translated as <code>\012</code> for that filehandle.  Since it is a
+no-op on other systems, <code><a class="POD_LINK" href="perlfunc.html#binmode_FILEHANDLE">binmode</a></code> should be used for cross-platform code
+that deals with binary data.  That's assuming you realize in advance
+that your data is in binary.  General-purpose programs should
+often assume nothing about their data.
+</p>
+<pre class="POD_TEXT">
+The <code><a class="POD_LINK" href="perlvar.html#_O">$^O</a></code> variable and the <code>$Config{archname}</code> values for various
+DOSish perls are as follows:
+
+    OS            $^O        $Config{'archname'}
+    --------------------------------------------
+    MS-DOS        dos
+    PC-DOS        dos
+    OS/2          os2
+    Windows 95    MSWin32    MSWin32-x86
+    Windows 98    MSWin32    MSWin32-x86
+    Windows NT    MSWin32    MSWin32-x86
+    Windows NT    MSWin32    MSWin32-ALPHA
+    Windows NT    MSWin32    MSWin32-ppc
+    Cygwin        cygwin
+</pre>
+<pre class="POD_TEXT">
+The various MSWin32 Perl's can distinguish the OS they are running on
+via the value of the fifth element of the list returned from 
+Win32::GetOSVersion().  For example:
+
+    if ($^O eq 'MSWin32') {
+        my @os_version_info = Win32::GetOSVersion();
+        print +('3.1','95','NT')[$os_version_info[4]],&quot;\n&quot;;
+    }
+</pre>
+<p class="POD_TEXT">
+Also see:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_"></a>
+
+The djgpp environment for DOS, http://www.delorie.com/djgpp/
+and the <u>perldos</u> manpage.
+<li class="POD_ITEM"><a name="_1"></a>
+
+The EMX environment for DOS, OS/2, etc. emx@iaehv.nl,
+http://www.leo.org/pub/comp/os/os2/leo/gnu/emx+gcc/index.html or
+ftp://hobbes.nmsu.edu/pub/os2/dev/emx.  Also the <u>perlos2</u> manpage.
+<li class="POD_ITEM"><a name="_2"></a>
+
+Build instructions for Win32 in the <u>perlwin32</u> manpage, or under the Cygnus environment
+in the <u>perlcygwin</u> manpage.
+<li class="POD_ITEM"><a name="_3"></a>
+
+The <code>Win32::*</code> modules in the <a class="POD_LINK" href="Win32.html">Win32</a> manpage.
+<li class="POD_ITEM"><a name="_4"></a>
+
+The ActiveState Pages, http://www.activestate.com/
+<li class="POD_ITEM"><a name="_5"></a>
+
+The Cygwin environment for Win32; <code>README.cygwin</code> (installed 
+as the <u>perlcygwin</u> manpage), http://www.cygwin.com/
+<li class="POD_ITEM"><a name="_6"></a>
+
+The U/WIN environment for Win32,
+http://www.research.att.com/sw/tools/uwin/
+<li class="POD_ITEM"><a name="_7"></a>
+
+Build instructions for OS/2, the <u>perlos2</u> manpage
+</ul>
+<h3 class="POD_HEAD2"><a name="Mac_OS">Mac&nbsp;OS</a></h3>
+<p class="POD_TEXT">
+Any module requiring XS compilation is right out for most people, because
+MacPerl is built using non-free (and non-cheap!) compilers.  Some XS
+modules that can work with MacPerl are built and distributed in binary
+form on CPAN.
+</p>
+<pre class="POD_TEXT">
+Directories are specified as:
+
+    volume:folder:file              for absolute pathnames
+    volume:folder:                  for absolute pathnames
+    :folder:file                    for relative pathnames
+    :folder:                        for relative pathnames
+    :file                           for relative pathnames
+    file                            for relative pathnames
+</pre>
+<p class="POD_TEXT">
+Files are stored in the directory in alphabetical order.  Filenames are
+limited to 31 characters, and may include any character except for
+null and <code>:</code>, which is reserved as the path separator.
+</p>
+<p class="POD_TEXT">
+Instead of <code><a class="POD_LINK" href="perlfunc.html#flock_FILEHANDLE_OPE">flock</a></code>, see <code>FSpSetFLock</code> and <code>FSpRstFLock</code> in the
+Mac::Files module, or <code>chmod(0444, ...)</code> and <code>chmod(0666, ...)</code>.
+</p>
+<pre class="POD_TEXT">
+In the MacPerl application, you can't run a program from the command line;
+programs that expect <code><a class="POD_LINK" href="perlvar.html#_ARGV1">@ARGV</a></code> to be populated can be edited with something
+like the following, which brings up a dialog box asking for the command
+line arguments.
+
+    if (!@ARGV) {
+        @ARGV = split /\s+/, MacPerl::Ask('Arguments?');
+    }
+</pre>
+<p class="POD_TEXT">
+A MacPerl script saved as a &quot;droplet&quot; will populate <code><a class="POD_LINK" href="perlvar.html#_ARGV1">@ARGV</a></code> with the full
+pathnames of the files dropped onto the script.
+</p>
+<pre class="POD_TEXT">
+Mac users can run programs under a type of command line interface
+under MPW (Macintosh Programmer's Workshop, a free development
+environment from Apple).  MacPerl was first introduced as an MPW
+tool, and MPW can be used like a shell:
+
+    perl myscript.plx some arguments
+</pre>
+<p class="POD_TEXT">
+ToolServer is another app from Apple that provides access to MPW tools
+from MPW and the MacPerl app, which allows MacPerl programs to use
+<code><a class="POD_LINK" href="perlfunc.html#system_LIST">system</a></code>, backticks, and piped <code><a class="POD_LINK" href="perlfunc.html#open_FILEHANDLE">open</a></code>.
+</p>
+<pre class="POD_TEXT">
+&quot;Mac&nbsp;OS&quot; is the proper name for the operating system, but the value
+in <code><a class="POD_LINK" href="perlvar.html#_O">$^O</a></code> is &quot;MacOS&quot;.  To determine architecture, version, or whether
+the application or MPW tool version is running, check:
+
+    $is_app    = $MacPerl::Version =~ /App/;
+    $is_tool   = $MacPerl::Version =~ /MPW/;
+    ($version) = $MacPerl::Version =~ /^(\S+)/;
+    $is_ppc    = $MacPerl::Architecture eq 'MacPPC';
+    $is_68k    = $MacPerl::Architecture eq 'Mac68K';
+</pre>
+<p class="POD_TEXT">
+Mac&nbsp;OS&nbsp;X and Mac&nbsp;OS&nbsp;X&nbsp;Server, based on NeXT's OpenStep OS, will
+(in theory) be able to run MacPerl natively, under the &quot;Classic&quot;
+environment.  The new &quot;Cocoa&quot; environment (formerly called the &quot;Yellow Box&quot;)
+may run a slightly modified version of MacPerl, using the Carbon interfaces.
+</p>
+<p class="POD_TEXT">
+Mac&nbsp;OS&nbsp;X&nbsp;Server and its Open Source version, Darwin, both run Unix
+perl natively (with a few patches).  Full support for these
+is slated for perl 5.6.
+</p>
+<p class="POD_TEXT">
+Also see:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_8"></a>
+
+The MacPerl Pages, http://www.macperl.com/ .
+<li class="POD_ITEM"><a name="_9"></a>
+
+The MacPerl mailing lists, http://www.macperl.org/ .
+<li class="POD_ITEM"><a name="_10"></a>
+
+MacPerl Module Porters, http://pudge.net/mmp/ .
+</ul>
+<h3 class="POD_HEAD2"><a name="VMS">VMS</a></h3>
+<pre class="POD_TEXT">
+Perl on VMS is discussed in the <u>perlvms</u> manpage in the perl distribution.
+Perl on VMS can accept either VMS- or Unix-style file
+specifications as in either of the following:
+
+    $ perl -ne &quot;print if /perl_setup/i&quot; SYS$LOGIN:LOGIN.COM
+    $ perl -ne &quot;print if /perl_setup/i&quot; /sys$login/login.com
+</pre>
+<pre class="POD_TEXT">
+but not a mixture of both as in:
+
+    $ perl -ne &quot;print if /perl_setup/i&quot; sys$login:/login.com
+    Can't open sys$login:/login.com: file specification syntax error
+</pre>
+<pre class="POD_TEXT">
+Interacting with Perl from the Digital Command Language (DCL) shell
+often requires a different set of quotation marks than Unix shells do.
+For example:
+
+    $ perl -e &quot;print &quot;&quot;Hello, world.\n&quot;&quot;&quot;
+    Hello, world.
+</pre>
+<pre class="POD_TEXT">
+There are several ways to wrap your perl scripts in DCL <code>.COM</code> files, if
+you are so inclined.  For example:
+
+    $ write sys$output &quot;Hello from DCL!&quot;
+    $ if p1 .eqs. &quot;&quot;
+    $ then perl -x 'f$environment(&quot;PROCEDURE&quot;)
+    $ else perl -x - 'p1 'p2 'p3 'p4 'p5 'p6 'p7 'p8
+    $ deck/dollars=&quot;__END__&quot;
+    #!/usr/bin/perl
+
+    print &quot;Hello from Perl!\n&quot;;
+
+    __END__
+    $ endif
+</pre>
+<p class="POD_TEXT">
+Do take care with <code>$ ASSIGN/nolog/user SYS$COMMAND: SYS$INPUT</code> if your
+perl-in-DCL script expects to do things like <code>$read = &lt;STDIN&gt;;</code>.
+</p>
+<p class="POD_TEXT">
+Filenames are in the format &quot;name.extension;version&quot;.  The maximum
+length for filenames is 39 characters, and the maximum length for
+extensions is also 39 characters.  Version is a number from 1 to
+32767.  Valid characters are <code>/[A-Z0-9$_-]/</code>.
+</p>
+<p class="POD_TEXT">
+VMS's RMS filesystem is case-insensitive and does not preserve case.
+<code><a class="POD_LINK" href="perlfunc.html#readdir_DIRHANDLE">readdir</a></code> returns lowercased filenames, but specifying a file for
+opening remains case-insensitive.  Files without extensions have a
+trailing period on them, so doing a <code><a class="POD_LINK" href="perlfunc.html#readdir_DIRHANDLE">readdir</a></code> with a file named <code>A.;5</code>
+will return <code>a.</code> (though that file could be opened with
+<code>open(FH, 'A')</code>).
+</p>
+<p class="POD_TEXT">
+RMS had an eight level limit on directory depths from any rooted logical
+(allowing 16 levels overall) prior to VMS 7.2.  Hence
+<code>PERL_ROOT:[LIB.2.3.4.5.6.7.8]</code> is a valid directory specification but
+<code>PERL_ROOT:[LIB.2.3.4.5.6.7.8.9]</code> is not.  <code>Makefile.PL</code> authors might
+have to take this into account, but at least they can refer to the former
+as <code>/PERL_ROOT/lib/2/3/4/5/6/7/8/</code>.
+</p>
+<p class="POD_TEXT">
+The VMS::Filespec module, which gets installed as part of the build
+process on VMS, is a pure Perl module that can easily be installed on
+non-VMS platforms and can be helpful for conversions to and from RMS
+native formats.
+</p>
+<p class="POD_TEXT">
+What <code>\n</code> represents depends on the type of file opened.  It could
+be <code>\015</code>, <code>\012</code>, <code>\015\012</code>, or nothing.  The VMS::Stdio module
+provides access to the special fopen() requirements of files with unusual
+attributes on VMS.
+</p>
+<p class="POD_TEXT">
+TCP/IP stacks are optional on VMS, so socket routines might not be
+implemented.  UDP sockets may not be supported.
+</p>
+<pre class="POD_TEXT">
+The value of <code><a class="POD_LINK" href="perlvar.html#_O">$^O</a></code> on OpenVMS is &quot;VMS&quot;.  To determine the architecture
+that you are running on without resorting to loading all of <code>%Config</code>
+you can examine the content of the <code><a class="POD_LINK" href="perlvar.html#_INC">@INC</a></code> array like so:
+
+    if (grep(/VMS_AXP/, @INC)) {
+        print &quot;I'm on Alpha!\n&quot;;
+
+    } elsif (grep(/VMS_VAX/, @INC)) {
+        print &quot;I'm on VAX!\n&quot;;
+
+    } else {
+        print &quot;I'm not so sure about where $^O is...\n&quot;;
+    }
+</pre>
+<p class="POD_TEXT">
+On VMS, perl determines the UTC offset from the <code>SYS$TIMEZONE_DIFFERENTIAL</code>
+logical name.  Although the VMS epoch began at 17-NOV-1858 00:00:00.00,
+calls to <code><a class="POD_LINK" href="perlfunc.html#localtime_EXPR">localtime</a></code> are adjusted to count offsets from
+01-JAN-1970 00:00:00.00, just like Unix.
+</p>
+<p class="POD_TEXT">
+Also see:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_11"></a>
+
+<code>README.vms</code> (installed as the <u>README_vms</u> manpage), the <u>perlvms</u> manpage
+<li class="POD_ITEM"><a name="_12"></a>
+
+vmsperl list, majordomo@perl.org
+<p class="POD_TEXT">
+(Put the words <code>subscribe vmsperl</code> in message body.)
+</p>
+<li class="POD_ITEM"><a name="_13"></a>
+
+vmsperl on the web, http://www.sidhe.org/vmsperl/index.html
+</ul>
+<h3 class="POD_HEAD2"><a name="VOS">VOS</a></h3>
+<pre class="POD_TEXT">
+Perl on VOS is discussed in <code>README.vos</code> in the perl distribution
+(installed as the <u>perlvos</u> manpage).  Perl on VOS can accept either VOS- or
+Unix-style file specifications as in either of the following:
+
+    $ perl -ne &quot;print if /perl_setup/i&quot; &gt;system&gt;notices
+    $ perl -ne &quot;print if /perl_setup/i&quot; /system/notices
+</pre>
+<pre class="POD_TEXT">
+or even a mixture of both as in:
+
+    $ perl -ne &quot;print if /perl_setup/i&quot; &gt;system/notices
+</pre>
+<p class="POD_TEXT">
+Even though VOS allows the slash character to appear in object
+names, because the VOS port of Perl interprets it as a pathname
+delimiting character, VOS files, directories, or links whose names
+contain a slash character cannot be processed.  Such files must be
+renamed before they can be processed by Perl.  Note that VOS limits
+file names to 32 or fewer characters.
+</p>
+<p class="POD_TEXT">
+See <code>README.vos</code> for restrictions that apply when Perl is built
+with the alpha version of VOS POSIX.1 support.
+</p>
+<p class="POD_TEXT">
+Perl on VOS is built without any extensions and does not support
+dynamic loading.
+</p>
+<pre class="POD_TEXT">
+The value of <code><a class="POD_LINK" href="perlvar.html#_O">$^O</a></code> on VOS is &quot;VOS&quot;.  To determine the architecture that
+you are running on without resorting to loading all of <code>%Config</code> you
+can examine the content of the @INC array like so:
+
+    if ($^O =~ /VOS/) {
+        print &quot;I'm on a Stratus box!\n&quot;;
+    } else {
+        print &quot;I'm not on a Stratus box!\n&quot;;
+        die;
+    }
+
+    if (grep(/860/, @INC)) {
+        print &quot;This box is a Stratus XA/R!\n&quot;;
+
+    } elsif (grep(/7100/, @INC)) {
+        print &quot;This box is a Stratus HP 7100 or 8xxx!\n&quot;;
+
+    } elsif (grep(/8000/, @INC)) {
+        print &quot;This box is a Stratus HP 8xxx!\n&quot;;
+
+    } else {
+        print &quot;This box is a Stratus 68K!\n&quot;;
+    }
+</pre>
+<p class="POD_TEXT">
+Also see:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_14"></a>
+
+<code>README.vos</code>
+<li class="POD_ITEM"><a name="_15"></a>
+
+The VOS mailing list.
+<p class="POD_TEXT">
+There is no specific mailing list for Perl on VOS.  You can post
+comments to the comp.sys.stratus newsgroup, or subscribe to the general
+Stratus mailing list.  Send a letter with &quot;Subscribe Info-Stratus&quot; in
+the message body to majordomo@list.stratagy.com.
+</p>
+<li class="POD_ITEM"><a name="_16"></a>
+
+VOS Perl on the web at http://ftp.stratus.com/pub/vos/vos.html
+</ul>
+<h3 class="POD_HEAD2"><a name="EBCDIC_Platforms">EBCDIC Platforms</a></h3>
+<p class="POD_TEXT">
+Recent versions of Perl have been ported to platforms such as OS/400 on
+AS/400 minicomputers as well as OS/390, VM/ESA, and BS2000 for S/390
+Mainframes.  Such computers use EBCDIC character sets internally (usually
+Character Code Set ID 0037 for OS/400 and either 1047 or POSIX-BC for S/390
+systems).  On the mainframe perl currently works under the &quot;Unix system
+services for OS/390&quot; (formerly known as OpenEdition), VM/ESA OpenEdition, or
+the BS200 POSIX-BC system (BS2000 is supported in perl 5.6 and greater).
+See the <u>perlos390</u> manpage for details.
+</p>
+<pre class="POD_TEXT">
+As of R2.5 of USS for OS/390 and Version 2.3 of VM/ESA these Unix
+sub-systems do not support the <code><a class="POD_LINK" href="perlrun.html#_and_quoting_on_non_">#!</a></code> shebang trick for script invocation.
+Hence, on OS/390 and VM/ESA perl scripts can be executed with a header
+similar to the following simple script:
+
+    : # use perl
+        eval 'exec /usr/local/bin/perl -S $0 ${1+&quot;$@&quot;}'
+            if 0;
+    #!/usr/local/bin/perl     # just a comment really
+
+    print &quot;Hello from perl!\n&quot;;
+</pre>
+<p class="POD_TEXT">
+OS/390 will support the <code><a class="POD_LINK" href="perlrun.html#_and_quoting_on_non_">#!</a></code> shebang trick in release 2.8 and beyond.
+Calls to <code><a class="POD_LINK" href="perlfunc.html#system_LIST">system</a></code> and backticks can use POSIX shell syntax on all
+S/390 systems.
+</p>
+<pre class="POD_TEXT">
+On the AS/400, if PERL5 is in your library list, you may need
+to wrap your perl scripts in a CL procedure to invoke them like so:
+
+    BEGIN
+      CALL PGM(PERL5/PERL) PARM('/QOpenSys/hello.pl')
+    ENDPGM
+</pre>
+<p class="POD_TEXT">
+This will invoke the perl script <code>hello.pl</code> in the root of the
+QOpenSys file system.  On the AS/400 calls to <code><a class="POD_LINK" href="perlfunc.html#system_LIST">system</a></code> or backticks
+must use CL syntax.
+</p>
+<p class="POD_TEXT">
+On these platforms, bear in mind that the EBCDIC character set may have
+an effect on what happens with some perl functions (such as <code><a class="POD_LINK" href="perlfunc.html#chr">chr</a></code>,
+<code><a class="POD_LINK" href="perlfunc.html#pack_TEMPLATE_LIST">pack</a></code>, <code><a class="POD_LINK" href="perlfunc.html#print">print</a></code>, <code><a class="POD_LINK" href="perlfunc.html#printf_FORMAT_LIST">printf</a></code>, <code><a class="POD_LINK" href="perlfunc.html#ord">ord</a></code>, <code><a class="POD_LINK" href="perlfunc.html#sort_BLOCK_LIST">sort</a></code>, <code><a class="POD_LINK" href="perlfunc.html#sprintf_FORMAT_LIST">sprintf</a></code>, <code><a class="POD_LINK" href="perlfunc.html#unpack_TEMPLATE_EXPR">unpack</a></code>), as
+well as bit-fiddling with ASCII constants using operators like <code>^</code>, <code>&amp;</code>
+and <code>|</code>, not to mention dealing with socket interfaces to ASCII computers
+(see the section on <a class="POD_LINK" href="#Newlines">Newlines</a> elsewhere in this document).
+</p>
+<pre class="POD_TEXT">
+Fortunately, most web servers for the mainframe will correctly
+translate the <code>\n</code> in the following statement to its ASCII equivalent
+(<code>\r</code> is the same under both Unix and OS/390 &amp; VM/ESA):
+
+    print &quot;Content-type: text/html\r\n\r\n&quot;;
+</pre>
+<pre class="POD_TEXT">
+The values of <code><a class="POD_LINK" href="perlvar.html#_O">$^O</a></code> on some of these platforms includes:
+
+    uname         $^O        $Config{'archname'}
+    --------------------------------------------
+    OS/390        os390      os390
+    OS400         os400      os400
+    POSIX-BC      posix-bc   BS2000-posix-bc
+    VM/ESA        vmesa      vmesa
+</pre>
+<pre class="POD_TEXT">
+Some simple tricks for determining if you are running on an EBCDIC
+platform could include any of the following (perhaps all):
+
+    if (&quot;\t&quot; eq &quot;\05&quot;)   { print &quot;EBCDIC may be spoken here!\n&quot;; }
+
+    if (ord('A') == 193) { print &quot;EBCDIC may be spoken here!\n&quot;; }
+
+    if (chr(169) eq 'z') { print &quot;EBCDIC may be spoken here!\n&quot;; }
+</pre>
+<p class="POD_TEXT">
+One thing you may not want to rely on is the EBCDIC encoding
+of punctuation characters since these may differ from code page to code
+page (and once your module or script is rumoured to work with EBCDIC,
+folks will want it to work with all EBCDIC character sets).
+</p>
+<p class="POD_TEXT">
+Also see:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_17"></a>
+
+*
+<p class="POD_TEXT">
+the <u>perlos390</u> manpage, <code>README.os390</code>, <code>perlbs2000</code>, <code>README.vmesa</code>,
+the <a class="POD_LINK" href="perlebcdic.html">perlebcdic</a> manpage.
+</p>
+<li class="POD_ITEM"><a name="_18"></a>
+
+The perl-mvs@perl.org list is for discussion of porting issues as well as
+general usage issues for all EBCDIC Perls.  Send a message body of
+&quot;subscribe perl-mvs&quot; to majordomo@perl.org.
+<li class="POD_ITEM"><a name="_19"></a>
+
+AS/400 Perl information at
+http://as400.rochester.ibm.com/
+as well as on CPAN in the <code>ports/</code> directory.
+</ul>
+<h3 class="POD_HEAD2"><a name="Acorn_RISC_OS">Acorn RISC OS</a></h3>
+<p class="POD_TEXT">
+Because Acorns use ASCII with newlines (<code>\n</code>) in text files as <code>\012</code> like
+Unix, and because Unix filename emulation is turned on by default, 
+most simple scripts will probably work &quot;out of the box&quot;.  The native
+filesystem is modular, and individual filesystems are free to be
+case-sensitive or insensitive, and are usually case-preserving.  Some
+native filesystems have name length limits, which file and directory
+names are silently truncated to fit.  Scripts should be aware that the
+standard filesystem currently has a name length limit of <b>10</b>
+characters, with up to 77 items in a directory, but other filesystems
+may not impose such limitations.
+</p>
+<pre class="POD_TEXT">
+Native filenames are of the form
+
+    Filesystem#Special_Field::DiskName.$.Directory.Directory.File
+</pre>
+<pre class="POD_TEXT">
+where
+
+    Special_Field is not usually present, but may contain . and $ .
+    Filesystem =~ m|[A-Za-z0-9_]|
+    DsicName   =~ m|[A-Za-z0-9_/]|
+    $ represents the root directory
+    . is the path separator
+    @ is the current directory (per filesystem but machine global)
+    ^ is the parent directory
+    Directory and File =~ m|[^\0- &quot;\.\$\%\&amp;:\@\\^\|\177]+|
+</pre>
+<p class="POD_TEXT">
+The default filename translation is roughly <code>tr|/.|./|;</code>
+</p>
+<p class="POD_TEXT">
+Note that <code>&quot;ADFS::HardDisk.$.File&quot; ne 'ADFS::HardDisk.$.File'</code> and that
+the second stage of <code>$</code> interpolation in regular expressions will fall
+foul of the <code><a class="POD_LINK" href="perlvar.html#_13">$.</a></code> if scripts are not careful.
+</p>
+<p class="POD_TEXT">
+Logical paths specified by system variables containing comma-separated
+search lists are also allowed; hence <code>System:Modules</code> is a valid
+filename, and the filesystem will prefix <code>Modules</code> with each section of
+<code>System$Path</code> until a name is made that points to an object on disk.
+Writing to a new file <code>System:Modules</code> would be allowed only if
+<code>System$Path</code> contains a single item list.  The filesystem will also
+expand system variables in filenames if enclosed in angle brackets, so
+<code>&lt;System$Dir&gt;.Modules</code> would look for the file
+<code>$ENV{'System$Dir'}&nbsp;.&nbsp;'Modules'</code>.  The obvious implication of this is
+that <b>fully qualified filenames can start with <code>&lt;&gt;</code></b> and should
+be protected when <code><a class="POD_LINK" href="perlfunc.html#open_FILEHANDLE">open</a></code> is used for input.
+</p>
+<pre class="POD_TEXT">
+Because <code>.</code> was in use as a directory separator and filenames could not
+be assumed to be unique after 10 characters, Acorn implemented the C
+compiler to strip the trailing <code>.c</code> <code>.h</code> <code>.s</code> and <code>.o</code> suffix from
+filenames specified in source code and store the respective files in
+subdirectories named after the suffix.  Hence files are translated:
+
+    foo.h           h.foo
+    C:foo.h         C:h.foo        (logical path variable)
+    sys/os.h        sys.h.os       (C compiler groks Unix-speak)
+    10charname.c    c.10charname
+    10charname.o    o.10charname
+    11charname_.c   c.11charname   (assuming filesystem truncates at 10)
+</pre>
+<p class="POD_TEXT">
+The Unix emulation library's translation of filenames to native assumes
+that this sort of translation is required, and it allows a user-defined list
+of known suffixes that it will transpose in this fashion.  This may
+seem transparent, but consider that with these rules <code>foo/bar/baz.h</code>
+and <code>foo/bar/h/baz</code> both map to <code>foo.bar.h.baz</code>, and that <code><a class="POD_LINK" href="perlfunc.html#readdir_DIRHANDLE">readdir</a></code> and
+<code><a class="POD_LINK" href="perlfunc.html#glob">glob</a></code> cannot and do not attempt to emulate the reverse mapping.  Other
+<code>.</code>'s in filenames are translated to <code>/</code>.
+</p>
+<p class="POD_TEXT">
+As implied above, the environment accessed through <code><a class="POD_LINK" href="perlvar.html#_ENV">%ENV</a></code> is global, and
+the convention is that program specific environment variables are of the
+form <code>Program$Name</code>.  Each filesystem maintains a current directory,
+and the current filesystem's current directory is the <b>global</b> current
+directory.  Consequently, sociable programs don't change the current
+directory but rely on full pathnames, and programs (and Makefiles) cannot
+assume that they can spawn a child process which can change the current
+directory without affecting its parent (and everyone else for that
+matter).
+</p>
+<p class="POD_TEXT">
+Because native operating system filehandles are global and are currently 
+allocated down from 255, with 0 being a reserved value, the Unix emulation
+library emulates Unix filehandles.  Consequently, you can't rely on
+passing <code>STDIN</code>, <code>STDOUT</code>, or <code>STDERR</code> to your children.
+</p>
+<p class="POD_TEXT">
+The desire of users to express filenames of the form
+<code>&lt;Foo$Dir&gt;.Bar</code> on the command line unquoted causes problems,
+too: <code>``</code> command output capture has to perform a guessing game.  It
+assumes that a string <code>&lt;[^&lt;&gt;]+\$[^&lt;&gt;]&gt;</code> is a
+reference to an environment variable, whereas anything else involving
+<code>&lt;</code> or <code>&gt;</code> is redirection, and generally manages to be 99%
+right.  Of course, the problem remains that scripts cannot rely on any
+Unix tools being available, or that any tools found have Unix-like command
+line arguments.
+</p>
+<p class="POD_TEXT">
+Extensions and XS are, in theory, buildable by anyone using free
+tools.  In practice, many don't, as users of the Acorn platform are
+used to binary distributions.  MakeMaker does run, but no available
+make currently copes with MakeMaker's makefiles; even if and when
+this should be fixed, the lack of a Unix-like shell will cause
+problems with makefile rules, especially lines of the form <code>cd
+sdbm &amp;&amp; make all</code>, and anything using quoting.
+</p>
+<p class="POD_TEXT">
+&quot;RISC&nbsp;OS&quot; is the proper name for the operating system, but the value
+in <code><a class="POD_LINK" href="perlvar.html#_O">$^O</a></code> is &quot;riscos&quot; (because we don't like shouting).
+</p>
+<h3 class="POD_HEAD2"><a name="Other_perls">Other perls</a></h3>
+<p class="POD_TEXT">
+Perl has been ported to many platforms that do not fit into any of
+the categories listed above.  Some, such as AmigaOS, Atari MiNT,
+BeOS, HP MPE/iX, QNX, Plan 9, and VOS, have been well-integrated
+into the standard Perl source code kit.  You may need to see the
+<code>ports/</code> directory on CPAN for information, and possibly binaries,
+for the likes of: aos, Atari ST, lynxos, riscos, Novell Netware,
+Tandem Guardian, <i>etc.</i>  (Yes, we know that some of these OSes may
+fall under the Unix category, but we are not a standards body.)
+</p>
+<pre class="POD_TEXT">
+Some approximate operating system names and their <code><a class="POD_LINK" href="perlvar.html#_O">$^O</a></code> values
+in the &quot;OTHER&quot; category include:
+
+    OS            $^O        $Config{'archname'}
+    ------------------------------------------
+    Amiga DOS     amigaos    m68k-amigos
+    MPE/iX        mpeix      PA-RISC1.1
+</pre>
+<p class="POD_TEXT">
+See also:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_20"></a>
+
+Amiga, <code>README.amiga</code> (installed as the <u>perlamiga</u> manpage).
+<li class="POD_ITEM"><a name="_21"></a>
+
+Atari, <code>README.mint</code> and Guido Flohr's web page
+http://stud.uni-sb.de/~gufl0000/
+<li class="POD_ITEM"><a name="_22"></a>
+
+Be OS, <code>README.beos</code>
+<li class="POD_ITEM"><a name="_23"></a>
+
+HP 300 MPE/iX, <code>README.mpeix</code> and Mark Bixby's web page
+http://www.bixby.org/mark/perlix.html
+<li class="POD_ITEM"><a name="_24"></a>
+
+A free perl5-based PERL.NLM for Novell Netware is available in
+precompiled binary and source code form from http://www.novell.com/
+as well as from CPAN.
+<li class="POD_ITEM"><a name="_25"></a>
+
+Plan 9, <code>README.plan9</code>
+</ul>
+<h2 class="POD_HEAD1"><a name="FUNCTION_IMPLEMENTAT">FUNCTION IMPLEMENTATIONS</a></h2>
+<p class="POD_TEXT">
+Listed below are functions that are either completely unimplemented
+or else have been implemented differently on various platforms.
+Following each description will be, in parentheses, a list of
+platforms that the description applies to.
+</p>
+<p class="POD_TEXT">
+The list may well be incomplete, or even wrong in some places.  When
+in doubt, consult the platform-specific README files in the Perl
+source distribution, and any other documentation resources accompanying
+a given port.
+</p>
+<p class="POD_TEXT">
+Be aware, moreover, that even among Unix-ish systems there are variations.
+</p>
+<p class="POD_TEXT">
+For many functions, you can also query <code>%Config</code>, exported by
+default from the Config module.  For example, to check whether the
+platform has the <code><a class="POD_LINK" href="perlfunc.html#lstat">lstat</a></code> call, check <code>$Config{d_lstat}</code>.  See
+the <u>Config</u> manpage for a full description of available variables.
+</p>
+<h3 class="POD_HEAD2"><a name="Alphabetical_Listing">Alphabetical Listing of Perl Functions</a></h3>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="_X_FILEHANDLE">-X FILEHANDLE</a>
+<dt><a name="_X_EXPR">-X EXPR</a>
+<dt><a name="_X">-X</a>
+<dd>
+<code>-r</code>, <code><a class="POD_LINK" href="perlrun.html#_w">-w</a></code>, and <code><a class="POD_LINK" href="perlrun.html#_x_directory">-x</a></code> have a limited meaning only; directories
+and applications are executable, and there are no uid/gid
+considerations.  <code>-o</code> is not supported.  (Mac&nbsp;OS)
+<p class="POD_TEXT">
+<code>-r</code>, <code><a class="POD_LINK" href="perlrun.html#_w">-w</a></code>, <code><a class="POD_LINK" href="perlrun.html#_x_directory">-x</a></code>, and <code>-o</code> tell whether the file is accessible,
+which may not reflect UIC-based file protections.  (VMS)
+</p>
+<p class="POD_TEXT">
+<code><a class="POD_LINK" href="perlrun.html#_s">-s</a></code> returns the size of the data fork, not the total size of data fork
+plus resource fork.  (Mac&nbsp;OS).
+</p>
+<p class="POD_TEXT">
+<code><a class="POD_LINK" href="perlrun.html#_s">-s</a></code> by name on an open file will return the space reserved on disk,
+rather than the current extent.  <code><a class="POD_LINK" href="perlrun.html#_s">-s</a></code> on an open filehandle returns the
+current size.  (RISC&nbsp;OS)
+</p>
+<p class="POD_TEXT">
+<code>-R</code>, <code><a class="POD_LINK" href="perlrun.html#_W">-W</a></code>, <code><a class="POD_LINK" href="perlfunc.html#_X">-X</a></code>, <code>-O</code> are indistinguishable from <code>-r</code>, <code><a class="POD_LINK" href="perlrun.html#_w">-w</a></code>,
+<code><a class="POD_LINK" href="perlrun.html#_x_directory">-x</a></code>, <code>-o</code>. (Mac&nbsp;OS, Win32, VMS, RISC&nbsp;OS)
+</p>
+<p class="POD_TEXT">
+<code>-b</code>, <code><a class="POD_LINK" href="perlrun.html#_c">-c</a></code>, <code>-k</code>, <code>-g</code>, <code><a class="POD_LINK" href="perlrun.html#_p">-p</a></code>, <code><a class="POD_LINK" href="perlrun.html#_u">-u</a></code>, <code>-A</code> are not implemented.
+(Mac&nbsp;OS)
+</p>
+<p class="POD_TEXT">
+<code>-g</code>, <code>-k</code>, <code><a class="POD_LINK" href="perlrun.html#_l_octnum_">-l</a></code>, <code><a class="POD_LINK" href="perlrun.html#_p">-p</a></code>, <code><a class="POD_LINK" href="perlrun.html#_u">-u</a></code>, <code>-A</code> are not particularly meaningful.
+(Win32, VMS, RISC&nbsp;OS)
+</p>
+<p class="POD_TEXT">
+<code><a class="POD_LINK" href="perlrun.html#_d">-d</a></code> is true if passed a device spec without an explicit directory.
+(VMS)
+</p>
+<p class="POD_TEXT">
+<code><a class="POD_LINK" href="perlrun.html#_T">-T</a></code> and <code>-B</code> are implemented, but might misclassify Mac text files
+with foreign characters; this is the case will all platforms, but may
+affect Mac&nbsp;OS often.  (Mac&nbsp;OS)
+</p>
+<p class="POD_TEXT">
+<code><a class="POD_LINK" href="perlrun.html#_x_directory">-x</a></code> (or <code><a class="POD_LINK" href="perlfunc.html#_X">-X</a></code>) determine if a file ends in one of the executable
+suffixes.  <code><a class="POD_LINK" href="perlrun.html#_S">-S</a></code> is meaningless.  (Win32)
+</p>
+<p class="POD_TEXT">
+<code><a class="POD_LINK" href="perlrun.html#_x_directory">-x</a></code> (or <code><a class="POD_LINK" href="perlfunc.html#_X">-X</a></code>) determine if a file has an executable file type.
+(RISC&nbsp;OS)
+</p>
+<dt class="POD_ITEM"><a name="alarm_SECONDS">alarm SECONDS</a>
+<dt><a name="alarm">alarm</a>
+<dd>
+Not implemented. (Win32)
+<dt class="POD_ITEM"><a name="binmode_FILEHANDLE">binmode FILEHANDLE</a>
+<dd>
+Meaningless.  (Mac&nbsp;OS, RISC&nbsp;OS)
+<p class="POD_TEXT">
+Reopens file and restores pointer; if function fails, underlying
+filehandle may be closed, or pointer may be in a different position.
+(VMS)
+</p>
+<p class="POD_TEXT">
+The value returned by <code><a class="POD_LINK" href="perlfunc.html#tell">tell</a></code> may be affected after the call, and
+the filehandle may be flushed. (Win32)
+</p>
+<dt class="POD_ITEM"><a name="chmod_LIST">chmod LIST</a>
+<dd>
+Only limited meaning.  Disabling/enabling write permission is mapped to
+locking/unlocking the file. (Mac&nbsp;OS)
+<p class="POD_TEXT">
+Only good for changing &quot;owner&quot; read-write access, &quot;group&quot;, and &quot;other&quot;
+bits are meaningless. (Win32)
+</p>
+<p class="POD_TEXT">
+Only good for changing &quot;owner&quot; and &quot;other&quot; read-write access. (RISC&nbsp;OS)
+</p>
+<p class="POD_TEXT">
+Access permissions are mapped onto VOS access-control list changes. (VOS)
+</p>
+<dt class="POD_ITEM"><a name="chown_LIST">chown LIST</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, Plan9, RISC&nbsp;OS, VOS)
+<p class="POD_TEXT">
+Does nothing, but won't fail. (Win32)
+</p>
+<dt class="POD_ITEM"><a name="chroot_FILENAME">chroot FILENAME</a>
+<dt><a name="chroot">chroot</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, VMS, Plan9, RISC&nbsp;OS, VOS, VM/ESA)
+<dt class="POD_ITEM"><a name="crypt_PLAINTEXT_SALT">crypt PLAINTEXT,SALT</a>
+<dd>
+May not be available if library or source was not provided when building
+perl. (Win32)
+<p class="POD_TEXT">
+Not implemented. (VOS)
+</p>
+<dt class="POD_ITEM"><a name="dbmclose_HASH">dbmclose HASH</a>
+<dd>
+Not implemented. (VMS, Plan9, VOS)
+<dt class="POD_ITEM"><a name="dbmopen_HASH_DBNAME_">dbmopen HASH,DBNAME,MODE</a>
+<dd>
+Not implemented. (VMS, Plan9, VOS)
+<dt class="POD_ITEM"><a name="dump_LABEL">dump LABEL</a>
+<dd>
+Not useful. (Mac&nbsp;OS, RISC&nbsp;OS)
+<p class="POD_TEXT">
+Not implemented. (Win32)
+</p>
+<p class="POD_TEXT">
+Invokes VMS debugger. (VMS)
+</p>
+<dt class="POD_ITEM"><a name="exec_LIST">exec LIST</a>
+<dd>
+Not implemented. (Mac&nbsp;OS)
+<p class="POD_TEXT">
+Implemented via Spawn. (VM/ESA)
+</p>
+<p class="POD_TEXT">
+Does not automatically flush output handles on some platforms.
+(SunOS, Solaris, HP-UX)
+</p>
+<dt class="POD_ITEM"><a name="fcntl_FILEHANDLE_FUN">fcntl FILEHANDLE,FUNCTION,SCALAR</a>
+<dd>
+Not implemented. (Win32, VMS)
+<dt class="POD_ITEM"><a name="flock_FILEHANDLE_OPE">flock FILEHANDLE,OPERATION</a>
+<dd>
+Not implemented (Mac&nbsp;OS, VMS, RISC&nbsp;OS, VOS).
+<p class="POD_TEXT">
+Available only on Windows NT (not on Windows 95). (Win32)
+</p>
+<dt class="POD_ITEM"><a name="fork">fork</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, AmigaOS, RISC&nbsp;OS, VOS, VM/ESA)
+<p class="POD_TEXT">
+Emulated using multiple interpreters.  See the <a class="POD_LINK" href="perlfork.html">perlfork</a> manpage.  (Win32)
+</p>
+<p class="POD_TEXT">
+Does not automatically flush output handles on some platforms.
+(SunOS, Solaris, HP-UX)
+</p>
+<dt class="POD_ITEM"><a name="getlogin">getlogin</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, RISC&nbsp;OS)
+<dt class="POD_ITEM"><a name="getpgrp_PID">getpgrp PID</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, VMS, RISC&nbsp;OS, VOS)
+<dt class="POD_ITEM"><a name="getppid">getppid</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, VMS, RISC&nbsp;OS)
+<dt class="POD_ITEM"><a name="getpriority_WHICH_WH">getpriority WHICH,WHO</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, VMS, RISC&nbsp;OS, VOS, VM/ESA)
+<dt class="POD_ITEM"><a name="getpwnam_NAME">getpwnam NAME</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32)
+<p class="POD_TEXT">
+Not useful. (RISC&nbsp;OS)
+</p>
+<dt class="POD_ITEM"><a name="getgrnam_NAME">getgrnam NAME</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, VMS, RISC&nbsp;OS)
+<dt class="POD_ITEM"><a name="getnetbyname_NAME">getnetbyname NAME</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, Plan9)
+<dt class="POD_ITEM"><a name="getpwuid_UID">getpwuid UID</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32)
+<p class="POD_TEXT">
+Not useful. (RISC&nbsp;OS)
+</p>
+<dt class="POD_ITEM"><a name="getgrgid_GID">getgrgid GID</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, VMS, RISC&nbsp;OS)
+<dt class="POD_ITEM"><a name="getnetbyaddr_ADDR_AD">getnetbyaddr ADDR,ADDRTYPE</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, Plan9)
+<dt class="POD_ITEM"><a name="getprotobynumber_NUM">getprotobynumber NUMBER</a>
+<dd>
+Not implemented. (Mac&nbsp;OS)
+<dt class="POD_ITEM"><a name="getservbyport_PORT_P">getservbyport PORT,PROTO</a>
+<dd>
+Not implemented. (Mac&nbsp;OS)
+<dt class="POD_ITEM"><a name="getpwent">getpwent</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, VM/ESA)
+<dt class="POD_ITEM"><a name="getgrent">getgrent</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, VMS, VM/ESA)
+<dt class="POD_ITEM"><a name="gethostent">gethostent</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32)
+<dt class="POD_ITEM"><a name="getnetent">getnetent</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, Plan9)
+<dt class="POD_ITEM"><a name="getprotoent">getprotoent</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, Plan9)
+<dt class="POD_ITEM"><a name="getservent">getservent</a>
+<dd>
+Not implemented. (Win32, Plan9)
+<dt class="POD_ITEM"><a name="setpwent">setpwent</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, RISC&nbsp;OS)
+<dt class="POD_ITEM"><a name="setgrent">setgrent</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, VMS, RISC&nbsp;OS)
+<dt class="POD_ITEM"><a name="sethostent_STAYOPEN">sethostent STAYOPEN</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, Plan9, RISC&nbsp;OS)
+<dt class="POD_ITEM"><a name="setnetent_STAYOPEN">setnetent STAYOPEN</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, Plan9, RISC&nbsp;OS)
+<dt class="POD_ITEM"><a name="setprotoent_STAYOPEN">setprotoent STAYOPEN</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, Plan9, RISC&nbsp;OS)
+<dt class="POD_ITEM"><a name="setservent_STAYOPEN">setservent STAYOPEN</a>
+<dd>
+Not implemented. (Plan9, Win32, RISC&nbsp;OS)
+<dt class="POD_ITEM"><a name="endpwent">endpwent</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, MPE/iX, VM/ESA, Win32)
+<dt class="POD_ITEM"><a name="endgrent">endgrent</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, MPE/iX, RISC&nbsp;OS, VM/ESA, VMS, Win32)
+<dt class="POD_ITEM"><a name="endhostent">endhostent</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32)
+<dt class="POD_ITEM"><a name="endnetent">endnetent</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, Plan9)
+<dt class="POD_ITEM"><a name="endprotoent">endprotoent</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, Plan9)
+<dt class="POD_ITEM"><a name="endservent">endservent</a>
+<dd>
+Not implemented. (Plan9, Win32)
+<dt class="POD_ITEM"><a name="getsockopt_SOCKET_LE">getsockopt SOCKET,LEVEL,OPTNAME</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Plan9)
+<dt class="POD_ITEM"><a name="glob_EXPR">glob EXPR</a>
+<dt><a name="glob">glob</a>
+<dd>
+Globbing built-in, but only <code>*</code> and <code>?</code> metacharacters are supported.
+(Mac&nbsp;OS)
+<p class="POD_TEXT">
+This operator is implemented via the File::Glob extension on most
+platforms.  See the <u>File::Glob</u> manpage for portability information.
+</p>
+<dt class="POD_ITEM"><a name="ioctl_FILEHANDLE_FUN">ioctl FILEHANDLE,FUNCTION,SCALAR</a>
+<dd>
+Not implemented. (VMS)
+<p class="POD_TEXT">
+Available only for socket handles, and it does what the ioctlsocket() call
+in the Winsock API does. (Win32)
+</p>
+<p class="POD_TEXT">
+Available only for socket handles. (RISC&nbsp;OS)
+</p>
+<dt class="POD_ITEM"><a name="kill_SIGNAL_LIST">kill SIGNAL, LIST</a>
+<dd>
+Not implemented, hence not useful for taint checking. (Mac&nbsp;OS,
+RISC&nbsp;OS)
+<p class="POD_TEXT">
+<code>kill()</code> doesn't have the semantics of <code>raise()</code>, i.e. it doesn't send
+a signal to the identified process like it does on Unix platforms.
+Instead <code>kill($sig, $pid)</code> terminates the process identified by $pid,
+and makes it exit immediately with exit status $sig.  As in Unix, if
+$sig is 0 and the specified process exists, it returns true without
+actually terminating it. (Win32)
+</p>
+<dt class="POD_ITEM"><a name="link_OLDFILE_NEWFILE">link OLDFILE,NEWFILE</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, MPE/iX, VMS, RISC&nbsp;OS)
+<p class="POD_TEXT">
+Link count not updated because hard links are not quite that hard
+(They are sort of half-way between hard and soft links). (AmigaOS)
+</p>
+<p class="POD_TEXT">
+Hard links are implemented on Win32 (Windows NT and Windows 2000)
+under NTFS only.
+</p>
+<dt class="POD_ITEM"><a name="lstat_FILEHANDLE">lstat FILEHANDLE</a>
+<dt><a name="lstat_EXPR">lstat EXPR</a>
+<dt><a name="lstat">lstat</a>
+<dd>
+Not implemented. (VMS, RISC&nbsp;OS)
+<p class="POD_TEXT">
+Return values (especially for device and inode) may be bogus. (Win32)
+</p>
+<dt class="POD_ITEM"><a name="msgctl_ID_CMD_ARG">msgctl ID,CMD,ARG</a>
+<dt><a name="msgget_KEY_FLAGS">msgget KEY,FLAGS</a>
+<dt><a name="msgsnd_ID_MSG_FLAGS">msgsnd ID,MSG,FLAGS</a>
+<dt><a name="msgrcv_ID_VAR_SIZE_T">msgrcv ID,VAR,SIZE,TYPE,FLAGS</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, VMS, Plan9, RISC&nbsp;OS, VOS)
+<dt class="POD_ITEM"><a name="open_FILEHANDLE_EXPR">open FILEHANDLE,EXPR</a>
+<dt><a name="open_FILEHANDLE">open FILEHANDLE</a>
+<dd>
+The <code>|</code> variants are supported only if ToolServer is installed.
+(Mac&nbsp;OS)
+<p class="POD_TEXT">
+open to <code>|-</code> and <code>-|</code> are unsupported. (Mac&nbsp;OS, Win32, RISC&nbsp;OS)
+</p>
+<p class="POD_TEXT">
+Opening a process does not automatically flush output handles on some
+platforms.  (SunOS, Solaris, HP-UX)
+</p>
+<dt class="POD_ITEM"><a name="pipe_READHANDLE_WRIT">pipe READHANDLE,WRITEHANDLE</a>
+<dd>
+Not implemented. (Mac&nbsp;OS)
+<p class="POD_TEXT">
+Very limited functionality. (MiNT)
+</p>
+<dt class="POD_ITEM"><a name="readlink_EXPR">readlink EXPR</a>
+<dt><a name="readlink">readlink</a>
+<dd>
+Not implemented. (Win32, VMS, RISC&nbsp;OS)
+<dt class="POD_ITEM"><a name="select_RBITS_WBITS_E">select RBITS,WBITS,EBITS,TIMEOUT</a>
+<dd>
+Only implemented on sockets. (Win32)
+<p class="POD_TEXT">
+Only reliable on sockets. (RISC&nbsp;OS)
+</p>
+<p class="POD_TEXT">
+Note that the <code>socket FILEHANDLE</code> form is generally portable.
+</p>
+<dt class="POD_ITEM"><a name="semctl_ID_SEMNUM_CMD">semctl ID,SEMNUM,CMD,ARG</a>
+<dt><a name="semget_KEY_NSEMS_FLA">semget KEY,NSEMS,FLAGS</a>
+<dt><a name="semop_KEY_OPSTRING">semop KEY,OPSTRING</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, VMS, RISC&nbsp;OS, VOS)
+<dt class="POD_ITEM"><a name="setgrent1">setgrent</a>
+<dd>
+Not implemented. (MPE/iX, Win32)
+<dt class="POD_ITEM"><a name="setpgrp_PID_PGRP">setpgrp PID,PGRP</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, VMS, RISC&nbsp;OS, VOS)
+<dt class="POD_ITEM"><a name="setpriority_WHICH_WH">setpriority WHICH,WHO,PRIORITY</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, VMS, RISC&nbsp;OS, VOS)
+<dt class="POD_ITEM"><a name="setpwent1">setpwent</a>
+<dd>
+Not implemented. (MPE/iX, Win32)
+<dt class="POD_ITEM"><a name="setsockopt_SOCKET_LE">setsockopt SOCKET,LEVEL,OPTNAME,OPTVAL</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Plan9)
+<dt class="POD_ITEM"><a name="shmctl_ID_CMD_ARG">shmctl ID,CMD,ARG</a>
+<dt><a name="shmget_KEY_SIZE_FLAG">shmget KEY,SIZE,FLAGS</a>
+<dt><a name="shmread_ID_VAR_POS_S">shmread ID,VAR,POS,SIZE</a>
+<dt><a name="shmwrite_ID_STRING_P">shmwrite ID,STRING,POS,SIZE</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, VMS, RISC&nbsp;OS, VOS)
+<dt class="POD_ITEM"><a name="socketpair_SOCKET1_S">socketpair SOCKET1,SOCKET2,DOMAIN,TYPE,PROTOCOL</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, VMS, RISC&nbsp;OS, VOS, VM/ESA)
+<dt class="POD_ITEM"><a name="stat_FILEHANDLE">stat FILEHANDLE</a>
+<dt><a name="stat_EXPR">stat EXPR</a>
+<dt><a name="stat">stat</a>
+<dd>
+Platforms that do not have rdev, blksize, or blocks will return these
+as '', so numeric comparison or manipulation of these fields may cause
+'not numeric' warnings.
+<p class="POD_TEXT">
+mtime and atime are the same thing, and ctime is creation time instead of
+inode change time. (Mac&nbsp;OS)
+</p>
+<p class="POD_TEXT">
+device and inode are not meaningful.  (Win32)
+</p>
+<p class="POD_TEXT">
+device and inode are not necessarily reliable.  (VMS)
+</p>
+<p class="POD_TEXT">
+mtime, atime and ctime all return the last modification time.  Device and
+inode are not necessarily reliable.  (RISC&nbsp;OS)
+</p>
+<p class="POD_TEXT">
+dev, rdev, blksize, and blocks are not available.  inode is not
+meaningful and will differ between stat calls on the same file.  (os2)
+</p>
+<dt class="POD_ITEM"><a name="symlink_OLDFILE_NEWF">symlink OLDFILE,NEWFILE</a>
+<dd>
+Not implemented. (Win32, VMS, RISC&nbsp;OS)
+<dt class="POD_ITEM"><a name="syscall_LIST">syscall LIST</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, Win32, VMS, RISC&nbsp;OS, VOS, VM/ESA)
+<dt class="POD_ITEM"><a name="sysopen_FILEHANDLE_F">sysopen FILEHANDLE,FILENAME,MODE,PERMS</a>
+<dd>
+The traditional &quot;0&quot;, &quot;1&quot;, and &quot;2&quot; MODEs are implemented with different
+numeric values on some systems.  The flags exported by <code>Fcntl</code>
+(O_RDONLY, O_WRONLY, O_RDWR) should work everywhere though.  (Mac&nbsp;OS, OS/390, VM/ESA)
+<dt class="POD_ITEM"><a name="system_LIST">system LIST</a>
+<dd>
+Only implemented if ToolServer is installed. (Mac&nbsp;OS)
+<p class="POD_TEXT">
+As an optimization, may not call the command shell specified in
+<code>$ENV{PERL5SHELL}</code>.  <code>system(1, @args)</code> spawns an external
+process and immediately returns its process designator, without
+waiting for it to terminate.  Return value may be used subsequently
+in <code><a class="POD_LINK" href="perlfunc.html#wait">wait</a></code> or <code><a class="POD_LINK" href="perlfunc.html#waitpid_PID_FLAGS">waitpid</a></code>.  Failure to spawn() a subprocess is indicated
+by setting $? to &quot;255 &lt;&lt; 8&quot;.  <code><a class="POD_LINK" href="perlvar.html#_28">$?</a></code> is set in a way compatible with
+Unix (i.e. the exitstatus of the subprocess is obtained by &quot;$? &gt;&gt; 8&quot;,
+as described in the documentation).  (Win32)
+</p>
+<p class="POD_TEXT">
+There is no shell to process metacharacters, and the native standard is
+to pass a command line terminated by &quot;\n&quot; &quot;\r&quot; or &quot;\0&quot; to the spawned
+program.  Redirection such as <code>&gt; foo</code> is performed (if at all) by
+the run time library of the spawned program.  <code><a class="POD_LINK" href="perlfunc.html#system_LIST">system</a></code> <i>list</i> will call
+the Unix emulation library's <code><a class="POD_LINK" href="perlfunc.html#exec_PROGRAM_LIST">exec</a></code> emulation, which attempts to provide
+emulation of the stdin, stdout, stderr in force in the parent, providing
+the child program uses a compatible version of the emulation library.
+<i>scalar</i> will call the native command line direct and no such emulation
+of a child Unix program will exists.  Mileage <b>will</b> vary.  (RISC&nbsp;OS)
+</p>
+<p class="POD_TEXT">
+Far from being POSIX compliant.  Because there may be no underlying
+/bin/sh tries to work around the problem by forking and execing the
+first token in its argument string.  Handles basic redirection
+(&quot;&lt;&quot; or &quot;&gt;&quot;) on its own behalf. (MiNT)
+</p>
+<p class="POD_TEXT">
+Does not automatically flush output handles on some platforms.
+(SunOS, Solaris, HP-UX)
+</p>
+<dt class="POD_ITEM"><a name="times">times</a>
+<dd>
+Only the first entry returned is nonzero. (Mac&nbsp;OS)
+<p class="POD_TEXT">
+&quot;cumulative&quot; times will be bogus.  On anything other than Windows NT
+or Windows 2000, &quot;system&quot; time will be bogus, and &quot;user&quot; time is
+actually the time returned by the clock() function in the C runtime
+library. (Win32)
+</p>
+<p class="POD_TEXT">
+Not useful. (RISC&nbsp;OS)
+</p>
+<dt class="POD_ITEM"><a name="truncate_FILEHANDLE_">truncate FILEHANDLE,LENGTH</a>
+<dt><a name="truncate_EXPR_LENGTH">truncate EXPR,LENGTH</a>
+<dd>
+Not implemented. (VMS)
+<p class="POD_TEXT">
+Truncation to zero-length only. (VOS)
+</p>
+<p class="POD_TEXT">
+If a FILEHANDLE is supplied, it must be writable and opened in append
+mode (i.e., use <code>open(FH, '</code>&gt;filename')&gt;
+or <code>sysopen(FH,...,O_APPEND|O_RDWR)</code>.  If a filename is supplied, it
+should not be held open elsewhere. (Win32)
+</p>
+<dt class="POD_ITEM"><a name="umask_EXPR">umask EXPR</a>
+<dt><a name="umask">umask</a>
+<dd>
+Returns undef where unavailable, as of version 5.005.
+<p class="POD_TEXT">
+<code><a class="POD_LINK" href="perlfunc.html#umask">umask</a></code> works but the correct permissions are set only when the file
+is finally closed. (AmigaOS)
+</p>
+<dt class="POD_ITEM"><a name="utime_LIST">utime LIST</a>
+<dd>
+Only the modification time is updated. (Mac&nbsp;OS, VMS, RISC&nbsp;OS)
+<p class="POD_TEXT">
+May not behave as expected.  Behavior depends on the C runtime
+library's implementation of utime(), and the filesystem being
+used.  The FAT filesystem typically does not support an &quot;access
+time&quot; field, and it may limit timestamps to a granularity of
+two seconds. (Win32)
+</p>
+<dt class="POD_ITEM"><a name="wait">wait</a>
+<dt><a name="waitpid_PID_FLAGS">waitpid PID,FLAGS</a>
+<dd>
+Not implemented. (Mac&nbsp;OS, VOS)
+<p class="POD_TEXT">
+Can only be applied to process handles returned for processes spawned
+using <code>system(1, ...)</code> or pseudo processes created with <code>fork()</code>. (Win32)
+</p>
+<p class="POD_TEXT">
+Not useful. (RISC&nbsp;OS)
+</p>
+</dl>
+<h2 class="POD_HEAD1"><a name="CHANGES">CHANGES</a></h2>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="v1_48_02_February_20">v1.48, 02 February 2001</a>
+<dd>
+Various updates from perl5-porters over the past year, supported
+platforms update from Jarkko Hietaniemi.
+<dt class="POD_ITEM"><a name="v1_47_22_March_2000">v1.47, 22 March 2000</a>
+<dd>
+Various cleanups from Tom Christiansen, including migration of 
+long platform listings from the <a class="POD_LINK" href="perl.html">perl</a> manpage.
+<dt class="POD_ITEM"><a name="v1_46_12_February_20">v1.46, 12 February 2000</a>
+<dd>
+Updates for VOS and MPE/iX. (Peter Prymmer)  Other small changes.
+<dt class="POD_ITEM"><a name="v1_45_20_December_19">v1.45, 20 December 1999</a>
+<dd>
+Small changes from 5.005_63 distribution, more changes to EBCDIC info.
+<dt class="POD_ITEM"><a name="v1_44_19_July_1999">v1.44, 19 July 1999</a>
+<dd>
+A bunch of updates from Peter Prymmer for <code><a class="POD_LINK" href="perlvar.html#_O">$^O</a></code> values,
+endianness, File::Spec, VMS, BS2000, OS/400.
+<dt class="POD_ITEM"><a name="v1_43_24_May_1999">v1.43, 24 May 1999</a>
+<dd>
+Added a lot of cleaning up from Tom Christiansen.
+<dt class="POD_ITEM"><a name="v1_42_22_May_1999">v1.42, 22 May 1999</a>
+<dd>
+Added notes about tests, sprintf/printf, and epoch offsets.
+<dt class="POD_ITEM"><a name="v1_41_19_May_1999">v1.41, 19 May 1999</a>
+<dd>
+Lots more little changes to formatting and content.
+<p class="POD_TEXT">
+Added a bunch of <code><a class="POD_LINK" href="perlvar.html#_O">$^O</a></code> and related values
+for various platforms; fixed mail and web addresses, and added
+and changed miscellaneous notes.  (Peter Prymmer)
+</p>
+<dt class="POD_ITEM"><a name="v1_40_11_April_1999">v1.40, 11 April 1999</a>
+<dd>
+Miscellaneous changes.
+<dt class="POD_ITEM"><a name="v1_39_11_February_19">v1.39, 11 February 1999</a>
+<dd>
+Changes from Jarkko and EMX URL fixes Michael Schwern.  Additional
+note about newlines added.
+<dt class="POD_ITEM"><a name="v1_38_31_December_19">v1.38, 31 December 1998</a>
+<dd>
+More changes from Jarkko.
+<dt class="POD_ITEM"><a name="v1_37_19_December_19">v1.37, 19 December 1998</a>
+<dd>
+More minor changes.  Merge two separate version 1.35 documents.
+<dt class="POD_ITEM"><a name="v1_36_9_September_19">v1.36, 9 September 1998</a>
+<dd>
+Updated for Stratus VOS.  Also known as version 1.35.
+<dt class="POD_ITEM"><a name="v1_35_13_August_1998">v1.35, 13 August 1998</a>
+<dd>
+Integrate more minor changes, plus addition of new sections under
+the section on <a class="POD_LINK" href="#ISSUES">ISSUES</a> elsewhere in this document: the section on <a class="POD_LINK" href="#Numbers_endianness_a">Numbers endianness and Width</a> elsewhere in this document,
+the section on <a class="POD_LINK" href="#Character_sets_and_c">Character sets and character encoding</a> elsewhere in this document,
+the section on <a class="POD_LINK" href="#Internationalisation">Internationalisation</a> elsewhere in this document.
+<dt class="POD_ITEM"><a name="v1_33_06_August_1998">v1.33, 06 August 1998</a>
+<dd>
+Integrate more minor changes.
+<dt class="POD_ITEM"><a name="v1_32_05_August_1998">v1.32, 05 August 1998</a>
+<dd>
+Integrate more minor changes.
+<dt class="POD_ITEM"><a name="v1_30_03_August_1998">v1.30, 03 August 1998</a>
+<dd>
+Major update for RISC OS, other minor changes.
+<dt class="POD_ITEM"><a name="v1_23_10_July_1998">v1.23, 10 July 1998</a>
+<dd>
+First public release with perl5.005.
+</dl>
+<h2 class="POD_HEAD1"><a name="Supported_Platforms">Supported Platforms</a></h2>
+<pre class="POD_TEXT">
+As of early February 2001 (the Perl release 5.6.1), the following
+platforms are able to build Perl from the standard source code
+distribution available at http://www.perl.com/CPAN/src/index.html
+
+	AIX
+	AmigaOS
+	Darwin		(Rhapsody)
+	DG/UX
+	DOS DJGPP 	1)
+	DYNIX/ptx
+	EPOC
+	FreeBSD
+	HP-UX
+	IRIX
+	Linux
+	MachTen
+	NonStop-UX
+	ReliantUNIX	(SINIX)
+	OpenBSD
+	OpenVMS		(VMS)
+	OS/2
+	OS X
+	QNX
+	Solaris
+	Tru64 UNIX      (DEC OSF/1, Digital UNIX)
+	UNICOS
+	UNICOS/mk
+	VOS
+	Win32/NT/2K	2)
+
+        1) in DOS mode either the DOS or OS/2 ports can be used
+        2) compilers: Borland, Cygwin, Mingw32 EGCS/GCC, VC++
+</pre>
+<pre class="POD_TEXT">
+The following platforms worked for the previous release (5.6.0),
+but we did not manage to test these in time for the 5.6.1 release.
+There is a very good chance that these will work fine with 5.6.1.
+
+	DomainOS
+	Hurd
+	LynxOS
+	MinGW
+	MPE/iX
+	NetBSD
+	PowerMAX
+	SCO SV
+	SunOS
+	SVR4
+	Unixware
+	Windows 3.1
+	Windows 95
+	Windows 98
+	Windows Me
+</pre>
+<pre class="POD_TEXT">
+The following platform worked for the 5.005_03 major release but not 5.6.0.
+Standardization on UTF-8 as the internal string representation
+in 5.6.0 and 5.6.1 has introduced incompatibilities in this EBCDIC platform.
+While Perl 5.6.1 will build on this platform some regression tests may fail 
+and the <code>use utf8;</code> pragma typically introduces text handling errors.
+UTF-8 support for this platform may be enabled in a future release:
+
+	OS/390	1)
+
+	1) previously known as MVS, about to become z/OS.
+</pre>
+<pre class="POD_TEXT">
+Strongly related to the OS/390 platform by also being EBCDIC-based
+mainframe platforms are the following platforms:
+
+	POSIX-BC	(BS2000)
+	VM/ESA
+</pre>
+<p class="POD_TEXT">
+These are also expected to work, albeit with no UTF-8 support, under 5.6.1 
+for the same reasons as OS/390.  Contact the mailing list perl-mvs@perl.org 
+for more details.
+</p>
+<p class="POD_TEXT">
+Mac OS (Classic, pre-X) is almost 5.6.1-ready; building from the source
+does work with 5.6.1, but additional MacOS specific source code is needed
+for a complete port.  Contact the mailing list macperl-porters@macperl.org
+for more information.
+</p>
+<pre class="POD_TEXT">
+The following platforms have been known to build Perl from source in
+the past (5.005_03 and earlier), but we haven't been able to verify
+their status for the current release, either because the
+hardware/software platforms are rare or because we don't have an
+active champion on these platforms--or both.  They used to work,
+though, so go ahead and try compiling them, and let perlbug@perl.org
+of any trouble.
+
+	3b1
+	A/UX
+	BeOS
+	BSD/OS
+	ConvexOS
+	CX/UX
+	DC/OSx
+	DDE SMES
+	DOS EMX
+	Dynix
+	EP/IX
+	ESIX
+	FPS
+	GENIX
+	Greenhills
+	ISC
+	MachTen 68k
+	MiNT
+	MPC
+	NEWS-OS
+	NextSTEP
+	OpenSTEP
+	Opus
+	Plan 9
+	PowerUX
+	RISC/os
+	SCO ODT/OSR	
+	Stellar
+	SVR2
+	TI1500
+	TitanOS
+	Ultrix
+	Unisys Dynix
+	Unixware
+	UTS
+</pre>
+<pre class="POD_TEXT">
+Support for the following platform is planned for a future Perl release:
+
+	Netware
+</pre>
+<pre class="POD_TEXT">
+The following platforms have their own source code distributions and
+binaries available via http://www.perl.com/CPAN/ports/index.html:
+
+				Perl release
+
+	Netware			5.003_07
+	OS/400			5.005_02
+	Tandem Guardian		5.004
+</pre>
+<pre class="POD_TEXT">
+The following platforms have only binaries available via
+http://www.perl.com/CPAN/ports/index.html :
+
+				Perl release
+
+	Acorn RISCOS		5.005_02
+	AOS			5.002
+	LynxOS			5.004_02
+</pre>
+<p class="POD_TEXT">
+Although we do suggest that you always build your own Perl from
+the source code, both for maximal configurability and for security,
+in case you are in a hurry you can check
+http://www.perl.com/CPAN/ports/index.html for binary distributions.
+</p>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+the <u>perlaix</u> manpage, the <u>perlamiga</u> manpage, the <u>perlcygwin</u> manpage, the <u>perldos</u> manpage, the <u>perlepoc</u> manpage,
+the <a class="POD_LINK" href="perlebcdic.html">perlebcdic</a> manpage, the <u>perlhpux</u> manpage, the <u>perlos2</u> manpage, the <u>perlos390</u> manpage, the <u>perlbs2000</u> manpage,
+the <u>perlwin32</u> manpage, the <u>perlvms</u> manpage, the <u>perlvos</u> manpage, and the <a class="POD_LINK" href="Win32.html">Win32</a> manpage.
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHORS_CONTRIBUTORS">AUTHORS / CONTRIBUTORS</a></h2>
+<p class="POD_TEXT">
+Abigail &lt;abigail@fnx.com&gt;,
+Charles Bailey &lt;bailey@newman.upenn.edu&gt;,
+Graham Barr &lt;gbarr@pobox.com&gt;,
+Tom Christiansen &lt;tchrist@perl.com&gt;,
+Nicholas Clark &lt;Nicholas.Clark@liverpool.ac.uk&gt;,
+Thomas Dorner &lt;Thomas.Dorner@start.de&gt;,
+Andy Dougherty &lt;doughera@lafcol.lafayette.edu&gt;,
+Dominic Dunlop &lt;domo@vo.lu&gt;,
+Neale Ferguson &lt;neale@mailbox.tabnsw.com.au&gt;,
+David J. Fiander &lt;davidf@mks.com&gt;,
+Paul Green &lt;Paul_Green@stratus.com&gt;,
+M.J.T. Guy &lt;mjtg@cus.cam.ac.uk&gt;,
+Jarkko Hietaniemi &lt;jhi@iki.fi&gt;,
+Luther Huffman &lt;lutherh@stratcom.com&gt;,
+Nick Ing-Simmons &lt;nick@ni-s.u-net.com&gt;,
+Andreas J. K&ouml;nig &lt;koenig@kulturbox.de&gt;,
+Markus Laker &lt;mlaker@contax.co.uk&gt;,
+Andrew M. Langmead &lt;aml@world.std.com&gt;,
+Larry Moore &lt;ljmoore@freespace.net&gt;,
+Paul Moore &lt;Paul.Moore@uk.origin-it.com&gt;,
+Chris Nandor &lt;pudge@pobox.com&gt;,
+Matthias Neeracher &lt;neeri@iis.ee.ethz.ch&gt;,
+Gary Ng &lt;71564.1743@CompuServe.COM&gt;,
+Tom Phoenix &lt;rootbeer@teleport.com&gt;,
+Andr&eacute; Pirard &lt;A.Pirard@ulg.ac.be&gt;,
+Peter Prymmer &lt;pvhp@forte.com&gt;,
+Hugo van der Sanden &lt;hv@crypt0.demon.co.uk&gt;,
+Gurusamy Sarathy &lt;gsar@activestate.com&gt;,
+Paul J. Schinder &lt;schinder@pobox.com&gt;,
+Michael G Schwern &lt;schwern@pobox.com&gt;,
+Dan Sugalski &lt;sugalskd@ous.edu&gt;,
+Nathan Torkington &lt;gnat@frii.com&gt;.
+</p>
+<p class="POD_TEXT">
+This document is maintained by Chris Nandor
+&lt;pudge@pobox.com&gt;.
+</p>
+<h2 class="POD_HEAD1"><a name="VERSION">VERSION</a></h2>
+<p class="POD_TEXT">
+Version 1.47, last modified 22 March 2000
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:35:58 2001
+</body>
+</html>
+

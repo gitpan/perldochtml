@@ -1,0 +1,221 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>constant</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="CPAN.html">Next:<br>CPAN</a></td><td align="left" width="1%"><a href="Class/Struct.html">Previous:<br>Class::Struct</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">constant</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#NOTES">NOTES</a>
+<li><a href="#TECHNICAL_NOTE">TECHNICAL NOTE</a>
+<li><a href="#BUGS">BUGS</a>
+<li><a href="#AUTHOR">AUTHOR</a>
+<li><a href="#COPYRIGHT">COPYRIGHT</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+constant - Perl pragma to declare constants
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+    use constant BUFFER_SIZE	=&gt; 4096;
+    use constant ONE_YEAR	=&gt; 365.2425 * 24 * 60 * 60;
+    use constant PI		=&gt; 4 * atan2 1, 1;
+    use constant DEBUGGING	=&gt; 0;
+    use constant ORACLE		=&gt; 'oracle@cs.indiana.edu';
+    use constant USERNAME	=&gt; scalar getpwuid($&lt;);
+    use constant USERINFO	=&gt; getpwuid($&lt;);
+
+    sub deg2rad { PI * $_[0] / 180 }
+
+    print &quot;This line does nothing&quot;		unless DEBUGGING;
+
+    # references can be constants
+    use constant CHASH		=&gt; { foo =&gt; 42 };
+    use constant CARRAY		=&gt; [ 1,2,3,4 ];
+    use constant CPSEUDOHASH	=&gt; [ { foo =&gt; 1}, 42 ];
+    use constant CCODE		=&gt; sub { &quot;bite $_[0]\n&quot; };
+
+    print CHASH-&gt;{foo};
+    print CARRAY-&gt;[$i];
+    print CPSEUDOHASH-&gt;{foo};
+    print CCODE-&gt;(&quot;me&quot;);
+    print CHASH-&gt;[10];			# compile-time error
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+This will declare a symbol to be a constant with the given scalar
+or list value.
+</p>
+<p class="POD_TEXT">
+When you declare a constant such as <code>PI</code> using the method shown
+above, each machine your script runs upon can have as many digits
+of accuracy as it can use. Also, your program will be easier to
+read, more likely to be maintained (and maintained correctly), and
+far less likely to send a space probe to the wrong planet because
+nobody noticed the one equation in which you wrote <code>3.14195</code>.
+</p>
+<h2 class="POD_HEAD1"><a name="NOTES">NOTES</a></h2>
+<p class="POD_TEXT">
+The value or values are evaluated in a list context. You may override
+this with <code><a class="POD_LINK" href="perlfunc.html#scalar_EXPR">scalar</a></code> as shown above.
+</p>
+<pre class="POD_TEXT">
+These constants do not directly interpolate into double-quotish
+strings, although you may do so indirectly. (See the <a class="POD_LINK" href="perlref.html">perlref</a> manpage for
+details about how this works.)
+
+    print &quot;The value of PI is @{[ PI ]}.\n&quot;;
+</pre>
+<pre class="POD_TEXT">
+List constants are returned as lists, not as arrays.
+
+    $homedir = USERINFO[7];		# WRONG
+    $homedir = (USERINFO)[7];		# Right
+</pre>
+<p class="POD_TEXT">
+The use of all caps for constant names is merely a convention,
+although it is recommended in order to make constants stand out
+and to help avoid collisions with other barewords, keywords, and
+subroutine names. Constant names must begin with a letter or
+underscore. Names beginning with a double underscore are reserved. Some
+poor choices for names will generate warnings, if warnings are enabled at
+compile time.
+</p>
+<p class="POD_TEXT">
+Constant symbols are package scoped (rather than block scoped, as
+<code>use strict</code> is). That is, you can refer to a constant from package
+Other as <code>Other::CONST</code>.
+</p>
+<p class="POD_TEXT">
+As with all <code><a class="POD_LINK" href="perlfunc.html#use_Module_LIST">use</a></code> directives, defining a constant happens at
+compile time. Thus, it's probably not correct to put a constant
+declaration inside of a conditional statement (like <code>if ($foo)
+{ use constant ... }</code>).
+</p>
+<pre class="POD_TEXT">
+Omitting the value for a symbol gives it the value of <code><a class="POD_LINK" href="perlfunc.html#undef">undef</a></code> in
+a scalar context or the empty list, <code>()</code>, in a list context. This
+isn't so nice as it may sound, though, because in this case you
+must either quote the symbol name, or use a big arrow, (<code>=&gt;</code>),
+with nothing to point to. It is probably best to declare these
+explicitly.
+
+    use constant UNICORNS	=&gt; ();
+    use constant LOGFILE	=&gt; undef;
+</pre>
+<p class="POD_TEXT">
+The result from evaluating a list constant in a scalar context is
+not documented, and is <b>not</b> guaranteed to be any particular value
+in the future. In particular, you should not rely upon it being
+the number of elements in the list, especially since it is not
+<b>necessarily</b> that value in the current implementation.
+</p>
+<pre class="POD_TEXT">
+Magical values, tied values, and references can be made into
+constants at compile time, allowing for way cool stuff like this.
+(These error numbers aren't totally portable, alas.)
+
+    use constant E2BIG =&gt; ($! = 7);
+    print   E2BIG, &quot;\n&quot;;	# something like &quot;Arg list too long&quot;
+    print 0+E2BIG, &quot;\n&quot;;	# &quot;7&quot;
+</pre>
+<p class="POD_TEXT">
+Dereferencing constant references incorrectly (such as using an array
+subscript on a constant hash reference, or vice versa) will be trapped at
+compile time.
+</p>
+<pre class="POD_TEXT">
+In the rare case in which you need to discover at run time whether a
+particular constant has been declared via this module, you may use
+this function to examine the hash <code>%constant::declared</code>. If the given
+constant name does not include a package name, the current package is
+used.
+
+    sub declared ($) {
+	use constant 1.01;		# don't omit this!
+	my $name = shift;
+	$name =~ s/^::/main::/;
+	my $pkg = caller;
+	my $full_name = $name =~ /::/ ? $name : &quot;${pkg}::$name&quot;;
+	$constant::declared{$full_name};
+    }
+</pre>
+<h2 class="POD_HEAD1"><a name="TECHNICAL_NOTE">TECHNICAL NOTE</a></h2>
+<p class="POD_TEXT">
+In the current implementation, scalar constants are actually
+inlinable subroutines. As of version 5.004 of Perl, the appropriate
+scalar constant is inserted directly in place of some subroutine
+calls, thereby saving the overhead of a subroutine call. See
+the section on <a class="POD_LINK" href="perlsub.html#Constant_Functions">Constant Functions</a> in the <a class="POD_LINK" href="perlsub.html">perlsub</a> manpage for details about how and when this
+happens.
+</p>
+<h2 class="POD_HEAD1"><a name="BUGS">BUGS</a></h2>
+<p class="POD_TEXT">
+In the current version of Perl, list constants are not inlined
+and some symbols may be redefined without generating a warning.
+</p>
+<p class="POD_TEXT">
+It is not possible to have a subroutine or keyword with the same
+name as a constant in the same package. This is probably a Good Thing.
+</p>
+<p class="POD_TEXT">
+A constant with a name in the list <code>STDIN STDOUT STDERR ARGV ARGVOUT
+ENV INC SIG</code> is not allowed anywhere but in package <code>main::</code>, for
+technical reasons.
+</p>
+<pre class="POD_TEXT">
+Even though a reference may be declared as a constant, the reference may
+point to data which may be changed, as this code shows.
+
+    use constant CARRAY		=&gt; [ 1,2,3,4 ];
+    print CARRAY-&gt;[1];
+    CARRAY-&gt;[1] = &quot; be changed&quot;;
+    print CARRAY-&gt;[1];
+</pre>
+<p class="POD_TEXT">
+Unlike constants in some languages, these cannot be overridden
+on the command line or via environment variables.
+</p>
+<p class="POD_TEXT">
+You can get into trouble if you use constants in a context which
+automatically quotes barewords (as is true for any subroutine call).
+For example, you can't say <code>$hash{CONSTANT}</code> because <code>CONSTANT</code> will
+be interpreted as a string.  Use <code>$hash{CONSTANT()}</code> or
+<code>$hash{+CONSTANT}</code> to prevent the bareword quoting mechanism from
+kicking in.  Similarly, since the <code>=&gt;</code> operator quotes a bareword
+immediately to its left, you have to say <code>CONSTANT() =&gt; 'value'</code>
+(or simply use a comma in place of the big arrow) instead of
+<code>CONSTANT =&gt; 'value'</code>.
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHOR">AUTHOR</a></h2>
+<p class="POD_TEXT">
+Tom Phoenix, &lt;<code>rootbeer@redcat.com</code>&gt;, with help from
+many other folks.
+</p>
+<h2 class="POD_HEAD1"><a name="COPYRIGHT">COPYRIGHT</a></h2>
+<p class="POD_TEXT">
+Copyright (C) 1997, 1999 Tom Phoenix
+</p>
+<p class="POD_TEXT">
+This module is free software; you can redistribute it or modify it
+under the same terms as Perl itself.
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:17 2001
+</body>
+</html>
+

@@ -1,0 +1,179 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>ExtUtils::Manifest</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="../ExtUtils/Mkbootstrap.html">Next:<br>ExtUtils::Mkbootstrap</a></td><td align="left" width="1%"><a  href="../ExtUtils/MakeMaker.html">Previous:<br>ExtUtils::MakeMaker</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="../podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="../podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">ExtUtils::Manifest</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#MANIFEST_SKIP">MANIFEST.SKIP</a>
+<li><a href="#EXPORT_OK">EXPORT_OK</a>
+<li><a href="#GLOBAL_VARIABLES">GLOBAL VARIABLES</a>
+<li><a href="#DIAGNOSTICS">DIAGNOSTICS</a>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+<li><a href="#AUTHOR">AUTHOR</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+ExtUtils::Manifest - utilities to write and check a MANIFEST file
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+    require ExtUtils::Manifest;
+
+    ExtUtils::Manifest::mkmanifest;
+
+    ExtUtils::Manifest::manicheck;
+
+    ExtUtils::Manifest::filecheck;
+
+    ExtUtils::Manifest::fullcheck;
+
+    ExtUtils::Manifest::skipcheck;
+
+    ExtUtils::Manifest::manifind();
+
+    ExtUtils::Manifest::maniread($file);
+
+    ExtUtils::Manifest::manicopy($read,$target,$how);
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<pre class="POD_TEXT">
+mkmanifest() writes all files in and below the current directory to a
+file named in the global variable $ExtUtils::Manifest::MANIFEST (which
+defaults to <code>MANIFEST</code>) in the current directory. It works similar to
+
+    find . -print
+</pre>
+<p class="POD_TEXT">
+but in doing so checks each line in an existing <code>MANIFEST</code> file and
+includes any comments that are found in the existing <code>MANIFEST</code> file
+in the new one. Anything between white space and an end of line within
+a <code>MANIFEST</code> file is considered to be a comment. Filenames and
+comments are separated by one or more TAB characters in the
+output. All files that match any regular expression in a file
+<code>MANIFEST.SKIP</code> (if such a file exists) are ignored.
+</p>
+<p class="POD_TEXT">
+manicheck() checks if all the files within a <code>MANIFEST</code> in the
+current directory really do exist. It only reports discrepancies and
+exits silently if MANIFEST and the tree below the current directory
+are in sync.
+</p>
+<p class="POD_TEXT">
+filecheck() finds files below the current directory that are not
+mentioned in the <code>MANIFEST</code> file. An optional file <code>MANIFEST.SKIP</code>
+will be consulted. Any file matching a regular expression in such a
+file will not be reported as missing in the <code>MANIFEST</code> file.
+</p>
+<p class="POD_TEXT">
+fullcheck() does both a manicheck() and a filecheck().
+</p>
+<p class="POD_TEXT">
+skipcheck() lists all the files that are skipped due to your
+<code>MANIFEST.SKIP</code> file.
+</p>
+<p class="POD_TEXT">
+manifind() returns a hash reference. The keys of the hash are the
+files found below the current directory.
+</p>
+<p class="POD_TEXT">
+maniread($file) reads a named <code>MANIFEST</code> file (defaults to
+<code>MANIFEST</code> in the current directory) and returns a HASH reference
+with files being the keys and comments being the values of the HASH.
+Blank lines and lines which start with <code>#</code> in the <code>MANIFEST</code> file
+are discarded.
+</p>
+<p class="POD_TEXT">
+<code>manicopy($read,$target,$how)</code> copies the files that are the keys in
+the HASH <i>%$read</i> to the named target directory. The HASH reference
+$read is typically returned by the maniread() function. This
+function is useful for producing a directory tree identical to the
+intended distribution tree. The third parameter $how can be used to
+specify a different methods of &quot;copying&quot;. Valid values are <code>cp</code>,
+which actually copies the files, <code>ln</code> which creates hard links, and
+<code>best</code> which mostly links the files but copies any symbolic link to
+make a tree without any symbolic link. Best is the default.
+</p>
+<h2 class="POD_HEAD1"><a name="MANIFEST_SKIP">MANIFEST.SKIP</a></h2>
+<pre class="POD_TEXT">
+The file MANIFEST.SKIP may contain regular expressions of files that
+should be ignored by mkmanifest() and filecheck(). The regular
+expressions should appear one on each line. Blank lines and lines
+which start with <code>#</code> are skipped.  Use <code>\#</code> if you need a regular
+expression to start with a sharp character. A typical example:
+
+    \bRCS\b
+    ^MANIFEST\.
+    ^Makefile$
+    ~$
+    \.html$
+    \.old$
+    ^blib/
+    ^MakeMaker-\d
+</pre>
+<h2 class="POD_HEAD1"><a name="EXPORT_OK">EXPORT_OK</a></h2>
+<p class="POD_TEXT">
+<code>&amp;mkmanifest</code>, <code>&amp;manicheck</code>, <code>&amp;filecheck</code>, <code>&amp;fullcheck</code>,
+<code>&amp;maniread</code>, and <code>&amp;manicopy</code> are exportable.
+</p>
+<h2 class="POD_HEAD1"><a name="GLOBAL_VARIABLES">GLOBAL VARIABLES</a></h2>
+<p class="POD_TEXT">
+<code>$ExtUtils::Manifest::MANIFEST</code> defaults to <code>MANIFEST</code>. Changing it
+results in both a different <code>MANIFEST</code> and a different
+<code>MANIFEST.SKIP</code> file. This is useful if you want to maintain
+different distributions for different audiences (say a user version
+and a developer version including RCS).
+</p>
+<p class="POD_TEXT">
+<code>$ExtUtils::Manifest::Quiet</code> defaults to 0. If set to a true value,
+all functions act silently.
+</p>
+<h2 class="POD_HEAD1"><a name="DIAGNOSTICS">DIAGNOSTICS</a></h2>
+<p class="POD_TEXT">
+All diagnostic output is sent to <code>STDERR</code>.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="Not_in_MANIFEST_file"><code>Not in MANIFEST:</code> <i>file</i></a>
+<dd>
+is reported if a file is found, that is missing in the <code>MANIFEST</code>
+file which is excluded by a regular expression in the file
+<code>MANIFEST.SKIP</code>.
+<dt class="POD_ITEM"><a name="No_such_file_file"><code>No such file:</code> <i>file</i></a>
+<dd>
+is reported if a file mentioned in a <code>MANIFEST</code> file does not
+exist.
+<dt class="POD_ITEM"><a name="MANIFEST_"><code>MANIFEST:</code> <i>$!</i></a>
+<dd>
+is reported if <code>MANIFEST</code> could not be opened.
+<dt class="POD_ITEM"><a name="Added_to_MANIFEST_fi"><code>Added to MANIFEST:</code> <i>file</i></a>
+<dd>
+is reported by mkmanifest() if $Verbose is set and a file is added
+to MANIFEST. $Verbose is set to 1 by default.
+</dl>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+the <a class="POD_LINK" href="../ExtUtils/MakeMaker.html">ExtUtils::MakeMaker</a> manpage which has handy targets for most of the functionality.
+</p>
+<h2 class="POD_HEAD1"><a name="AUTHOR">AUTHOR</a></h2>
+<p class="POD_TEXT">
+Andreas Koenig &lt;<code>koenig@franz.ww.TU-Berlin.DE</code>&gt;
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:34:25 2001
+</body>
+</html>
+

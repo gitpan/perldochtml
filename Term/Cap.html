@@ -1,0 +1,125 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>Term::Cap</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="../Term/Complete.html">Next:<br>Term::Complete</a></td><td align="left" width="1%"><a  href="../Term/ANSIColor.html">Previous:<br>Term::ANSIColor</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="../podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="../podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">Term::Cap</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#SYNOPSIS">SYNOPSIS</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#EXAMPLES">EXAMPLES</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+Term::Cap - Perl termcap interface
+</p>
+<h2 class="POD_HEAD1"><a name="SYNOPSIS">SYNOPSIS</a></h2>
+<pre class="POD_VERBATIM">
+    require Term::Cap;
+    $terminal = Tgetent Term::Cap { TERM =&gt; undef, OSPEED =&gt; $ospeed };
+    $terminal-&gt;Trequire(qw/ce ku kd/);
+    $terminal-&gt;Tgoto('cm', $col, $row, $FH);
+    $terminal-&gt;Tputs('dl', $count, $FH);
+    $terminal-&gt;Tpad($string, $count, $FH);
+</pre>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+These are low-level functions to extract and use capabilities from
+a terminal capability (termcap) database.
+</p>
+<p class="POD_TEXT">
+The <b>Tgetent</b> function extracts the entry of the specified terminal
+type <i>TERM</i> (defaults to the environment variable <i>TERM</i>) from the
+database.
+</p>
+<p class="POD_TEXT">
+It will look in the environment for a <i>TERMCAP</i> variable.  If
+found, and the value does not begin with a slash, and the terminal
+type name is the same as the environment string <i>TERM</i>, the
+<i>TERMCAP</i> string is used instead of reading a termcap file.  If
+it does begin with a slash, the string is used as a path name of
+the termcap file to search.  If <i>TERMCAP</i> does not begin with a
+slash and name is different from <i>TERM</i>, <b>Tgetent</b> searches the
+files <code>$HOME/.termcap</code>, <code>/etc/termcap</code>, and <code>/usr/share/misc/termcap</code>,
+in that order, unless the environment variable <i>TERMPATH</i> exists,
+in which case it specifies a list of file pathnames (separated by
+spaces or colons) to be searched <b>instead</b>.  Whenever multiple
+files are searched and a tc field occurs in the requested entry,
+the entry it names must be found in the same file or one of the
+succeeding files.  If there is a <code>:tc=...:</code> in the <i>TERMCAP</i>
+environment variable string it will continue the search in the
+files as above.
+</p>
+<p class="POD_TEXT">
+<i>OSPEED</i> is the terminal output bit rate (often mistakenly called
+the baud rate).  <i>OSPEED</i> can be specified as either a POSIX
+termios/SYSV termio speeds (where 9600 equals 9600) or an old
+BSD-style speeds (where 13 equals 9600).
+</p>
+<p class="POD_TEXT">
+<b>Tgetent</b> returns a blessed object reference which the user can
+then use to send the control strings to the terminal using <b>Tputs</b>
+and <b>Tgoto</b>.  It calls <code>croak</code> on failure.
+</p>
+<p class="POD_TEXT">
+<b>Tgoto</b> decodes a cursor addressing string with the given parameters.
+</p>
+<pre class="POD_TEXT">
+The output strings for <b>Tputs</b> are cached for counts of 1 for performance.
+<b>Tgoto</b> and <b>Tpad</b> do not cache.  <code>$self-&gt;{_xx}</code> is the raw termcap
+data and <code>$self-&gt;{xx}</code> is the cached version.
+
+    print $terminal-&gt;Tpad($self-&gt;{_xx}, 1);
+</pre>
+<p class="POD_TEXT">
+<b>Tgoto</b>, <b>Tputs</b>, and <b>Tpad</b> return the string and will also
+output the string to $FH if specified.
+</p>
+<p class="POD_TEXT">
+The extracted termcap entry is available in the object
+as <code>$self-&gt;{TERMCAP}</code>.
+</p>
+<h2 class="POD_HEAD1"><a name="EXAMPLES">EXAMPLES</a></h2>
+<pre class="POD_VERBATIM">
+    # Get terminal output speed
+    require POSIX;
+    my $termios = new POSIX::Termios;
+    $termios-&gt;getattr;
+    my $ospeed = $termios-&gt;getospeed;
+
+    # Old-style ioctl code to get ospeed:
+    #     require 'ioctl.pl';
+    #     ioctl(TTY,$TIOCGETP,$sgtty);
+    #     ($ispeed,$ospeed) = unpack('cc',$sgtty);
+
+    # allocate and initialize a terminal structure
+    $terminal = Tgetent Term::Cap { TERM =&gt; undef, OSPEED =&gt; $ospeed };
+
+    # require certain capabilities to be available
+    $terminal-&gt;Trequire(qw/ce ku kd/);
+
+    # Output Routines, if $FH is undefined these just return the string
+
+    # Tgoto does the % expansion stuff with the given args
+    $terminal-&gt;Tgoto('cm', $col, $row, $FH);
+
+    # Tputs doesn't do any % expansion.
+    $terminal-&gt;Tputs('dl', $count = 1, $FH);
+</pre>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:36:59 2001
+</body>
+</html>
+

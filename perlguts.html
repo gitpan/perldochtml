@@ -1,0 +1,2569 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type">
+<meta content="text/css" http-equiv="Content-Style-Type">
+<meta content="Pod::HTML 0.43" name="GENERATOR">
+<title>perlguts</title>
+</head>
+<body>
+<a name="Pod_TOP_OF_PAGE"></a>
+<table width="100%">
+<tr><td align="left" width="1%"><a href="perlhack.html">Next:<br>perlhack</a></td><td align="left" width="1%"><a  href="perlfunc.html">Previous:<br>perlfunc</a></td><td width="90%">&nbsp;</td><td align="right" width="1%"><a class="POD_NAVLILNK" href="podtoc.html">[Table&nbsp;of&nbsp;Contents]</a></td><td align="right" width="1%"><a  href="podindex.html">[Index]</a></td></tr>
+</table>
+<h1 class="POD_TITLE">perlguts</h1>
+<hr>
+<ul>
+<li><a href="#NAME">NAME</a>
+<li><a href="#DESCRIPTION">DESCRIPTION</a>
+<li><a href="#Variables">Variables</a>
+<ul>
+<li><a href="#Datatypes">Datatypes</a>
+<li><a href="#What_is_an_IV_">What is an &quot;IV&quot;?</a>
+<li><a href="#Working_with_SVs">Working with SVs</a>
+<li><a href="#Offsets">Offsets</a>
+<li><a href="#What_s_Really_Stored">What's Really Stored in an SV?</a>
+<li><a href="#Working_with_AVs">Working with AVs</a>
+<li><a href="#Working_with_HVs">Working with HVs</a>
+<li><a href="#Hash_API_Extensions">Hash API Extensions</a>
+<li><a href="#References">References</a>
+<li><a href="#Blessed_References_a">Blessed References and Class Objects</a>
+<li><a href="#Creating_New_Variabl">Creating New Variables</a>
+<li><a href="#Reference_Counts_and">Reference Counts and Mortality</a>
+<li><a href="#Stashes_and_Globs">Stashes and Globs</a>
+<li><a href="#Double_Typed_SVs">Double-Typed SVs</a>
+<li><a href="#Magic_Variables">Magic Variables</a>
+<li><a href="#Assigning_Magic">Assigning Magic</a>
+<li><a href="#Magic_Virtual_Tables">Magic Virtual Tables</a>
+<li><a href="#Finding_Magic">Finding Magic</a>
+<li><a href="#Understanding_the_Ma">Understanding the Magic of Tied Hashes and Arrays</a>
+<li><a href="#Localizing_changes">Localizing changes</a>
+</ul>
+<li><a href="#Subroutines">Subroutines</a>
+<ul>
+<li><a href="#XSUBs_and_the_Argume">XSUBs and the Argument Stack</a>
+<li><a href="#Calling_Perl_Routine">Calling Perl Routines from within C Programs</a>
+<li><a href="#Memory_Allocation">Memory Allocation</a>
+<li><a href="#PerlIO">PerlIO</a>
+<li><a href="#Putting_a_C_value_on">Putting a C value on Perl stack</a>
+<li><a href="#Scratchpads">Scratchpads</a>
+<li><a href="#Scratchpads_and_recu">Scratchpads and recursion</a>
+</ul>
+<li><a href="#Compiled_code">Compiled code</a>
+<ul>
+<li><a href="#Code_tree">Code tree</a>
+<li><a href="#Examining_the_tree">Examining the tree</a>
+<li><a href="#Compile_pass_1_check">Compile pass 1: check routines</a>
+<li><a href="#Compile_pass_1a_cons">Compile pass 1a: constant folding</a>
+<li><a href="#Compile_pass_2_conte">Compile pass 2: context propagation</a>
+<li><a href="#Compile_pass_3_peeph">Compile pass 3: peephole optimization</a>
+</ul>
+<li><a href="#Examining_internal_d">Examining internal data structures with the <code><a class="POD_LINK" href="perlfunc.html#dump">dump</a></code> functions</a>
+<li><a href="#How_multiple_interpr">How multiple interpreters and concurrency are supported</a>
+<ul>
+<li><a href="#Background_and_PERL_">Background and PERL_IMPLICIT_CONTEXT</a>
+<li><a href="#How_do_I_use_all_thi">How do I use all this in extensions?</a>
+<li><a href="#Future_Plans_and_PER">Future Plans and PERL_IMPLICIT_SYS</a>
+</ul>
+<li><a href="#Internal_Functions">Internal Functions</a>
+<ul>
+<li><a href="#Formatted_Printing_o">Formatted Printing of IVs, UVs, and NVs</a>
+<li><a href="#Pointer_To_Integer_a">Pointer-To-Integer and Integer-To-Pointer</a>
+<li><a href="#Source_Documentation">Source Documentation</a>
+</ul>
+<li><a href="#Unicode_Support">Unicode Support</a>
+<ul>
+<li><a href="#What_is_Unicode_anyw">What <b>is</b> Unicode, anyway?</a>
+<li><a href="#How_can_I_recognise_">How can I recognise a UTF8 string?</a>
+<li><a href="#How_does_UTF8_repres">How does UTF8 represent Unicode characters?</a>
+<li><a href="#How_does_Perl_store_">How does Perl store UTF8 strings?</a>
+<li><a href="#How_do_I_convert_a_s">How do I convert a string to UTF8?</a>
+<li><a href="#Is_there_anything_el">Is there anything else I need to know?</a>
+</ul>
+<li><a href="#AUTHORS">AUTHORS</a>
+<li><a href="#SEE_ALSO">SEE ALSO</a>
+</ul>
+<hr>
+<h2 class="POD_HEAD1"><a name="NAME">NAME</a></h2>
+<p class="POD_TEXT">
+perlguts - Introduction to the Perl API
+</p>
+<h2 class="POD_HEAD1"><a name="DESCRIPTION">DESCRIPTION</a></h2>
+<p class="POD_TEXT">
+This document attempts to describe how to use the Perl API, as well as
+containing some info on the basic workings of the Perl core. It is far
+from complete and probably contains many errors. Please refer any
+questions or comments to the author below.
+</p>
+<h2 class="POD_HEAD1"><a name="Variables">Variables</a></h2>
+<h3 class="POD_HEAD2"><a name="Datatypes">Datatypes</a></h3>
+<pre class="POD_TEXT">
+Perl has three typedefs that handle Perl's three main data types:
+
+    SV  Scalar Value
+    AV  Array Value
+    HV  Hash Value
+</pre>
+<p class="POD_TEXT">
+Each typedef has specific routines that manipulate the various data types.
+</p>
+<h3 class="POD_HEAD2"><a name="What_is_an_IV_">What is an &quot;IV&quot;?</a></h3>
+<p class="POD_TEXT">
+Perl uses a special typedef IV which is a simple signed integer type that is
+guaranteed to be large enough to hold a pointer (as well as an integer).
+Additionally, there is the UV, which is simply an unsigned IV.
+</p>
+<p class="POD_TEXT">
+Perl also uses two special typedefs, I32 and I16, which will always be at
+least 32-bits and 16-bits long, respectively. (Again, there are U32 and U16,
+as well.)
+</p>
+<h3 class="POD_HEAD2"><a name="Working_with_SVs">Working with SVs</a></h3>
+<p class="POD_TEXT">
+An SV can be created and loaded with one command.  There are four types of
+values that can be loaded: an integer value (IV), a double (NV),
+a string (PV), and another scalar (SV).
+</p>
+<pre class="POD_TEXT">
+The six routines are:
+
+    SV*  newSViv(IV);
+    SV*  newSVnv(double);
+    SV*  newSVpv(const char*, int);
+    SV*  newSVpvn(const char*, int);
+    SV*  newSVpvf(const char*, ...);
+    SV*  newSVsv(SV*);
+</pre>
+<pre class="POD_TEXT">
+To change the value of an *already-existing* SV, there are seven routines:
+
+    void  sv_setiv(SV*, IV);
+    void  sv_setuv(SV*, UV);
+    void  sv_setnv(SV*, double);
+    void  sv_setpv(SV*, const char*);
+    void  sv_setpvn(SV*, const char*, int)
+    void  sv_setpvf(SV*, const char*, ...);
+    void  sv_setpvfn(SV*, const char*, STRLEN, va_list *, SV **, I32, bool);
+    void  sv_setsv(SV*, SV*);
+</pre>
+<p class="POD_TEXT">
+Notice that you can choose to specify the length of the string to be
+assigned by using <code>sv_setpvn</code>, <code>newSVpvn</code>, or <code>newSVpv</code>, or you may
+allow Perl to calculate the length by using <code>sv_setpv</code> or by specifying
+0 as the second argument to <code>newSVpv</code>.  Be warned, though, that Perl will
+determine the string's length by using <code>strlen</code>, which depends on the
+string terminating with a NUL character.
+</p>
+<p class="POD_TEXT">
+The arguments of <code>sv_setpvf</code> are processed like <code><a class="POD_LINK" href="perlfunc.html#sprintf_FORMAT_LIST">sprintf</a></code>, and the
+formatted output becomes the value.
+</p>
+<p class="POD_TEXT">
+<code>sv_setpvfn</code> is an analogue of <code>vsprintf</code>, but it allows you to specify
+either a pointer to a variable argument list or the address and length of
+an array of SVs.  The last argument points to a boolean; on return, if that
+boolean is true, then locale-specific information has been used to format
+the string, and the string's contents are therefore untrustworthy (see
+the <a class="POD_LINK" href="perlsec.html">perlsec</a> manpage).  This pointer may be NULL if that information is not
+important.  Note that this function requires you to specify the length of
+the format.
+</p>
+<p class="POD_TEXT">
+STRLEN is an integer type (Size_t, usually defined as size_t in
+config.h) guaranteed to be large enough to represent the size of 
+any string that perl can handle.
+</p>
+<p class="POD_TEXT">
+The <code>sv_set*()</code> functions are not generic enough to operate on values
+that have &quot;magic&quot;.  See the <a class="POD_LINK" href="#Magic_Virtual_Tables">Magic Virtual Tables</a> entry elsewhere in this document later in this document.
+</p>
+<p class="POD_TEXT">
+All SVs that contain strings should be terminated with a NUL character.
+If it is not NUL-terminated there is a risk of
+core dumps and corruptions from code which passes the string to C
+functions or system calls which expect a NUL-terminated string.
+Perl's own functions typically add a trailing NUL for this reason.
+Nevertheless, you should be very careful when you pass a string stored
+in an SV to a C function or system call.
+</p>
+<pre class="POD_TEXT">
+To access the actual value that an SV points to, you can use the macros:
+
+    SvIV(SV*)
+    SvUV(SV*)
+    SvNV(SV*)
+    SvPV(SV*, STRLEN len)
+    SvPV_nolen(SV*)
+</pre>
+<p class="POD_TEXT">
+which will automatically coerce the actual scalar type into an IV, UV, double,
+or string.
+</p>
+<p class="POD_TEXT">
+In the <code>SvPV</code> macro, the length of the string returned is placed into the
+variable <code>len</code> (this is a macro, so you do <i>not</i> use <code>&amp;len</code>).  If you do
+not care what the length of the data is, use the <code>SvPV_nolen</code> macro.
+Historically the <code>SvPV</code> macro with the global variable <code>PL_na</code> has been
+used in this case.  But that can be quite inefficient because <code>PL_na</code> must
+be accessed in thread-local storage in threaded Perl.  In any case, remember
+that Perl allows arbitrary strings of data that may both contain NULs and
+might not be terminated by a NUL.
+</p>
+<pre class="POD_TEXT">
+Also remember that C doesn't allow you to safely say <code>foo(SvPV(s, len),
+len);</code>. It might work with your compiler, but it won't work for everyone.
+Break this sort of statement up into separate assignments:
+
+	SV *s;
+	STRLEN len;
+	char * ptr;
+	ptr = SvPV(s, len);
+	foo(ptr, len);
+</pre>
+<pre class="POD_TEXT">
+If you want to know if the scalar value is TRUE, you can use:
+
+    SvTRUE(SV*)
+</pre>
+<pre class="POD_TEXT">
+Although Perl will automatically grow strings for you, if you need to force
+Perl to allocate more memory for your SV, you can use the macro
+
+    SvGROW(SV*, STRLEN newlen)
+</pre>
+<p class="POD_TEXT">
+which will determine if more memory needs to be allocated.  If so, it will
+call the function <code>sv_grow</code>.  Note that <code>SvGROW</code> can only increase, not
+decrease, the allocated memory of an SV and that it does not automatically
+add a byte for the a trailing NUL (perl's own string functions typically do
+<code>SvGROW(sv, len + 1)</code>).
+</p>
+<pre class="POD_TEXT">
+If you have an SV and want to know what kind of data Perl thinks is stored
+in it, you can use the following macros to check the type of SV you have.
+
+    SvIOK(SV*)
+    SvNOK(SV*)
+    SvPOK(SV*)
+</pre>
+<pre class="POD_TEXT">
+You can get and set the current length of the string stored in an SV with
+the following macros:
+
+    SvCUR(SV*)
+    SvCUR_set(SV*, I32 val)
+</pre>
+<pre class="POD_TEXT">
+You can also get a pointer to the end of the string stored in the SV
+with the macro:
+
+    SvEND(SV*)
+</pre>
+<p class="POD_TEXT">
+But note that these last three macros are valid only if <code>SvPOK()</code> is true.
+</p>
+<pre class="POD_TEXT">
+If you want to append something to the end of string stored in an <code>SV*</code>,
+you can use the following functions:
+
+    void  sv_catpv(SV*, const char*);
+    void  sv_catpvn(SV*, const char*, STRLEN);
+    void  sv_catpvf(SV*, const char*, ...);
+    void  sv_catpvfn(SV*, const char*, STRLEN, va_list *, SV **, I32, bool);
+    void  sv_catsv(SV*, SV*);
+</pre>
+<p class="POD_TEXT">
+The first function calculates the length of the string to be appended by
+using <code>strlen</code>.  In the second, you specify the length of the string
+yourself.  The third function processes its arguments like <code><a class="POD_LINK" href="perlfunc.html#sprintf_FORMAT_LIST">sprintf</a></code> and
+appends the formatted output.  The fourth function works like <code>vsprintf</code>.
+You can specify the address and length of an array of SVs instead of the
+va_list argument. The fifth function extends the string stored in the first
+SV with the string stored in the second SV.  It also forces the second SV
+to be interpreted as a string.
+</p>
+<p class="POD_TEXT">
+The <code>sv_cat*()</code> functions are not generic enough to operate on values that
+have &quot;magic&quot;.  See the <a class="POD_LINK" href="#Magic_Virtual_Tables">Magic Virtual Tables</a> entry elsewhere in this document later in this document.
+</p>
+<pre class="POD_TEXT">
+If you know the name of a scalar variable, you can get a pointer to its SV
+by using the following:
+
+    SV*  get_sv(&quot;package::varname&quot;, FALSE);
+</pre>
+<p class="POD_TEXT">
+This returns NULL if the variable does not exist.
+</p>
+<pre class="POD_TEXT">
+If you want to know if this variable (or any other SV) is actually <code><a class="POD_LINK" href="perlfunc.html#defined">defined</a></code>,
+you can call:
+
+    SvOK(SV*)
+</pre>
+<p class="POD_TEXT">
+The scalar <code><a class="POD_LINK" href="perlfunc.html#undef">undef</a></code> value is stored in an SV instance called <code>PL_sv_undef</code>.  Its
+address can be used whenever an <code>SV*</code> is needed.
+</p>
+<p class="POD_TEXT">
+There are also the two values <code>PL_sv_yes</code> and <code>PL_sv_no</code>, which contain Boolean
+TRUE and FALSE values, respectively.  Like <code>PL_sv_undef</code>, their addresses can
+be used whenever an <code>SV*</code> is needed.
+</p>
+<pre class="POD_TEXT">
+Do not be fooled into thinking that <code>(SV *) 0</code> is the same as <code>&amp;PL_sv_undef</code>.
+Take this code:
+
+    SV* sv = (SV*) 0;
+    if (I-am-to-return-a-real-value) {
+            sv = sv_2mortal(newSViv(42));
+    }
+    sv_setsv(ST(0), sv);
+</pre>
+<p class="POD_TEXT">
+This code tries to return a new SV (which contains the value 42) if it should
+return a real value, or undef otherwise.  Instead it has returned a NULL
+pointer which, somewhere down the line, will cause a segmentation violation,
+bus error, or just weird results.  Change the zero to <code>&amp;PL_sv_undef</code> in the first
+line and all will be well.
+</p>
+<p class="POD_TEXT">
+To free an SV that you've created, call <code>SvREFCNT_dec(SV*)</code>.  Normally this
+call is not necessary (see the <a class="POD_LINK" href="#Reference_Counts_and">Reference Counts and Mortality</a> entry elsewhere in this document).
+</p>
+<h3 class="POD_HEAD2"><a name="Offsets">Offsets</a></h3>
+<p class="POD_TEXT">
+Perl provides the function <code>sv_chop</code> to efficiently remove characters
+from the beginning of a string; you give it an SV and a pointer to
+somewhere inside the the PV, and it discards everything before the
+pointer. The efficiency comes by means of a little hack: instead of
+actually removing the characters, <code>sv_chop</code> sets the flag <code>OOK</code>
+(offset OK) to signal to other functions that the offset hack is in
+effect, and it puts the number of bytes chopped off into the IV field
+of the SV. It then moves the PV pointer (called <code>SvPVX</code>) forward that
+many bytes, and adjusts <code>SvCUR</code> and <code>SvLEN</code>.
+</p>
+<p class="POD_TEXT">
+Hence, at this point, the start of the buffer that we allocated lives
+at <code>SvPVX(sv) - SvIV(sv)</code> in memory and the PV pointer is pointing
+into the middle of this allocated storage.
+</p>
+<pre class="POD_TEXT">
+This is best demonstrated by example:
+
+  % ./perl -Ilib -MDevel::Peek -le '$a=&quot;12345&quot;; $a=~s/.//; Dump($a)'
+  SV = PVIV(0x8128450) at 0x81340f0
+    REFCNT = 1
+    FLAGS = (POK,OOK,pPOK)
+    IV = 1  (OFFSET)
+    PV = 0x8135781 ( &quot;1&quot; . ) &quot;2345&quot;\0
+    CUR = 4
+    LEN = 5
+</pre>
+<p class="POD_TEXT">
+Here the number of bytes chopped off (1) is put into IV, and
+<code>Devel::Peek::Dump</code> helpfully reminds us that this is an offset. The
+portion of the string between the &quot;real&quot; and the &quot;fake&quot; beginnings is
+shown in parentheses, and the values of <code>SvCUR</code> and <code>SvLEN</code> reflect
+the fake beginning, not the real one.
+</p>
+<h3 class="POD_HEAD2"><a name="What_s_Really_Stored">What's Really Stored in an SV?</a></h3>
+<p class="POD_TEXT">
+Recall that the usual method of determining the type of scalar you have is
+to use <code>Sv*OK</code> macros.  Because a scalar can be both a number and a string,
+usually these macros will always return TRUE and calling the <code>Sv*V</code>
+macros will do the appropriate conversion of string to integer/double or
+integer/double to string.
+</p>
+<pre class="POD_TEXT">
+If you <i>really</i> need to know if you have an integer, double, or string
+pointer in an SV, you can use the following three macros instead:
+
+    SvIOKp(SV*)
+    SvNOKp(SV*)
+    SvPOKp(SV*)
+</pre>
+<p class="POD_TEXT">
+These will tell you if you truly have an integer, double, or string pointer
+stored in your SV.  The &quot;p&quot; stands for private.
+</p>
+<p class="POD_TEXT">
+In general, though, it's best to use the <code>Sv*V</code> macros.
+</p>
+<h3 class="POD_HEAD2"><a name="Working_with_AVs">Working with AVs</a></h3>
+<pre class="POD_TEXT">
+There are two ways to create and load an AV.  The first method creates an
+empty AV:
+
+    AV*  newAV();
+</pre>
+<pre class="POD_TEXT">
+The second method both creates the AV and initially populates it with SVs:
+
+    AV*  av_make(I32 num, SV **ptr);
+</pre>
+<p class="POD_TEXT">
+The second argument points to an array containing <code>num</code> <code>SV*</code>'s.  Once the
+AV has been created, the SVs can be destroyed, if so desired.
+</p>
+<pre class="POD_TEXT">
+Once the AV has been created, the following operations are possible on AVs:
+
+    void  av_push(AV*, SV*);
+    SV*   av_pop(AV*);
+    SV*   av_shift(AV*);
+    void  av_unshift(AV*, I32 num);
+</pre>
+<p class="POD_TEXT">
+These should be familiar operations, with the exception of <code>av_unshift</code>.
+This routine adds <code>num</code> elements at the front of the array with the <code><a class="POD_LINK" href="perlfunc.html#undef">undef</a></code>
+value.  You must then use <code>av_store</code> (described below) to assign values
+to these new elements.
+</p>
+<pre class="POD_TEXT">
+Here are some other functions:
+
+    I32   av_len(AV*);
+    SV**  av_fetch(AV*, I32 key, I32 lval);
+    SV**  av_store(AV*, I32 key, SV* val);
+</pre>
+<pre class="POD_TEXT">
+The <code>av_len</code> function returns the highest index value in array (just
+like $#array in Perl).  If the array is empty, -1 is returned.  The
+<code>av_fetch</code> function returns the value at index <code>key</code>, but if <code>lval</code>
+is non-zero, then <code>av_fetch</code> will store an undef value at that index.
+The <code>av_store</code> function stores the value <code>val</code> at index <code>key</code>, and does
+not increment the reference count of <code>val</code>.  Thus the caller is responsible
+for taking care of that, and if <code>av_store</code> returns NULL, the caller will
+have to decrement the reference count to avoid a memory leak.  Note that
+<code>av_fetch</code> and <code>av_store</code> both return <code>SV**</code>'s, not <code>SV*</code>'s as their
+return value.
+
+    void  av_clear(AV*);
+    void  av_undef(AV*);
+    void  av_extend(AV*, I32 key);
+</pre>
+<p class="POD_TEXT">
+The <code>av_clear</code> function deletes all the elements in the AV* array, but
+does not actually delete the array itself.  The <code>av_undef</code> function will
+delete all the elements in the array plus the array itself.  The
+<code>av_extend</code> function extends the array so that it contains at least <code>key+1</code>
+elements.  If <code>key+1</code> is less than the currently allocated length of the array,
+then nothing is done.
+</p>
+<pre class="POD_TEXT">
+If you know the name of an array variable, you can get a pointer to its AV
+by using the following:
+
+    AV*  get_av(&quot;package::varname&quot;, FALSE);
+</pre>
+<p class="POD_TEXT">
+This returns NULL if the variable does not exist.
+</p>
+<p class="POD_TEXT">
+See the <a class="POD_LINK" href="#Understanding_the_Ma">Understanding the Magic of Tied Hashes and Arrays</a> entry elsewhere in this document for more
+information on how to use the array access functions on tied arrays.
+</p>
+<h3 class="POD_HEAD2"><a name="Working_with_HVs">Working with HVs</a></h3>
+<pre class="POD_TEXT">
+To create an HV, you use the following routine:
+
+    HV*  newHV();
+</pre>
+<pre class="POD_TEXT">
+Once the HV has been created, the following operations are possible on HVs:
+
+    SV**  hv_store(HV*, const char* key, U32 klen, SV* val, U32 hash);
+    SV**  hv_fetch(HV*, const char* key, U32 klen, I32 lval);
+</pre>
+<p class="POD_TEXT">
+The <code>klen</code> parameter is the length of the key being passed in (Note that
+you cannot pass 0 in as a value of <code>klen</code> to tell Perl to measure the
+length of the key).  The <code>val</code> argument contains the SV pointer to the
+scalar being stored, and <code>hash</code> is the precomputed hash value (zero if
+you want <code>hv_store</code> to calculate it for you).  The <code>lval</code> parameter
+indicates whether this fetch is actually a part of a store operation, in
+which case a new undefined value will be added to the HV with the supplied
+key and <code>hv_fetch</code> will return as if the value had already existed.
+</p>
+<p class="POD_TEXT">
+Remember that <code>hv_store</code> and <code>hv_fetch</code> return <code>SV**</code>'s and not just
+<code>SV*</code>.  To access the scalar value, you must first dereference the return
+value.  However, you should check to make sure that the return value is
+not NULL before dereferencing it.
+</p>
+<pre class="POD_TEXT">
+These two functions check if a hash table entry exists, and deletes it.
+
+    bool  hv_exists(HV*, const char* key, U32 klen);
+    SV*   hv_delete(HV*, const char* key, U32 klen, I32 flags);
+</pre>
+<p class="POD_TEXT">
+If <code>flags</code> does not include the <code>G_DISCARD</code> flag then <code>hv_delete</code> will
+create and return a mortal copy of the deleted value.
+</p>
+<pre class="POD_TEXT">
+And more miscellaneous functions:
+
+    void   hv_clear(HV*);
+    void   hv_undef(HV*);
+</pre>
+<p class="POD_TEXT">
+Like their AV counterparts, <code>hv_clear</code> deletes all the entries in the hash
+table but does not actually delete the hash table.  The <code>hv_undef</code> deletes
+both the entries and the hash table itself.
+</p>
+<pre class="POD_TEXT">
+Perl keeps the actual data in linked list of structures with a typedef of HE.
+These contain the actual key and value pointers (plus extra administrative
+overhead).  The key is a string pointer; the value is an <code>SV*</code>.  However,
+once you have an <code>HE*</code>, to get the actual key and value, use the routines
+specified below.
+
+    I32    hv_iterinit(HV*);
+            /* Prepares starting point to traverse hash table */
+    HE*    hv_iternext(HV*);
+            /* Get the next entry, and return a pointer to a
+               structure that has both the key and value */
+    char*  hv_iterkey(HE* entry, I32* retlen);
+            /* Get the key from an HE structure and also return
+               the length of the key string */
+    SV*    hv_iterval(HV*, HE* entry);
+            /* Return a SV pointer to the value of the HE
+               structure */
+    SV*    hv_iternextsv(HV*, char** key, I32* retlen);
+            /* This convenience routine combines hv_iternext,
+	       hv_iterkey, and hv_iterval.  The key and retlen
+	       arguments are return values for the key and its
+	       length.  The value is returned in the SV* argument */
+</pre>
+<pre class="POD_TEXT">
+If you know the name of a hash variable, you can get a pointer to its HV
+by using the following:
+
+    HV*  get_hv(&quot;package::varname&quot;, FALSE);
+</pre>
+<p class="POD_TEXT">
+This returns NULL if the variable does not exist.
+</p>
+<pre class="POD_TEXT">
+The hash algorithm is defined in the <code>PERL_HASH(hash, key, klen)</code> macro:
+
+    hash = 0;
+    while (klen--)
+	hash = (hash * 33) + *key++;
+    hash = hash + (hash &gt;&gt; 5);			/* after 5.6 */
+</pre>
+<p class="POD_TEXT">
+The last step was added in version 5.6 to improve distribution of
+lower bits in the resulting hash value.
+</p>
+<p class="POD_TEXT">
+See the <a class="POD_LINK" href="#Understanding_the_Ma">Understanding the Magic of Tied Hashes and Arrays</a> entry elsewhere in this document for more
+information on how to use the hash access functions on tied hashes.
+</p>
+<h3 class="POD_HEAD2"><a name="Hash_API_Extensions">Hash API Extensions</a></h3>
+<pre class="POD_TEXT">
+Beginning with version 5.004, the following functions are also supported:
+
+    HE*     hv_fetch_ent  (HV* tb, SV* key, I32 lval, U32 hash);
+    HE*     hv_store_ent  (HV* tb, SV* key, SV* val, U32 hash);
+
+    bool    hv_exists_ent (HV* tb, SV* key, U32 hash);
+    SV*     hv_delete_ent (HV* tb, SV* key, I32 flags, U32 hash);
+
+    SV*     hv_iterkeysv  (HE* entry);
+</pre>
+<p class="POD_TEXT">
+Note that these functions take <code>SV*</code> keys, which simplifies writing
+of extension code that deals with hash structures.  These functions
+also allow passing of <code>SV*</code> keys to <code><a class="POD_LINK" href="perlfunc.html#tie_VARIABLE_CLASSNA">tie</a></code> functions without forcing
+you to stringify the keys (unlike the previous set of functions).
+</p>
+<p class="POD_TEXT">
+They also return and accept whole hash entries (<code>HE*</code>), making their
+use more efficient (since the hash number for a particular string
+doesn't have to be recomputed every time).  See the <a class="POD_LINK" href="perlapi.html">perlapi</a> manpage for detailed
+descriptions.
+</p>
+<pre class="POD_TEXT">
+The following macros must always be used to access the contents of hash
+entries.  Note that the arguments to these macros must be simple
+variables, since they may get evaluated more than once.  See
+the <a class="POD_LINK" href="perlapi.html">perlapi</a> manpage for detailed descriptions of these macros.
+
+    HePV(HE* he, STRLEN len)
+    HeVAL(HE* he)
+    HeHASH(HE* he)
+    HeSVKEY(HE* he)
+    HeSVKEY_force(HE* he)
+    HeSVKEY_set(HE* he, SV* sv)
+</pre>
+<pre class="POD_TEXT">
+These two lower level macros are defined, but must only be used when
+dealing with keys that are not <code>SV*</code>s:
+
+    HeKEY(HE* he)
+    HeKLEN(HE* he)
+</pre>
+<p class="POD_TEXT">
+Note that both <code>hv_store</code> and <code>hv_store_ent</code> do not increment the
+reference count of the stored <code>val</code>, which is the caller's responsibility.
+If these functions return a NULL value, the caller will usually have to
+decrement the reference count of <code>val</code> to avoid a memory leak.
+</p>
+<h3 class="POD_HEAD2"><a name="References">References</a></h3>
+<p class="POD_TEXT">
+References are a special type of scalar that point to other data types
+(including references).
+</p>
+<pre class="POD_TEXT">
+To create a reference, use either of the following functions:
+
+    SV* newRV_inc((SV*) thing);
+    SV* newRV_noinc((SV*) thing);
+</pre>
+<p class="POD_TEXT">
+The <code>thing</code> argument can be any of an <code>SV*</code>, <code>AV*</code>, or <code>HV*</code>.  The
+functions are identical except that <code>newRV_inc</code> increments the reference
+count of the <code>thing</code>, while <code>newRV_noinc</code> does not.  For historical
+reasons, <code>newRV</code> is a synonym for <code>newRV_inc</code>.
+</p>
+<pre class="POD_TEXT">
+Once you have a reference, you can use the following macro to dereference
+the reference:
+
+    SvRV(SV*)
+</pre>
+<p class="POD_TEXT">
+then call the appropriate routines, casting the returned <code>SV*</code> to either an
+<code>AV*</code> or <code>HV*</code>, if required.
+</p>
+<pre class="POD_TEXT">
+To determine if an SV is a reference, you can use the following macro:
+
+    SvROK(SV*)
+</pre>
+<pre class="POD_TEXT">
+To discover what type of value the reference refers to, use the following
+macro and then check the return value.
+
+    SvTYPE(SvRV(SV*))
+</pre>
+<pre class="POD_TEXT">
+The most useful types that will be returned are:
+
+    SVt_IV    Scalar
+    SVt_NV    Scalar
+    SVt_PV    Scalar
+    SVt_RV    Scalar
+    SVt_PVAV  Array
+    SVt_PVHV  Hash
+    SVt_PVCV  Code
+    SVt_PVGV  Glob (possible a file handle)
+    SVt_PVMG  Blessed or Magical Scalar
+
+    See the sv.h header file for more details.
+</pre>
+<h3 class="POD_HEAD2"><a name="Blessed_References_a">Blessed References and Class Objects</a></h3>
+<p class="POD_TEXT">
+References are also used to support object-oriented programming.  In the
+OO lexicon, an object is simply a reference that has been blessed into a
+package (or class).  Once blessed, the programmer may now use the reference
+to access the various methods in the class.
+</p>
+<pre class="POD_TEXT">
+A reference can be blessed into a package with the following function:
+
+    SV* sv_bless(SV* sv, HV* stash);
+</pre>
+<p class="POD_TEXT">
+The <code>sv</code> argument must be a reference.  The <code>stash</code> argument specifies
+which class the reference will belong to.  See
+the <a class="POD_LINK" href="#Stashes_and_Globs">Stashes and Globs</a> entry elsewhere in this document for information on converting class names into stashes.
+</p>
+<p class="POD_TEXT">
+/* Still under construction */
+</p>
+<pre class="POD_TEXT">
+Upgrades rv to reference if not already one.  Creates new SV for rv to
+point to.  If <code>classname</code> is non-null, the SV is blessed into the specified
+class.  SV is returned.
+
+	SV* newSVrv(SV* rv, const char* classname);
+</pre>
+<pre class="POD_TEXT">
+Copies integer or double into an SV whose reference is <code>rv</code>.  SV is blessed
+if <code>classname</code> is non-null.
+
+	SV* sv_setref_iv(SV* rv, const char* classname, IV iv);
+	SV* sv_setref_nv(SV* rv, const char* classname, NV iv);
+</pre>
+<pre class="POD_TEXT">
+Copies the pointer value (<i>the address, not the string!</i>) into an SV whose
+reference is rv.  SV is blessed if <code>classname</code> is non-null.
+
+	SV* sv_setref_pv(SV* rv, const char* classname, PV iv);
+</pre>
+<pre class="POD_TEXT">
+Copies string into an SV whose reference is <code>rv</code>.  Set length to 0 to let
+Perl calculate the string length.  SV is blessed if <code>classname</code> is non-null.
+
+	SV* sv_setref_pvn(SV* rv, const char* classname, PV iv, STRLEN length);
+</pre>
+<pre class="POD_TEXT">
+Tests whether the SV is blessed into the specified class.  It does not
+check inheritance relationships.
+
+	int  sv_isa(SV* sv, const char* name);
+</pre>
+<pre class="POD_TEXT">
+Tests whether the SV is a reference to a blessed object.
+
+	int  sv_isobject(SV* sv);
+</pre>
+<pre class="POD_TEXT">
+Tests whether the SV is derived from the specified class. SV can be either
+a reference to a blessed object or a string containing a class name. This
+is the function implementing the <code>UNIVERSAL::isa</code> functionality.
+
+	bool sv_derived_from(SV* sv, const char* name);
+</pre>
+<pre class="POD_TEXT">
+To check if you've got an object derived from a specific class you have 
+to write:
+
+	if (sv_isobject(sv) &amp;&amp; sv_derived_from(sv, class)) { ... }
+</pre>
+<h3 class="POD_HEAD2"><a name="Creating_New_Variabl">Creating New Variables</a></h3>
+<pre class="POD_TEXT">
+To create a new Perl variable with an undef value which can be accessed from
+your Perl script, use the following routines, depending on the variable type.
+
+    SV*  get_sv(&quot;package::varname&quot;, TRUE);
+    AV*  get_av(&quot;package::varname&quot;, TRUE);
+    HV*  get_hv(&quot;package::varname&quot;, TRUE);
+</pre>
+<p class="POD_TEXT">
+Notice the use of TRUE as the second parameter.  The new variable can now
+be set, using the routines appropriate to the data type.
+</p>
+<pre class="POD_TEXT">
+There are additional macros whose values may be bitwise OR'ed with the
+<code>TRUE</code> argument to enable certain extra features.  Those bits are:
+
+    GV_ADDMULTI	Marks the variable as multiply defined, thus preventing the
+		&quot;Name &lt;varname&gt; used only once: possible typo&quot; warning.
+    GV_ADDWARN	Issues the warning &quot;Had to create &lt;varname&gt; unexpectedly&quot; if
+		the variable did not exist before the function was called.
+</pre>
+<p class="POD_TEXT">
+If you do not specify a package name, the variable is created in the current
+package.
+</p>
+<h3 class="POD_HEAD2"><a name="Reference_Counts_and">Reference Counts and Mortality</a></h3>
+<p class="POD_TEXT">
+Perl uses an reference count-driven garbage collection mechanism. SVs,
+AVs, or HVs (xV for short in the following) start their life with a
+reference count of 1.  If the reference count of an xV ever drops to 0,
+then it will be destroyed and its memory made available for reuse.
+</p>
+<pre class="POD_TEXT">
+This normally doesn't happen at the Perl level unless a variable is
+undef'ed or the last variable holding a reference to it is changed or
+overwritten.  At the internal level, however, reference counts can be
+manipulated with the following macros:
+
+    int SvREFCNT(SV* sv);
+    SV* SvREFCNT_inc(SV* sv);
+    void SvREFCNT_dec(SV* sv);
+</pre>
+<p class="POD_TEXT">
+However, there is one other function which manipulates the reference
+count of its argument.  The <code>newRV_inc</code> function, you will recall,
+creates a reference to the specified argument.  As a side effect,
+it increments the argument's reference count.  If this is not what
+you want, use <code>newRV_noinc</code> instead.
+</p>
+<p class="POD_TEXT">
+For example, imagine you want to return a reference from an XSUB function.
+Inside the XSUB routine, you create an SV which initially has a reference
+count of one.  Then you call <code>newRV_inc</code>, passing it the just-created SV.
+This returns the reference as a new SV, but the reference count of the
+SV you passed to <code>newRV_inc</code> has been incremented to two.  Now you
+return the reference from the XSUB routine and forget about the SV.
+But Perl hasn't!  Whenever the returned reference is destroyed, the
+reference count of the original SV is decreased to one and nothing happens.
+The SV will hang around without any way to access it until Perl itself
+terminates.  This is a memory leak.
+</p>
+<p class="POD_TEXT">
+The correct procedure, then, is to use <code>newRV_noinc</code> instead of
+<code>newRV_inc</code>.  Then, if and when the last reference is destroyed,
+the reference count of the SV will go to zero and it will be destroyed,
+stopping any memory leak.
+</p>
+<p class="POD_TEXT">
+There are some convenience functions available that can help with the
+destruction of xVs.  These functions introduce the concept of &quot;mortality&quot;.
+An xV that is mortal has had its reference count marked to be decremented,
+but not actually decremented, until &quot;a short time later&quot;.  Generally the
+term &quot;short time later&quot; means a single Perl statement, such as a call to
+an XSUB function.  The actual determinant for when mortal xVs have their
+reference count decremented depends on two macros, SAVETMPS and FREETMPS.
+See the <a class="POD_LINK" href="perlcall.html">perlcall</a> manpage and the <a class="POD_LINK" href="perlxs.html">perlxs</a> manpage for more details on these macros.
+</p>
+<p class="POD_TEXT">
+&quot;Mortalization&quot; then is at its simplest a deferred <code>SvREFCNT_dec</code>.
+However, if you mortalize a variable twice, the reference count will
+later be decremented twice.
+</p>
+<p class="POD_TEXT">
+You should be careful about creating mortal variables.  Strange things
+can happen if you make the same value mortal within multiple contexts,
+or if you make a variable mortal multiple times.
+</p>
+<pre class="POD_TEXT">
+To create a mortal variable, use the functions:
+
+    SV*  sv_newmortal()
+    SV*  sv_2mortal(SV*)
+    SV*  sv_mortalcopy(SV*)
+</pre>
+<p class="POD_TEXT">
+The first call creates a mortal SV, the second converts an existing
+SV to a mortal SV (and thus defers a call to <code>SvREFCNT_dec</code>), and the
+third creates a mortal copy of an existing SV.
+</p>
+<p class="POD_TEXT">
+The mortal routines are not just for SVs -- AVs and HVs can be
+made mortal by passing their address (type-casted to <code>SV*</code>) to the
+<code>sv_2mortal</code> or <code>sv_mortalcopy</code> routines.
+</p>
+<h3 class="POD_HEAD2"><a name="Stashes_and_Globs">Stashes and Globs</a></h3>
+<pre class="POD_TEXT">
+A &quot;stash&quot; is a hash that contains all of the different objects that
+are contained within a package.  Each key of the stash is a symbol
+name (shared by all the different types of objects that have the same
+name), and each value in the hash table is a GV (Glob Value).  This GV
+in turn contains references to the various objects of that name,
+including (but not limited to) the following:
+
+    Scalar Value
+    Array Value
+    Hash Value
+    I/O Handle
+    Format
+    Subroutine
+</pre>
+<p class="POD_TEXT">
+There is a single stash called &quot;PL_defstash&quot; that holds the items that exist
+in the &quot;main&quot; package.  To get at the items in other packages, append the
+string &quot;::&quot; to the package name.  The items in the &quot;Foo&quot; package are in
+the stash &quot;Foo::&quot; in PL_defstash.  The items in the &quot;Bar::Baz&quot; package are
+in the stash &quot;Baz::&quot; in &quot;Bar::&quot;'s stash.
+</p>
+<pre class="POD_TEXT">
+To get the stash pointer for a particular package, use the function:
+
+    HV*  gv_stashpv(const char* name, I32 create)
+    HV*  gv_stashsv(SV*, I32 create)
+</pre>
+<p class="POD_TEXT">
+The first function takes a literal string, the second uses the string stored
+in the SV.  Remember that a stash is just a hash table, so you get back an
+<code>HV*</code>.  The <code>create</code> flag will create a new package if it is set.
+</p>
+<p class="POD_TEXT">
+The name that <code>gv_stash*v</code> wants is the name of the package whose symbol table
+you want.  The default package is called <code>main</code>.  If you have multiply nested
+packages, pass their names to <code>gv_stash*v</code>, separated by <code>::</code> as in the Perl
+language itself.
+</p>
+<pre class="POD_TEXT">
+Alternately, if you have an SV that is a blessed reference, you can find
+out the stash pointer by using:
+
+    HV*  SvSTASH(SvRV(SV*));
+</pre>
+<pre class="POD_TEXT">
+then use the following to get the package name itself:
+
+    char*  HvNAME(HV* stash);
+</pre>
+<pre class="POD_TEXT">
+If you need to bless or re-bless an object you can use the following
+function:
+
+    SV*  sv_bless(SV*, HV* stash)
+</pre>
+<p class="POD_TEXT">
+where the first argument, an <code>SV*</code>, must be a reference, and the second
+argument is a stash.  The returned <code>SV*</code> can now be used in the same way
+as any other SV.
+</p>
+<p class="POD_TEXT">
+For more information on references and blessings, consult the <a class="POD_LINK" href="perlref.html">perlref</a> manpage.
+</p>
+<h3 class="POD_HEAD2"><a name="Double_Typed_SVs">Double-Typed SVs</a></h3>
+<p class="POD_TEXT">
+Scalar variables normally contain only one type of value, an integer,
+double, pointer, or reference.  Perl will automatically convert the
+actual scalar data from the stored type into the requested type.
+</p>
+<p class="POD_TEXT">
+Some scalar variables contain more than one type of scalar data.  For
+example, the variable <code><a class="POD_LINK" href="perlvar.html#_29">$!</a></code> contains either the numeric value of <code>errno</code>
+or its string equivalent from either <code>strerror</code> or <code>sys_errlist[]</code>.
+</p>
+<pre class="POD_TEXT">
+To force multiple data values into an SV, you must do two things: use the
+<code>sv_set*v</code> routines to add the additional scalar type, then set a flag
+so that Perl will believe it contains more than one type of data.  The
+four macros to set the flags are:
+
+	SvIOK_on
+	SvNOK_on
+	SvPOK_on
+	SvROK_on
+</pre>
+<p class="POD_TEXT">
+The particular macro you must use depends on which <code>sv_set*v</code> routine
+you called first.  This is because every <code>sv_set*v</code> routine turns on
+only the bit for the particular type of data being set, and turns off
+all the rest.
+</p>
+<pre class="POD_TEXT">
+For example, to create a new Perl variable called &quot;dberror&quot; that contains
+both the numeric and descriptive string error values, you could use the
+following code:
+
+    extern int  dberror;
+    extern char *dberror_list;
+
+    SV* sv = get_sv(&quot;dberror&quot;, TRUE);
+    sv_setiv(sv, (IV) dberror);
+    sv_setpv(sv, dberror_list[dberror]);
+    SvIOK_on(sv);
+</pre>
+<p class="POD_TEXT">
+If the order of <code>sv_setiv</code> and <code>sv_setpv</code> had been reversed, then the
+macro <code>SvPOK_on</code> would need to be called instead of <code>SvIOK_on</code>.
+</p>
+<h3 class="POD_HEAD2"><a name="Magic_Variables">Magic Variables</a></h3>
+<p class="POD_TEXT">
+[This section still under construction.  Ignore everything here.  Post no
+bills.  Everything not permitted is forbidden.]
+</p>
+<pre class="POD_TEXT">
+Any SV may be magical, that is, it has special features that a normal
+SV does not have.  These features are stored in the SV structure in a
+linked list of <code>struct magic</code>'s, typedef'ed to <code>MAGIC</code>.
+
+    struct magic {
+        MAGIC*      mg_moremagic;
+        MGVTBL*     mg_virtual;
+        U16         mg_private;
+        char        mg_type;
+        U8          mg_flags;
+        SV*         mg_obj;
+        char*       mg_ptr;
+        I32         mg_len;
+    };
+</pre>
+<p class="POD_TEXT">
+Note this is current as of patchlevel 0, and could change at any time.
+</p>
+<h3 class="POD_HEAD2"><a name="Assigning_Magic">Assigning Magic</a></h3>
+<pre class="POD_TEXT">
+Perl adds magic to an SV using the sv_magic function:
+
+    void sv_magic(SV* sv, SV* obj, int how, const char* name, I32 namlen);
+</pre>
+<p class="POD_TEXT">
+The <code>sv</code> argument is a pointer to the SV that is to acquire a new magical
+feature.
+</p>
+<p class="POD_TEXT">
+If <code>sv</code> is not already magical, Perl uses the <code>SvUPGRADE</code> macro to
+set the <code>SVt_PVMG</code> flag for the <code>sv</code>.  Perl then continues by adding
+it to the beginning of the linked list of magical features.  Any prior
+entry of the same type of magic is deleted.  Note that this can be
+overridden, and multiple instances of the same type of magic can be
+associated with an SV.
+</p>
+<p class="POD_TEXT">
+The <code>name</code> and <code>namlen</code> arguments are used to associate a string with
+the magic, typically the name of a variable. <code>namlen</code> is stored in the
+<code>mg_len</code> field and if <code>name</code> is non-null and <code>namlen</code> &gt;= 0 a malloc'd
+copy of the name is stored in <code>mg_ptr</code> field.
+</p>
+<p class="POD_TEXT">
+The sv_magic function uses <code>how</code> to determine which, if any, predefined
+&quot;Magic Virtual Table&quot; should be assigned to the <code>mg_virtual</code> field.
+See the &quot;Magic Virtual Table&quot; section below.  The <code>how</code> argument is also
+stored in the <code>mg_type</code> field.
+</p>
+<p class="POD_TEXT">
+The <code>obj</code> argument is stored in the <code>mg_obj</code> field of the <code>MAGIC</code>
+structure.  If it is not the same as the <code>sv</code> argument, the reference
+count of the <code>obj</code> object is incremented.  If it is the same, or if
+the <code>how</code> argument is &quot;#&quot;, or if it is a NULL pointer, then <code>obj</code> is
+merely stored, without the reference count being incremented.
+</p>
+<pre class="POD_TEXT">
+There is also a function to add magic to an <code>HV</code>:
+
+    void hv_magic(HV *hv, GV *gv, int how);
+</pre>
+<p class="POD_TEXT">
+This simply calls <code>sv_magic</code> and coerces the <code>gv</code> argument into an <code>SV</code>.
+</p>
+<pre class="POD_TEXT">
+To remove the magic from an SV, call the function sv_unmagic:
+
+    void sv_unmagic(SV *sv, int type);
+</pre>
+<p class="POD_TEXT">
+The <code>type</code> argument should be equal to the <code>how</code> value when the <code>SV</code>
+was initially made magical.
+</p>
+<h3 class="POD_HEAD2"><a name="Magic_Virtual_Tables">Magic Virtual Tables</a></h3>
+<p class="POD_TEXT">
+The <code>mg_virtual</code> field in the <code>MAGIC</code> structure is a pointer to a
+<code>MGVTBL</code>, which is a structure of function pointers and stands for
+&quot;Magic Virtual Table&quot; to handle the various operations that might be
+applied to that variable.
+</p>
+<pre class="POD_TEXT">
+The <code>MGVTBL</code> has five pointers to the following routine types:
+
+    int  (*svt_get)(SV* sv, MAGIC* mg);
+    int  (*svt_set)(SV* sv, MAGIC* mg);
+    U32  (*svt_len)(SV* sv, MAGIC* mg);
+    int  (*svt_clear)(SV* sv, MAGIC* mg);
+    int  (*svt_free)(SV* sv, MAGIC* mg);
+</pre>
+<pre class="POD_TEXT">
+This MGVTBL structure is set at compile-time in <code>perl.h</code> and there are
+currently 19 types (or 21 with overloading turned on).  These different
+structures contain pointers to various routines that perform additional
+actions depending on which function is being called.
+
+    Function pointer    Action taken
+    ----------------    ------------
+    svt_get             Do something after the value of the SV is retrieved.
+    svt_set             Do something after the SV is assigned a value.
+    svt_len             Report on the SV's length.
+    svt_clear		Clear something the SV represents.
+    svt_free            Free any extra storage associated with the SV.
+</pre>
+<pre class="POD_TEXT">
+For instance, the MGVTBL structure called <code>vtbl_sv</code> (which corresponds
+to an <code>mg_type</code> of '\0') contains:
+
+    { magic_get, magic_set, magic_len, 0, 0 }
+</pre>
+<p class="POD_TEXT">
+Thus, when an SV is determined to be magical and of type '\0', if a get
+operation is being performed, the routine <code>magic_get</code> is called.  All
+the various routines for the various magical types begin with <code>magic_</code>.
+NOTE: the magic routines are not considered part of the Perl API, and may
+not be exported by the Perl library.
+</p>
+<pre class="POD_TEXT">
+The current kinds of Magic Virtual Tables are:
+
+    mg_type  MGVTBL              Type of magic
+    -------  ------              ----------------------------
+    \0       vtbl_sv             Special scalar variable
+    A        vtbl_amagic         %OVERLOAD hash
+    a        vtbl_amagicelem     %OVERLOAD hash element
+    c        (none)              Holds overload table (AMT) on stash
+    B        vtbl_bm             Boyer-Moore (fast string search)
+    D        vtbl_regdata        Regex match position data (@+ and @- vars)
+    d        vtbl_regdatum       Regex match position data element
+    E        vtbl_env            %ENV hash
+    e        vtbl_envelem        %ENV hash element
+    f        vtbl_fm             Formline ('compiled' format)
+    g        vtbl_mglob          m//g target / study()ed string
+    I        vtbl_isa            @ISA array
+    i        vtbl_isaelem        @ISA array element
+    k        vtbl_nkeys          scalar(keys()) lvalue
+    L        (none)              Debugger %_&lt;filename 
+    l        vtbl_dbline         Debugger %_&lt;filename element
+    o        vtbl_collxfrm       Locale transformation
+    P        vtbl_pack           Tied array or hash
+    p        vtbl_packelem       Tied array or hash element
+    q        vtbl_packelem       Tied scalar or handle
+    S        vtbl_sig            %SIG hash
+    s        vtbl_sigelem        %SIG hash element
+    t        vtbl_taint          Taintedness
+    U        vtbl_uvar           Available for use by extensions
+    v        vtbl_vec            vec() lvalue
+    x        vtbl_substr         substr() lvalue
+    y        vtbl_defelem        Shadow &quot;foreach&quot; iterator variable /
+                                  smart parameter vivification
+    *        vtbl_glob           GV (typeglob)
+    #        vtbl_arylen         Array length ($#ary)
+    .        vtbl_pos            pos() lvalue
+    ~        (none)              Available for use by extensions
+</pre>
+<p class="POD_TEXT">
+When an uppercase and lowercase letter both exist in the table, then the
+uppercase letter is used to represent some kind of composite type (a list
+or a hash), and the lowercase letter is used to represent an element of
+that composite type.
+</p>
+<p class="POD_TEXT">
+The '~' and 'U' magic types are defined specifically for use by
+extensions and will not be used by perl itself.  Extensions can use
+'~' magic to 'attach' private information to variables (typically
+objects).  This is especially useful because there is no way for
+normal perl code to corrupt this private information (unlike using
+extra elements of a hash object).
+</p>
+<pre class="POD_TEXT">
+Similarly, 'U' magic can be used much like tie() to call a C function
+any time a scalar's value is used or changed.  The <code>MAGIC</code>'s
+<code>mg_ptr</code> field points to a <code>ufuncs</code> structure:
+
+    struct ufuncs {
+        I32 (*uf_val)(IV, SV*);
+        I32 (*uf_set)(IV, SV*);
+        IV uf_index;
+    };
+</pre>
+<pre class="POD_TEXT">
+When the SV is read from or written to, the <code>uf_val</code> or <code>uf_set</code>
+function will be called with <code>uf_index</code> as the first arg and a
+pointer to the SV as the second.  A simple example of how to add 'U'
+magic is shown below.  Note that the ufuncs structure is copied by
+sv_magic, so you can safely allocate it on the stack.
+
+    void
+    Umagic(sv)
+        SV *sv;
+    PREINIT:
+        struct ufuncs uf;
+    CODE:
+        uf.uf_val   = &amp;my_get_fn;
+        uf.uf_set   = &amp;my_set_fn;
+        uf.uf_index = 0;
+        sv_magic(sv, 0, 'U', (char*)&amp;uf, sizeof(uf));
+</pre>
+<p class="POD_TEXT">
+Note that because multiple extensions may be using '~' or 'U' magic,
+it is important for extensions to take extra care to avoid conflict.
+Typically only using the magic on objects blessed into the same class
+as the extension is sufficient.  For '~' magic, it may also be
+appropriate to add an I32 'signature' at the top of the private data
+area and check that.
+</p>
+<p class="POD_TEXT">
+Also note that the <code>sv_set*()</code> and <code>sv_cat*()</code> functions described
+earlier do <b>not</b> invoke 'set' magic on their targets.  This must
+be done by the user either by calling the <code>SvSETMAGIC()</code> macro after
+calling these functions, or by using one of the <code>sv_set*_mg()</code> or
+<code>sv_cat*_mg()</code> functions.  Similarly, generic C code must call the
+<code>SvGETMAGIC()</code> macro to invoke any 'get' magic if they use an SV
+obtained from external sources in functions that don't handle magic.
+See the <a class="POD_LINK" href="perlapi.html">perlapi</a> manpage for a description of these functions.
+For example, calls to the <code>sv_cat*()</code> functions typically need to be
+followed by <code>SvSETMAGIC()</code>, but they don't need a prior <code>SvGETMAGIC()</code>
+since their implementation handles 'get' magic.
+</p>
+<h3 class="POD_HEAD2"><a name="Finding_Magic">Finding Magic</a></h3>
+<pre class="POD_VERBATIM">
+    MAGIC* mg_find(SV*, int type); /* Finds the magic pointer of that type */
+</pre>
+<pre class="POD_TEXT">
+This routine returns a pointer to the <code>MAGIC</code> structure stored in the SV.
+If the SV does not have that magical feature, <code>NULL</code> is returned.  Also,
+if the SV is not of type SVt_PVMG, Perl may core dump.
+
+    int mg_copy(SV* sv, SV* nsv, const char* key, STRLEN klen);
+</pre>
+<p class="POD_TEXT">
+This routine checks to see what types of magic <code>sv</code> has.  If the mg_type
+field is an uppercase letter, then the mg_obj is copied to <code>nsv</code>, but
+the mg_type field is changed to be the lowercase letter.
+</p>
+<h3 class="POD_HEAD2"><a name="Understanding_the_Ma">Understanding the Magic of Tied Hashes and Arrays</a></h3>
+<p class="POD_TEXT">
+Tied hashes and arrays are magical beasts of the 'P' magic type.
+</p>
+<p class="POD_TEXT">
+WARNING: As of the 5.004 release, proper usage of the array and hash
+access functions requires understanding a few caveats.  Some
+of these caveats are actually considered bugs in the API, to be fixed
+in later releases, and are bracketed with [MAYCHANGE] below. If
+you find yourself actually applying such information in this section, be
+aware that the behavior may change in the future, umm, without warning.
+</p>
+<pre class="POD_TEXT">
+The perl tie function associates a variable with an object that implements
+the various GET, SET etc methods.  To perform the equivalent of the perl
+tie function from an XSUB, you must mimic this behaviour.  The code below
+carries out the necessary steps - firstly it creates a new hash, and then
+creates a second hash which it blesses into the class which will implement
+the tie methods. Lastly it ties the two hashes together, and returns a
+reference to the new tied hash.  Note that the code below does NOT call the
+TIEHASH method in the MyTie class -
+see the <a class="POD_LINK" href="#Calling_Perl_Routine">Calling Perl Routines from within C Programs</a> entry elsewhere in this document for details on how
+to do this.
+
+    SV*
+    mytie()
+    PREINIT:
+        HV *hash;
+        HV *stash;
+        SV *tie;
+    CODE:
+        hash = newHV();
+        tie = newRV_noinc((SV*)newHV());
+        stash = gv_stashpv(&quot;MyTie&quot;, TRUE);
+        sv_bless(tie, stash);
+        hv_magic(hash, tie, 'P');
+        RETVAL = newRV_noinc(hash);
+    OUTPUT:
+        RETVAL
+</pre>
+<p class="POD_TEXT">
+The <code>av_store</code> function, when given a tied array argument, merely
+copies the magic of the array onto the value to be &quot;stored&quot;, using
+<code>mg_copy</code>.  It may also return NULL, indicating that the value did not
+actually need to be stored in the array.  [MAYCHANGE] After a call to
+<code>av_store</code> on a tied array, the caller will usually need to call
+<code>mg_set(val)</code> to actually invoke the perl level &quot;STORE&quot; method on the
+TIEARRAY object.  If <code>av_store</code> did return NULL, a call to
+<code>SvREFCNT_dec(val)</code> will also be usually necessary to avoid a memory
+leak. [/MAYCHANGE]
+</p>
+<p class="POD_TEXT">
+The previous paragraph is applicable verbatim to tied hash access using the
+<code>hv_store</code> and <code>hv_store_ent</code> functions as well.
+</p>
+<p class="POD_TEXT">
+<code>av_fetch</code> and the corresponding hash functions <code>hv_fetch</code> and
+<code>hv_fetch_ent</code> actually return an undefined mortal value whose magic
+has been initialized using <code>mg_copy</code>.  Note the value so returned does not
+need to be deallocated, as it is already mortal.  [MAYCHANGE] But you will
+need to call <code>mg_get()</code> on the returned value in order to actually invoke
+the perl level &quot;FETCH&quot; method on the underlying TIE object.  Similarly,
+you may also call <code>mg_set()</code> on the return value after possibly assigning
+a suitable value to it using <code>sv_setsv</code>,  which will invoke the &quot;STORE&quot;
+method on the TIE object. [/MAYCHANGE]
+</p>
+<p class="POD_TEXT">
+[MAYCHANGE]
+In other words, the array or hash fetch/store functions don't really
+fetch and store actual values in the case of tied arrays and hashes.  They
+merely call <code>mg_copy</code> to attach magic to the values that were meant to be
+&quot;stored&quot; or &quot;fetched&quot;.  Later calls to <code>mg_get</code> and <code>mg_set</code> actually
+do the job of invoking the TIE methods on the underlying objects.  Thus
+the magic mechanism currently implements a kind of lazy access to arrays
+and hashes.
+</p>
+<p class="POD_TEXT">
+Currently (as of perl version 5.004), use of the hash and array access
+functions requires the user to be aware of whether they are operating on
+&quot;normal&quot; hashes and arrays, or on their tied variants.  The API may be
+changed to provide more transparent access to both tied and normal data
+types in future versions.
+[/MAYCHANGE]
+</p>
+<p class="POD_TEXT">
+You would do well to understand that the TIEARRAY and TIEHASH interfaces
+are mere sugar to invoke some perl method calls while using the uniform hash
+and array syntax.  The use of this sugar imposes some overhead (typically
+about two to four extra opcodes per FETCH/STORE operation, in addition to
+the creation of all the mortal variables required to invoke the methods).
+This overhead will be comparatively small if the TIE methods are themselves
+substantial, but if they are only a few statements long, the overhead
+will not be insignificant.
+</p>
+<h3 class="POD_HEAD2"><a name="Localizing_changes">Localizing changes</a></h3>
+<pre class="POD_TEXT">
+Perl has a very handy construction
+
+  {
+    local $var = 2;
+    ...
+  }
+</pre>
+<pre class="POD_TEXT">
+This construction is <i>approximately</i> equivalent to
+
+  {
+    my $oldvar = $var;
+    $var = 2;
+    ...
+    $var = $oldvar;
+  }
+</pre>
+<p class="POD_TEXT">
+The biggest difference is that the first construction would
+reinstate the initial value of $var, irrespective of how control exits
+the block: <code><a class="POD_LINK" href="perlfunc.html#goto_EXPR">goto</a></code>, <code><a class="POD_LINK" href="perlfunc.html#return">return</a></code>, <code><a class="POD_LINK" href="perlfunc.html#die_LIST">die</a></code>/<code><a class="POD_LINK" href="perlfunc.html#eval_EXPR">eval</a></code> etc. It is a little bit
+more efficient as well.
+</p>
+<p class="POD_TEXT">
+There is a way to achieve a similar task from C via Perl API: create a
+<i>pseudo-block</i>, and arrange for some changes to be automatically
+undone at the end of it, either explicit, or via a non-local exit (via
+die()). A <i>block</i>-like construct is created by a pair of
+<code>ENTER</code>/<code>LEAVE</code> macros (see the section on <a class="POD_LINK" href="perlcall.html#Returning_a_Scalar">Returning a Scalar</a> in the <a class="POD_LINK" href="perlcall.html">perlcall</a> manpage).
+Such a construct may be created specially for some important localized
+task, or an existing one (like boundaries of enclosing Perl
+subroutine/block, or an existing pair for freeing TMPs) may be
+used. (In the second case the overhead of additional localization must
+be almost negligible.) Note that any XSUB is automatically enclosed in
+an <code>ENTER</code>/<code>LEAVE</code> pair.
+</p>
+<p class="POD_TEXT">
+Inside such a <i>pseudo-block</i> the following service is available:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="SAVEINT_int_i_"><code>SAVEINT(int i)</code></a>
+<dt><a name="SAVEIV_IV_i_"><code>SAVEIV(IV i)</code></a>
+<dt><a name="SAVEI32_I32_i_"><code>SAVEI32(I32 i)</code></a>
+<dt><a name="SAVELONG_long_i_"><code>SAVELONG(long i)</code></a>
+<dd>
+These macros arrange things to restore the value of integer variable
+<code>i</code> at the end of enclosing <i>pseudo-block</i>.
+<dt class="POD_ITEM"><a name="SAVESPTR_s_"><code>SAVESPTR(s)</code></a>
+<dt><a name="SAVEPPTR_p_"><code>SAVEPPTR(p)</code></a>
+<dd>
+These macros arrange things to restore the value of pointers <code>s</code> and
+<code>p</code>. <code>s</code> must be a pointer of a type which survives conversion to
+<code>SV*</code> and back, <code>p</code> should be able to survive conversion to <code>char*</code>
+and back.
+<dt class="POD_ITEM"><a name="SAVEFREESV_SV_sv_"><code>SAVEFREESV(SV *sv)</code></a>
+<dd>
+The refcount of <code>sv</code> would be decremented at the end of
+<i>pseudo-block</i>. This is similar to <code>sv_2mortal</code>, which should (?) be
+used instead.
+<dt class="POD_ITEM"><a name="SAVEFREEOP_OP_op_"><code>SAVEFREEOP(OP *op)</code></a>
+<dd>
+The <code>OP *</code> is op_free()ed at the end of <i>pseudo-block</i>.
+<dt class="POD_ITEM"><a name="SAVEFREEPV_p_"><code>SAVEFREEPV(p)</code></a>
+<dd>
+The chunk of memory which is pointed to by <code>p</code> is Safefree()ed at the
+end of <i>pseudo-block</i>.
+<dt class="POD_ITEM"><a name="SAVECLEARSV_SV_sv_"><code>SAVECLEARSV(SV *sv)</code></a>
+<dd>
+Clears a slot in the current scratchpad which corresponds to <code>sv</code> at
+the end of <i>pseudo-block</i>.
+<dt class="POD_ITEM"><a name="SAVEDELETE_HV_hv_cha"><code>SAVEDELETE(HV *hv, char *key, I32 length)</code></a>
+<dd>
+The key <code>key</code> of <code>hv</code> is deleted at the end of <i>pseudo-block</i>. The
+string pointed to by <code>key</code> is Safefree()ed.  If one has a <i>key</i> in
+short-lived storage, the corresponding string may be reallocated like
+this:
+<pre class="POD_VERBATIM">
+  SAVEDELETE(PL_defstash, savepv(tmpbuf), strlen(tmpbuf));
+</pre>
+<dt class="POD_ITEM"><a name="SAVEDESTRUCTOR_DESTR"><code>SAVEDESTRUCTOR(DESTRUCTORFUNC_NOCONTEXT_t f, void *p)</code></a>
+<dd>
+At the end of <i>pseudo-block</i> the function <code>f</code> is called with the
+only argument <code>p</code>.
+<dt class="POD_ITEM"><a name="SAVEDESTRUCTOR_X_DES"><code>SAVEDESTRUCTOR_X(DESTRUCTORFUNC_t f, void *p)</code></a>
+<dd>
+At the end of <i>pseudo-block</i> the function <code>f</code> is called with the
+implicit context argument (if any), and <code>p</code>.
+<dt class="POD_ITEM"><a name="SAVESTACK_POS_"><code>SAVESTACK_POS()</code></a>
+<dd>
+The current offset on the Perl internal stack (cf. <code>SP</code>) is restored
+at the end of <i>pseudo-block</i>.
+</dl>
+<p class="POD_TEXT">
+The following API list contains functions, thus one needs to
+provide pointers to the modifiable data explicitly (either C pointers,
+or Perlish <code>GV *</code>s).  Where the above macros take <code><a class="POD_LINK" href="perlfunc.html#int">int</a></code>, a similar 
+function takes <code>int *</code>.
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="SV_save_scalar_GV_gv"><code>SV* save_scalar(GV *gv)</code></a>
+<dd>
+Equivalent to Perl code <code>local $gv</code>.
+<dt class="POD_ITEM"><a name="AV_save_ary_GV_gv_"><code>AV* save_ary(GV *gv)</code></a>
+<dt><a name="HV_save_hash_GV_gv_"><code>HV* save_hash(GV *gv)</code></a>
+<dd>
+Similar to <code>save_scalar</code>, but localize <code>@gv</code> and <code>%gv</code>.
+<dt class="POD_ITEM"><a name="void_save_item_SV_it"><code>void save_item(SV *item)</code></a>
+<dd>
+Duplicates the current value of <code>SV</code>, on the exit from the current
+<code>ENTER</code>/<code>LEAVE</code> <i>pseudo-block</i> will restore the value of <code>SV</code>
+using the stored value.
+<dt class="POD_ITEM"><a name="void_save_list_SV_sa"><code>void save_list(SV **sarg, I32 maxsarg)</code></a>
+<dd>
+A variant of <code>save_item</code> which takes multiple arguments via an array
+<code>sarg</code> of <code>SV*</code> of length <code>maxsarg</code>.
+<dt class="POD_ITEM"><a name="SV_save_svref_SV_spt"><code>SV* save_svref(SV **sptr)</code></a>
+<dd>
+Similar to <code>save_scalar</code>, but will reinstate a <code>SV *</code>.
+<dt class="POD_ITEM"><a name="void_save_aptr_AV_ap"><code>void save_aptr(AV **aptr)</code></a>
+<dt><a name="void_save_hptr_HV_hp"><code>void save_hptr(HV **hptr)</code></a>
+<dd>
+Similar to <code>save_svref</code>, but localize <code>AV *</code> and <code>HV *</code>.
+</dl>
+<p class="POD_TEXT">
+The <code>Alias</code> module implements localization of the basic types within the
+<i>caller's scope</i>.  People who are interested in how to localize things in
+the containing scope should take a look there too.
+</p>
+<h2 class="POD_HEAD1"><a name="Subroutines">Subroutines</a></h2>
+<h3 class="POD_HEAD2"><a name="XSUBs_and_the_Argume">XSUBs and the Argument Stack</a></h3>
+<p class="POD_TEXT">
+The XSUB mechanism is a simple way for Perl programs to access C subroutines.
+An XSUB routine will have a stack that contains the arguments from the Perl
+program, and a way to map from the Perl data structures to a C equivalent.
+</p>
+<p class="POD_TEXT">
+The stack arguments are accessible through the <code>ST(n)</code> macro, which returns
+the <code>n</code>'th stack argument.  Argument 0 is the first argument passed in the
+Perl subroutine call.  These arguments are <code>SV*</code>, and can be used anywhere
+an <code>SV*</code> is used.
+</p>
+<p class="POD_TEXT">
+Most of the time, output from the C routine can be handled through use of
+the RETVAL and OUTPUT directives.  However, there are some cases where the
+argument stack is not already long enough to handle all the return values.
+An example is the POSIX tzname() call, which takes no arguments, but returns
+two, the local time zone's standard and summer time abbreviations.
+</p>
+<pre class="POD_TEXT">
+To handle this situation, the PPCODE directive is used and the stack is
+extended using the macro:
+
+    EXTEND(SP, num);
+</pre>
+<p class="POD_TEXT">
+where <code>SP</code> is the macro that represents the local copy of the stack pointer,
+and <code>num</code> is the number of elements the stack should be extended by.
+</p>
+<pre class="POD_TEXT">
+Now that there is room on the stack, values can be pushed on it using the
+macros to push IVs, doubles, strings, and SV pointers respectively:
+
+    PUSHi(IV)
+    PUSHn(double)
+    PUSHp(char*, I32)
+    PUSHs(SV*)
+</pre>
+<pre class="POD_TEXT">
+And now the Perl program calling <code>tzname</code>, the two values will be assigned
+as in:
+
+    ($standard_abbrev, $summer_abbrev) = POSIX::tzname;
+</pre>
+<pre class="POD_TEXT">
+An alternate (and possibly simpler) method to pushing values on the stack is
+to use the macros:
+
+    XPUSHi(IV)
+    XPUSHn(double)
+    XPUSHp(char*, I32)
+    XPUSHs(SV*)
+</pre>
+<p class="POD_TEXT">
+These macros automatically adjust the stack for you, if needed.  Thus, you
+do not need to call <code>EXTEND</code> to extend the stack.
+However, see the <a class="POD_LINK" href="#Putting_a_C_value_on">Putting a C value on Perl stack</a> entry elsewhere in this document
+</p>
+<p class="POD_TEXT">
+For more information, consult the <a class="POD_LINK" href="perlxs.html">perlxs</a> manpage and the <a class="POD_LINK" href="perlxstut.html">perlxstut</a> manpage.
+</p>
+<h3 class="POD_HEAD2"><a name="Calling_Perl_Routine">Calling Perl Routines from within C Programs</a></h3>
+<pre class="POD_TEXT">
+There are four routines that can be used to call a Perl subroutine from
+within a C program.  These four are:
+
+    I32  call_sv(SV*, I32);
+    I32  call_pv(const char*, I32);
+    I32  call_method(const char*, I32);
+    I32  call_argv(const char*, I32, register char**);
+</pre>
+<p class="POD_TEXT">
+The routine most often used is <code>call_sv</code>.  The <code>SV*</code> argument
+contains either the name of the Perl subroutine to be called, or a
+reference to the subroutine.  The second argument consists of flags
+that control the context in which the subroutine is called, whether
+or not the subroutine is being passed arguments, how errors should be
+trapped, and how to treat return values.
+</p>
+<p class="POD_TEXT">
+All four routines return the number of arguments that the subroutine returned
+on the Perl stack.
+</p>
+<p class="POD_TEXT">
+These routines used to be called <code>perl_call_sv</code> etc., before Perl v5.6.0,
+but those names are now deprecated; macros of the same name are provided for
+compatibility.
+</p>
+<pre class="POD_TEXT">
+When using any of these routines (except <code>call_argv</code>), the programmer
+must manipulate the Perl stack.  These include the following macros and
+functions:
+
+    dSP
+    SP
+    PUSHMARK()
+    PUTBACK
+    SPAGAIN
+    ENTER
+    SAVETMPS
+    FREETMPS
+    LEAVE
+    XPUSH*()
+    POP*()
+</pre>
+<p class="POD_TEXT">
+For a detailed description of calling conventions from C to Perl,
+consult the <a class="POD_LINK" href="perlcall.html">perlcall</a> manpage.
+</p>
+<h3 class="POD_HEAD2"><a name="Memory_Allocation">Memory Allocation</a></h3>
+<p class="POD_TEXT">
+All memory meant to be used with the Perl API functions should be manipulated
+using the macros described in this section.  The macros provide the necessary
+transparency between differences in the actual malloc implementation that is
+used within perl.
+</p>
+<pre class="POD_TEXT">
+It is suggested that you enable the version of malloc that is distributed
+with Perl.  It keeps pools of various sizes of unallocated memory in
+order to satisfy allocation requests more quickly.  However, on some
+platforms, it may cause spurious malloc or free errors.
+
+    New(x, pointer, number, type);
+    Newc(x, pointer, number, type, cast);
+    Newz(x, pointer, number, type);
+</pre>
+<p class="POD_TEXT">
+These three macros are used to initially allocate memory.
+</p>
+<p class="POD_TEXT">
+The first argument <code>x</code> was a &quot;magic cookie&quot; that was used to keep track
+of who called the macro, to help when debugging memory problems.  However,
+the current code makes no use of this feature (most Perl developers now
+use run-time memory checkers), so this argument can be any number.
+</p>
+<p class="POD_TEXT">
+The second argument <code>pointer</code> should be the name of a variable that will
+point to the newly allocated memory.
+</p>
+<p class="POD_TEXT">
+The third and fourth arguments <code>number</code> and <code>type</code> specify how many of
+the specified type of data structure should be allocated.  The argument
+<code>type</code> is passed to <code>sizeof</code>.  The final argument to <code>Newc</code>, <code>cast</code>,
+should be used if the <code>pointer</code> argument is different from the <code>type</code>
+argument.
+</p>
+<pre class="POD_TEXT">
+Unlike the <code>New</code> and <code>Newc</code> macros, the <code>Newz</code> macro calls <code>memzero</code>
+to zero out all the newly allocated memory.
+
+    Renew(pointer, number, type);
+    Renewc(pointer, number, type, cast);
+    Safefree(pointer)
+</pre>
+<pre class="POD_TEXT">
+These three macros are used to change a memory buffer size or to free a
+piece of memory no longer needed.  The arguments to <code>Renew</code> and <code>Renewc</code>
+match those of <code>New</code> and <code>Newc</code> with the exception of not needing the
+&quot;magic cookie&quot; argument.
+
+    Move(source, dest, number, type);
+    Copy(source, dest, number, type);
+    Zero(dest, number, type);
+</pre>
+<p class="POD_TEXT">
+These three macros are used to move, copy, or zero out previously allocated
+memory.  The <code>source</code> and <code>dest</code> arguments point to the source and
+destination starting points.  Perl will move, copy, or zero out <code>number</code>
+instances of the size of the <code>type</code> data structure (using the <code>sizeof</code>
+function).
+</p>
+<h3 class="POD_HEAD2"><a name="PerlIO">PerlIO</a></h3>
+<p class="POD_TEXT">
+The most recent development releases of Perl has been experimenting with
+removing Perl's dependency on the &quot;normal&quot; standard I/O suite and allowing
+other stdio implementations to be used.  This involves creating a new
+abstraction layer that then calls whichever implementation of stdio Perl
+was compiled with.  All XSUBs should now use the functions in the PerlIO
+abstraction layer and not make any assumptions about what kind of stdio
+is being used.
+</p>
+<p class="POD_TEXT">
+For a complete description of the PerlIO abstraction, consult the <a class="POD_LINK" href="perlapio.html">perlapio</a> manpage.
+</p>
+<h3 class="POD_HEAD2"><a name="Putting_a_C_value_on">Putting a C value on Perl stack</a></h3>
+<p class="POD_TEXT">
+A lot of opcodes (this is an elementary operation in the internal perl
+stack machine) put an SV* on the stack. However, as an optimization
+the corresponding SV is (usually) not recreated each time. The opcodes
+reuse specially assigned SVs (<i>target</i>s) which are (as a corollary)
+not constantly freed/created.
+</p>
+<p class="POD_TEXT">
+Each of the targets is created only once (but see
+the <a class="POD_LINK" href="#Scratchpads_and_recu">Scratchpads and recursion</a> entry elsewhere in this document below), and when an opcode needs to put
+an integer, a double, or a string on stack, it just sets the
+corresponding parts of its <i>target</i> and puts the <i>target</i> on stack.
+</p>
+<p class="POD_TEXT">
+The macro to put this target on stack is <code>PUSHTARG</code>, and it is
+directly used in some opcodes, as well as indirectly in zillions of
+others, which use it via <code>(X)PUSH[pni]</code>.
+</p>
+<pre class="POD_TEXT">
+Because the target is reused, you must be careful when pushing multiple
+values on the stack. The following code will not do what you think:
+
+    XPUSHi(10);
+    XPUSHi(20);
+</pre>
+<p class="POD_TEXT">
+This translates as &quot;set <code>TARG</code> to 10, push a pointer to <code>TARG</code> onto
+the stack; set <code>TARG</code> to 20, push a pointer to <code>TARG</code> onto the stack&quot;.
+At the end of the operation, the stack does not contain the values 10
+and 20, but actually contains two pointers to <code>TARG</code>, which we have set
+to 20. If you need to push multiple different values, use <code>XPUSHs</code>,
+which bypasses <code>TARG</code>.
+</p>
+<p class="POD_TEXT">
+On a related note, if you do use <code>(X)PUSH[npi]</code>, then you're going to
+need a <code>dTARG</code> in your variable declarations so that the <code>*PUSH*</code>
+macros can make use of the local variable <code>TARG</code>.
+</p>
+<h3 class="POD_HEAD2"><a name="Scratchpads">Scratchpads</a></h3>
+<p class="POD_TEXT">
+The question remains on when the SVs which are <i>target</i>s for opcodes
+are created. The answer is that they are created when the current unit --
+a subroutine or a file (for opcodes for statements outside of
+subroutines) -- is compiled. During this time a special anonymous Perl
+array is created, which is called a scratchpad for the current
+unit.
+</p>
+<p class="POD_TEXT">
+A scratchpad keeps SVs which are lexicals for the current unit and are
+targets for opcodes. One can deduce that an SV lives on a scratchpad
+by looking on its flags: lexicals have <code>SVs_PADMY</code> set, and
+<i>target</i>s have <code>SVs_PADTMP</code> set.
+</p>
+<p class="POD_TEXT">
+The correspondence between OPs and <i>target</i>s is not 1-to-1. Different
+OPs in the compile tree of the unit can use the same target, if this
+would not conflict with the expected life of the temporary.
+</p>
+<h3 class="POD_HEAD2"><a name="Scratchpads_and_recu">Scratchpads and recursion</a></h3>
+<p class="POD_TEXT">
+In fact it is not 100% true that a compiled unit contains a pointer to
+the scratchpad AV. In fact it contains a pointer to an AV of
+(initially) one element, and this element is the scratchpad AV. Why do
+we need an extra level of indirection?
+</p>
+<p class="POD_TEXT">
+The answer is <b>recursion</b>, and maybe (sometime soon) <b>threads</b>. Both
+these can create several execution pointers going into the same
+subroutine. For the subroutine-child not write over the temporaries
+for the subroutine-parent (lifespan of which covers the call to the
+child), the parent and the child should have different
+scratchpads. (<i>And</i> the lexicals should be separate anyway!)
+</p>
+<p class="POD_TEXT">
+So each subroutine is born with an array of scratchpads (of length 1).
+On each entry to the subroutine it is checked that the current
+depth of the recursion is not more than the length of this array, and
+if it is, new scratchpad is created and pushed into the array.
+</p>
+<p class="POD_TEXT">
+The <i>target</i>s on this scratchpad are <code><a class="POD_LINK" href="perlfunc.html#undef">undef</a></code>s, but they are already
+marked with correct flags.
+</p>
+<h2 class="POD_HEAD1"><a name="Compiled_code">Compiled code</a></h2>
+<h3 class="POD_HEAD2"><a name="Code_tree">Code tree</a></h3>
+<pre class="POD_TEXT">
+Here we describe the internal form your code is converted to by
+Perl. Start with a simple example:
+
+  $a = $b + $c;
+</pre>
+<pre class="POD_TEXT">
+This is converted to a tree similar to this one:
+
+             assign-to
+           /           \
+          +             $a
+        /   \
+      $b     $c
+</pre>
+<pre class="POD_TEXT">
+(but slightly more complicated).  This tree reflects the way Perl
+parsed your code, but has nothing to do with the execution order.
+There is an additional &quot;thread&quot; going through the nodes of the tree
+which shows the order of execution of the nodes.  In our simplified
+example above it looks like:
+
+     $b ---&gt; $c ---&gt; + ---&gt; $a ---&gt; assign-to
+</pre>
+<p class="POD_TEXT">
+But with the actual compile tree for <code>$a = $b + $c</code> it is different:
+some nodes <i>optimized away</i>.  As a corollary, though the actual tree
+contains more nodes than our simplified example, the execution order
+is the same as in our example.
+</p>
+<h3 class="POD_HEAD2"><a name="Examining_the_tree">Examining the tree</a></h3>
+<pre class="POD_TEXT">
+If you have your perl compiled for debugging (usually done with <code>-D
+optimize=-g</code> on <code>Configure</code> command line), you may examine the
+compiled tree by specifying <code>-Dx</code> on the Perl command line.  The
+output takes several lines per node, and for <code>$b+$c</code> it looks like
+this:
+
+    5           TYPE = add  ===&gt; 6
+                TARG = 1
+                FLAGS = (SCALAR,KIDS)
+                {
+                    TYPE = null  ===&gt; (4)
+                      (was rv2sv)
+                    FLAGS = (SCALAR,KIDS)
+                    {
+    3                   TYPE = gvsv  ===&gt; 4
+                        FLAGS = (SCALAR)
+                        GV = main::b
+                    }
+                }
+                {
+                    TYPE = null  ===&gt; (5)
+                      (was rv2sv)
+                    FLAGS = (SCALAR,KIDS)
+                    {
+    4                   TYPE = gvsv  ===&gt; 5
+                        FLAGS = (SCALAR)
+                        GV = main::c
+                    }
+                }
+</pre>
+<pre class="POD_TEXT">
+This tree has 5 nodes (one per <code>TYPE</code> specifier), only 3 of them are
+not optimized away (one per number in the left column).  The immediate
+children of the given node correspond to <code>{}</code> pairs on the same level
+of indentation, thus this listing corresponds to the tree:
+
+                   add
+                 /     \
+               null    null
+                |       |
+               gvsv    gvsv
+</pre>
+<p class="POD_TEXT">
+The execution order is indicated by <code>===&gt;</code> marks, thus it is <code>3
+4 5 6</code> (node <code>6</code> is not included into above listing), i.e.,
+<code>gvsv gvsv add whatever</code>.
+</p>
+<p class="POD_TEXT">
+Each of these nodes represents an op, a fundamental operation inside the
+Perl core. The code which implements each operation can be found in the
+<code>pp*.c</code> files; the function which implements the op with type <code>gvsv</code>
+is <code>pp_gvsv</code>, and so on. As the tree above shows, different ops have
+different numbers of children: <code>add</code> is a binary operator, as one would
+expect, and so has two children. To accommodate the various different
+numbers of children, there are various types of op data structure, and
+they link together in different ways.
+</p>
+<p class="POD_TEXT">
+The simplest type of op structure is <code>OP</code>: this has no children. Unary
+operators, <code>UNOP</code>s, have one child, and this is pointed to by the
+<code>op_first</code> field. Binary operators (<code>BINOP</code>s) have not only an
+<code>op_first</code> field but also an <code>op_last</code> field. The most complex type of
+op is a <code>LISTOP</code>, which has any number of children. In this case, the
+first child is pointed to by <code>op_first</code> and the last child by
+<code>op_last</code>. The children in between can be found by iteratively
+following the <code>op_sibling</code> pointer from the first child to the last.
+</p>
+<p class="POD_TEXT">
+There are also two other op types: a <code>PMOP</code> holds a regular expression,
+and has no children, and a <code>LOOP</code> may or may not have children. If the
+<code>op_children</code> field is non-zero, it behaves like a <code>LISTOP</code>. To
+complicate matters, if a <code>UNOP</code> is actually a <code>null</code> op after
+optimization (see the <a class="POD_LINK" href="#Compile_pass_2_conte">Compile pass 2: context propagation</a> entry elsewhere in this document) it will still
+have children in accordance with its former type.
+</p>
+<h3 class="POD_HEAD2"><a name="Compile_pass_1_check">Compile pass 1: check routines</a></h3>
+<p class="POD_TEXT">
+The tree is created by the compiler while <i>yacc</i> code feeds it
+the constructions it recognizes. Since <i>yacc</i> works bottom-up, so does
+the first pass of perl compilation.
+</p>
+<p class="POD_TEXT">
+What makes this pass interesting for perl developers is that some
+optimization may be performed on this pass.  This is optimization by
+so-called &quot;check routines&quot;.  The correspondence between node names
+and corresponding check routines is described in <code>opcode.pl</code> (do not
+forget to run <code>make regen_headers</code> if you modify this file).
+</p>
+<p class="POD_TEXT">
+A check routine is called when the node is fully constructed except
+for the execution-order thread.  Since at this time there are no
+back-links to the currently constructed node, one can do most any
+operation to the top-level node, including freeing it and/or creating
+new nodes above/below it.
+</p>
+<p class="POD_TEXT">
+The check routine returns the node which should be inserted into the
+tree (if the top-level node was not modified, check routine returns
+its argument).
+</p>
+<p class="POD_TEXT">
+By convention, check routines have names <code>ck_*</code>. They are usually
+called from <code>new*OP</code> subroutines (or <code>convert</code>) (which in turn are
+called from <code>perly.y</code>).
+</p>
+<h3 class="POD_HEAD2"><a name="Compile_pass_1a_cons">Compile pass 1a: constant folding</a></h3>
+<p class="POD_TEXT">
+Immediately after the check routine is called the returned node is
+checked for being compile-time executable.  If it is (the value is
+judged to be constant) it is immediately executed, and a <i>constant</i>
+node with the &quot;return value&quot; of the corresponding subtree is
+substituted instead.  The subtree is deleted.
+</p>
+<p class="POD_TEXT">
+If constant folding was not performed, the execution-order thread is
+created.
+</p>
+<h3 class="POD_HEAD2"><a name="Compile_pass_2_conte">Compile pass 2: context propagation</a></h3>
+<p class="POD_TEXT">
+When a context for a part of compile tree is known, it is propagated
+down through the tree.  At this time the context can have 5 values
+(instead of 2 for runtime context): void, boolean, scalar, list, and
+lvalue.  In contrast with the pass 1 this pass is processed from top
+to bottom: a node's context determines the context for its children.
+</p>
+<p class="POD_TEXT">
+Additional context-dependent optimizations are performed at this time.
+Since at this moment the compile tree contains back-references (via
+&quot;thread&quot; pointers), nodes cannot be free()d now.  To allow
+optimized-away nodes at this stage, such nodes are null()ified instead
+of free()ing (i.e. their type is changed to OP_NULL).
+</p>
+<h3 class="POD_HEAD2"><a name="Compile_pass_3_peeph">Compile pass 3: peephole optimization</a></h3>
+<p class="POD_TEXT">
+After the compile tree for a subroutine (or for an <code><a class="POD_LINK" href="perlfunc.html#eval_EXPR">eval</a></code> or a file)
+is created, an additional pass over the code is performed. This pass
+is neither top-down or bottom-up, but in the execution order (with
+additional complications for conditionals).  These optimizations are
+done in the subroutine peep().  Optimizations performed at this stage
+are subject to the same restrictions as in the pass 2.
+</p>
+<h2 class="POD_HEAD1"><a name="Examining_internal_d">Examining internal data structures with the <code><a class="POD_LINK" href="perlfunc.html#dump">dump</a></code> functions</a></h2>
+<p class="POD_TEXT">
+To aid debugging, the source file <code>dump.c</code> contains a number of
+functions which produce formatted output of internal data structures.
+</p>
+<p class="POD_TEXT">
+The most commonly used of these functions is <code>Perl_sv_dump</code>; it's used
+for dumping SVs, AVs, HVs, and CVs. The <code>Devel::Peek</code> module calls
+<code>sv_dump</code> to produce debugging output from Perl-space, so users of that
+module should already be familiar with its format.
+</p>
+<p class="POD_TEXT">
+<code>Perl_op_dump</code> can be used to dump an <code>OP</code> structure or any of its
+derivatives, and produces output similiar to <code>perl -Dx</code>; in fact,
+<code>Perl_dump_eval</code> will dump the main root of the code being evaluated,
+exactly like <code>-Dx</code>.
+</p>
+<pre class="POD_TEXT">
+Other useful functions are <code>Perl_dump_sub</code>, which turns a <code>GV</code> into an
+op tree, <code>Perl_dump_packsubs</code> which calls <code>Perl_dump_sub</code> on all the
+subroutines in a package like so: (Thankfully, these are all xsubs, so
+there is no op tree)
+
+    (gdb) print Perl_dump_packsubs(PL_defstash)
+
+    SUB attributes::bootstrap = (xsub 0x811fedc 0)
+
+    SUB UNIVERSAL::can = (xsub 0x811f50c 0)
+
+    SUB UNIVERSAL::isa = (xsub 0x811f304 0)
+
+    SUB UNIVERSAL::VERSION = (xsub 0x811f7ac 0)
+
+    SUB DynaLoader::boot_DynaLoader = (xsub 0x805b188 0)
+</pre>
+<p class="POD_TEXT">
+and <code>Perl_dump_all</code>, which dumps all the subroutines in the stash and
+the op tree of the main root.
+</p>
+<h2 class="POD_HEAD1"><a name="How_multiple_interpr">How multiple interpreters and concurrency are supported</a></h2>
+<h3 class="POD_HEAD2"><a name="Background_and_PERL_">Background and PERL_IMPLICIT_CONTEXT</a></h3>
+<p class="POD_TEXT">
+The Perl interpreter can be regarded as a closed box: it has an API
+for feeding it code or otherwise making it do things, but it also has
+functions for its own use.  This smells a lot like an object, and
+there are ways for you to build Perl so that you can have multiple
+interpreters, with one interpreter represented either as a C++ object,
+a C structure, or inside a thread.  The thread, the C structure, or
+the C++ object will contain all the context, the state of that
+interpreter.
+</p>
+<p class="POD_TEXT">
+Three macros control the major Perl build flavors: MULTIPLICITY,
+USE_THREADS and PERL_OBJECT.  The MULTIPLICITY build has a C structure
+that packages all the interpreter state, there is a similar thread-specific
+data structure under USE_THREADS, and the PERL_OBJECT build has a C++
+class to maintain interpreter state.  In all three cases,
+PERL_IMPLICIT_CONTEXT is also normally defined, and enables the
+support for passing in a &quot;hidden&quot; first argument that represents all three
+data structures.
+</p>
+<p class="POD_TEXT">
+All this obviously requires a way for the Perl internal functions to be
+C++ methods, subroutines taking some kind of structure as the first
+argument, or subroutines taking nothing as the first argument.  To
+enable these three very different ways of building the interpreter,
+the Perl source (as it does in so many other situations) makes heavy
+use of macros and subroutine naming conventions.
+</p>
+<p class="POD_TEXT">
+First problem: deciding which functions will be public API functions and
+which will be private.  All functions whose names begin <code>S_</code> are private 
+(think &quot;S&quot; for &quot;secret&quot; or &quot;static&quot;).  All other functions begin with
+&quot;Perl_&quot;, but just because a function begins with &quot;Perl_&quot; does not mean it is
+part of the API. (See the <a class="POD_LINK" href="#Internal_Functions">Internal Functions</a> entry elsewhere in this document.) The easiest way to be <b>sure</b> a 
+function is part of the API is to find its entry in the <a class="POD_LINK" href="perlapi.html">perlapi</a> manpage.  
+If it exists in the <a class="POD_LINK" href="perlapi.html">perlapi</a> manpage, it's part of the API.  If it doesn't, and you 
+think it should be (i.e., you need it for your extension), send mail via 
+the <a class="POD_LINK" href="perlbug.html">perlbug</a> manpage explaining why you think it should be.
+</p>
+<pre class="POD_TEXT">
+Second problem: there must be a syntax so that the same subroutine
+declarations and calls can pass a structure as their first argument,
+or pass nothing.  To solve this, the subroutines are named and
+declared in a particular way.  Here's a typical start of a static
+function used within the Perl guts:
+
+  STATIC void
+  S_incline(pTHX_ char *s)
+</pre>
+<p class="POD_TEXT">
+STATIC becomes &quot;static&quot; in C, and is #define'd to nothing in C++.
+</p>
+<pre class="POD_TEXT">
+A public function (i.e. part of the internal API, but not necessarily
+sanctioned for use in extensions) begins like this:
+
+  void
+  Perl_sv_setsv(pTHX_ SV* dsv, SV* ssv)
+</pre>
+<p class="POD_TEXT">
+<code>pTHX_</code> is one of a number of macros (in perl.h) that hide the
+details of the interpreter's context.  THX stands for &quot;thread&quot;, &quot;this&quot;,
+or &quot;thingy&quot;, as the case may be.  (And no, George Lucas is not involved. :-)
+The first character could be 'p' for a <b>p</b>rototype, 'a' for <b>a</b>rgument,
+or 'd' for <b>d</b>eclaration.
+</p>
+<p class="POD_TEXT">
+When Perl is built without PERL_IMPLICIT_CONTEXT, there is no first
+argument containing the interpreter's context.  The trailing underscore
+in the pTHX_ macro indicates that the macro expansion needs a comma
+after the context argument because other arguments follow it.  If
+PERL_IMPLICIT_CONTEXT is not defined, pTHX_ will be ignored, and the
+subroutine is not prototyped to take the extra argument.  The form of the
+macro without the trailing underscore is used when there are no additional
+explicit arguments.
+</p>
+<pre class="POD_TEXT">
+When a core function calls another, it must pass the context.  This
+is normally hidden via macros.  Consider <code>sv_setsv</code>.  It expands
+something like this:
+
+    ifdef PERL_IMPLICIT_CONTEXT
+      define sv_setsv(a,b)      Perl_sv_setsv(aTHX_ a, b)
+      /* can't do this for vararg functions, see below */
+    else
+      define sv_setsv           Perl_sv_setsv
+    endif
+</pre>
+<pre class="POD_TEXT">
+This works well, and means that XS authors can gleefully write:
+
+    sv_setsv(foo, bar);
+</pre>
+<p class="POD_TEXT">
+and still have it work under all the modes Perl could have been
+compiled with.
+</p>
+<pre class="POD_TEXT">
+Under PERL_OBJECT in the core, that will translate to either:
+
+    CPerlObj::Perl_sv_setsv(foo,bar);  # in CPerlObj functions,
+                                       # C++ takes care of 'this'
+  or
+
+    pPerl-&gt;Perl_sv_setsv(foo,bar);     # in truly static functions,
+                                       # see objXSUB.h
+</pre>
+<pre class="POD_TEXT">
+Under PERL_OBJECT in extensions (aka PERL_CAPI), or under
+MULTIPLICITY/USE_THREADS w/ PERL_IMPLICIT_CONTEXT in both core
+and extensions, it will be:
+
+    Perl_sv_setsv(aTHX_ foo, bar);     # the canonical Perl &quot;API&quot;
+                                       # for all build flavors
+</pre>
+<p class="POD_TEXT">
+This doesn't work so cleanly for varargs functions, though, as macros
+imply that the number of arguments is known in advance.  Instead we
+either need to spell them out fully, passing <code>aTHX_</code> as the first
+argument (the Perl core tends to do this with functions like
+Perl_warner), or use a context-free version.
+</p>
+<p class="POD_TEXT">
+The context-free version of Perl_warner is called
+Perl_warner_nocontext, and does not take the extra argument.  Instead
+it does dTHX; to get the context from thread-local storage.  We
+<code>#define warner Perl_warner_nocontext</code> so that extensions get source
+compatibility at the expense of performance.  (Passing an arg is
+cheaper than grabbing it from thread-local storage.)
+</p>
+<p class="POD_TEXT">
+You can ignore [pad]THX[xo] when browsing the Perl headers/sources.
+Those are strictly for use within the core.  Extensions and embedders
+need only be aware of [pad]THX.
+</p>
+<h3 class="POD_HEAD2"><a name="How_do_I_use_all_thi">How do I use all this in extensions?</a></h3>
+<p class="POD_TEXT">
+When Perl is built with PERL_IMPLICIT_CONTEXT, extensions that call
+any functions in the Perl API will need to pass the initial context
+argument somehow.  The kicker is that you will need to write it in
+such a way that the extension still compiles when Perl hasn't been
+built with PERL_IMPLICIT_CONTEXT enabled.
+</p>
+<pre class="POD_TEXT">
+There are three ways to do this.  First, the easy but inefficient way,
+which is also the default, in order to maintain source compatibility
+with extensions: whenever XSUB.h is #included, it redefines the aTHX
+and aTHX_ macros to call a function that will return the context.
+Thus, something like:
+
+        sv_setsv(asv, bsv);
+</pre>
+<pre class="POD_TEXT">
+in your extension will translate to this when PERL_IMPLICIT_CONTEXT is
+in effect:
+
+        Perl_sv_setsv(Perl_get_context(), asv, bsv);
+</pre>
+<pre class="POD_TEXT">
+or to this otherwise:
+
+        Perl_sv_setsv(asv, bsv);
+</pre>
+<p class="POD_TEXT">
+You have to do nothing new in your extension to get this; since
+the Perl library provides Perl_get_context(), it will all just
+work.
+</p>
+<pre class="POD_TEXT">
+The second, more efficient way is to use the following template for
+your Foo.xs:
+
+        #define PERL_NO_GET_CONTEXT     /* we want efficiency */
+        #include &quot;EXTERN.h&quot;
+        #include &quot;perl.h&quot;
+        #include &quot;XSUB.h&quot;
+
+        static my_private_function(int arg1, int arg2);
+
+        static SV *
+        my_private_function(int arg1, int arg2)
+        {
+            dTHX;       /* fetch context */
+            ... call many Perl API functions ...
+        }
+
+        [... etc ...]
+
+        MODULE = Foo            PACKAGE = Foo
+
+        /* typical XSUB */
+
+        void
+        my_xsub(arg)
+                int arg
+            CODE:
+                my_private_function(arg, 10);
+</pre>
+<p class="POD_TEXT">
+Note that the only two changes from the normal way of writing an
+extension is the addition of a <code>#define PERL_NO_GET_CONTEXT</code> before
+including the Perl headers, followed by a <code>dTHX;</code> declaration at
+the start of every function that will call the Perl API.  (You'll
+know which functions need this, because the C compiler will complain
+that there's an undeclared identifier in those functions.)  No changes
+are needed for the XSUBs themselves, because the XS() macro is
+correctly defined to pass in the implicit context if needed.
+</p>
+<p class="POD_TEXT">
+The third, even more efficient way is to ape how it is done within
+the Perl guts:
+</p>
+<pre>
+        #define PERL_NO_GET_CONTEXT     /* we want efficiency */
+        #include &quot;EXTERN.h&quot;
+        #include &quot;perl.h&quot;
+        #include &quot;XSUB.h&quot;
+
+        /* pTHX_ only needed for functions that call Perl API */
+        static my_private_function(pTHX_ int arg1, int arg2);
+
+        static SV *
+        my_private_function(pTHX_ int arg1, int arg2)
+        {
+            /* dTHX; not needed here, because THX is an argument */
+            ... call Perl API functions ...
+        }
+
+        [... etc ...]
+
+        MODULE = Foo            PACKAGE = Foo
+
+        /* typical XSUB */
+
+        void
+        my_xsub(arg)
+                int arg
+            CODE:
+                my_private_function(aTHX_ arg, 10);
+</pre>
+<p class="POD_TEXT">
+This implementation never has to fetch the context using a function
+call, since it is always passed as an extra argument.  Depending on
+your needs for simplicity or efficiency, you may mix the previous
+two approaches freely.
+</p>
+<p class="POD_TEXT">
+Never add a comma after <code>pTHX</code> yourself--always use the form of the
+macro with the underscore for functions that take explicit arguments,
+or the form without the argument for functions with no explicit arguments.
+</p>
+<h3 class="POD_HEAD2"><a name="Future_Plans_and_PER">Future Plans and PERL_IMPLICIT_SYS</a></h3>
+<p class="POD_TEXT">
+Just as PERL_IMPLICIT_CONTEXT provides a way to bundle up everything
+that the interpreter knows about itself and pass it around, so too are
+there plans to allow the interpreter to bundle up everything it knows
+about the environment it's running on.  This is enabled with the
+PERL_IMPLICIT_SYS macro.  Currently it only works with PERL_OBJECT,
+but is mostly there for MULTIPLICITY and USE_THREADS (see inside
+iperlsys.h).
+</p>
+<p class="POD_TEXT">
+This allows the ability to provide an extra pointer (called the &quot;host&quot;
+environment) for all the system calls.  This makes it possible for
+all the system stuff to maintain their own state, broken down into
+seven C structures.  These are thin wrappers around the usual system
+calls (see win32/perllib.c) for the default perl executable, but for a
+more ambitious host (like the one that would do fork() emulation) all
+the extra work needed to pretend that different interpreters are
+actually different &quot;processes&quot;, would be done here.
+</p>
+<p class="POD_TEXT">
+The Perl engine/interpreter and the host are orthogonal entities.
+There could be one or more interpreters in a process, and one or
+more &quot;hosts&quot;, with free association between them.
+</p>
+<h2 class="POD_HEAD1"><a name="Internal_Functions">Internal Functions</a></h2>
+<p class="POD_TEXT">
+All of Perl's internal functions which will be exposed to the outside
+world are be prefixed by <code>Perl_</code> so that they will not conflict with XS
+functions or functions used in a program in which Perl is embedded.
+Similarly, all global variables begin with <code>PL_</code>. (By convention,
+static functions start with <code>S_</code>)
+</p>
+<pre class="POD_TEXT">
+Inside the Perl core, you can get at the functions either with or
+without the <code>Perl_</code> prefix, thanks to a bunch of defines that live in
+<code>embed.h</code>. This header file is generated automatically from
+<code>embed.pl</code>. <code>embed.pl</code> also creates the prototyping header files for
+the internal functions, generates the documentation and a lot of other
+bits and pieces. It's important that when you add a new function to the
+core or change an existing one, you change the data in the table at the
+end of <code>embed.pl</code> as well. Here's a sample entry from that table:
+
+    Apd |SV**   |av_fetch   |AV* ar|I32 key|I32 lval
+</pre>
+<p class="POD_TEXT">
+The second column is the return type, the third column the name. Columns
+after that are the arguments. The first column is a set of flags:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="A">A</a>
+<dd>
+This function is a part of the public API.
+<dt class="POD_ITEM"><a name="p">p</a>
+<dd>
+This function has a <code>Perl_</code> prefix; ie, it is defined as <code>Perl_av_fetch</code>
+<dt class="POD_ITEM"><a name="d">d</a>
+<dd>
+This function has documentation using the <code>apidoc</code> feature which we'll
+look at in a second.
+</dl>
+<p class="POD_TEXT">
+Other available flags are:
+</p>
+<dl class="POD_LIST">
+<dt class="POD_ITEM"><a name="s">s</a>
+<dd>
+This is a static function and is defined as <code>S_whatever</code>.
+<dt class="POD_ITEM"><a name="n">n</a>
+<dd>
+This does not use <code>aTHX_</code> and <code>pTHX</code> to pass interpreter context. (See
+the <a class="POD_LINK" href="perlguts.html#Background_and_PERL_">Background and PERL_IMPLICIT_CONTEXT</a> entry in the <a class="POD_LINK" href="perlguts.html">perlguts</a> manpage.)
+<dt class="POD_ITEM"><a name="r">r</a>
+<dd>
+This function never returns; <code>croak</code>, <code><a class="POD_LINK" href="perlfunc.html#exit_EXPR">exit</a></code> and friends.
+<dt class="POD_ITEM"><a name="f">f</a>
+<dd>
+This function takes a variable number of arguments, <code><a class="POD_LINK" href="perlfunc.html#printf_FORMAT_LIST">printf</a></code> style.
+The argument list should end with <code>...</code>, like this:
+<pre class="POD_VERBATIM">
+    Afprd   |void   |croak          |const char* pat|...
+</pre>
+<dt class="POD_ITEM"><a name="m">m</a>
+<dd>
+This function is part of the experimental development API, and may change 
+or disappear without notice.
+<dt class="POD_ITEM"><a name="o">o</a>
+<dd>
+This function should not have a compatibility macro to define, say,
+<code>Perl_parse</code> to <code>parse</code>. It must be called as <code>Perl_parse</code>.
+<dt class="POD_ITEM"><a name="j">j</a>
+<dd>
+This function is not a member of <code>CPerlObj</code>. If you don't know
+what this means, don't use it.
+<dt class="POD_ITEM"><a name="x">x</a>
+<dd>
+This function isn't exported out of the Perl core.
+</dl>
+<p class="POD_TEXT">
+If you edit <code>embed.pl</code>, you will need to run <code>make regen_headers</code> to
+force a rebuild of <code>embed.h</code> and other auto-generated files.
+</p>
+<h3 class="POD_HEAD2"><a name="Formatted_Printing_o">Formatted Printing of IVs, UVs, and NVs</a></h3>
+<pre class="POD_TEXT">
+If you are printing IVs, UVs, or NVS instead of the stdio(3) style
+formatting codes like <code>%d</code>, <code>%ld</code>, <code>%f</code>, you should use the
+following macros for portability
+
+        IVdf            IV in decimal
+        UVuf            UV in decimal
+        UVof            UV in octal
+        UVxf            UV in hexadecimal
+        NVef            NV %e-like
+        NVff            NV %f-like
+        NVgf            NV %g-like
+</pre>
+<pre class="POD_TEXT">
+These will take care of 64-bit integers and long doubles.
+For example:
+
+        printf(&quot;IV is %&quot;IVdf&quot;\n&quot;, iv);
+</pre>
+<p class="POD_TEXT">
+The IVdf will expand to whatever is the correct format for the IVs.
+</p>
+<p class="POD_TEXT">
+If you are printing addresses of pointers, use UVxf combined
+with PTR2UV(), do not use %lx or %p.
+</p>
+<h3 class="POD_HEAD2"><a name="Pointer_To_Integer_a">Pointer-To-Integer and Integer-To-Pointer</a></h3>
+<pre class="POD_TEXT">
+Because pointer size does not necessarily equal integer size,
+use the follow macros to do it right.
+
+        PTR2UV(pointer)
+        PTR2IV(pointer)
+        PTR2NV(pointer)
+        INT2PTR(pointertotype, integer)
+</pre>
+<pre class="POD_TEXT">
+For example:
+
+        IV  iv = ...;
+        SV *sv = INT2PTR(SV*, iv);
+</pre>
+<pre class="POD_TEXT">
+and
+
+        AV *av = ...;
+        UV  uv = PTR2UV(av);
+</pre>
+<h3 class="POD_HEAD2"><a name="Source_Documentation">Source Documentation</a></h3>
+<p class="POD_TEXT">
+There's an effort going on to document the internal functions and
+automatically produce reference manuals from them - the <a class="POD_LINK" href="perlapi.html">perlapi</a> manpage is one
+such manual which details all the functions which are available to XS
+writers. the <a class="POD_LINK" href="perlintern.html">perlintern</a> manpage is the autogenerated manual for the functions
+which are not part of the API and are supposedly for internal use only.
+</p>
+<pre class="POD_TEXT">
+Source documentation is created by putting POD comments into the C
+source, like this:
+
+ /*
+ =for apidoc sv_setiv
+
+ Copies an integer into the given SV.  Does not handle 'set' magic.  See
+ C&lt;sv_setiv_mg&gt;.
+
+ =cut
+ */
+</pre>
+<p class="POD_TEXT">
+Please try and supply some documentation if you add functions to the
+Perl core.
+</p>
+<h2 class="POD_HEAD1"><a name="Unicode_Support">Unicode Support</a></h2>
+<p class="POD_TEXT">
+Perl 5.6.0 introduced Unicode support. It's important for porters and XS
+writers to understand this support and make sure that the code they
+write does not corrupt Unicode data.
+</p>
+<h3 class="POD_HEAD2"><a name="What_is_Unicode_anyw">What <b>is</b> Unicode, anyway?</a></h3>
+<p class="POD_TEXT">
+In the olden, less enlightened times, we all used to use ASCII. Most of
+us did, anyway. The big problem with ASCII is that it's American. Well,
+no, that's not actually the problem; the problem is that it's not
+particularly useful for people who don't use the Roman alphabet. What
+used to happen was that particular languages would stick their own
+alphabet in the upper range of the sequence, between 128 and 255. Of
+course, we then ended up with plenty of variants that weren't quite
+ASCII, and the whole point of it being a standard was lost.
+</p>
+<p class="POD_TEXT">
+Worse still, if you've got a language like Chinese or
+Japanese that has hundreds or thousands of characters, then you really
+can't fit them into a mere 256, so they had to forget about ASCII
+altogether, and build their own systems using pairs of numbers to refer
+to one character.
+</p>
+<p class="POD_TEXT">
+To fix this, some people formed Unicode, Inc. and
+produced a new character set containing all the characters you can
+possibly think of and more. There are several ways of representing these
+characters, and the one Perl uses is called UTF8. UTF8 uses
+a variable number of bytes to represent a character, instead of just
+one. You can learn more about Unicode at http://www.unicode.org/
+</p>
+<h3 class="POD_HEAD2"><a name="How_can_I_recognise_">How can I recognise a UTF8 string?</a></h3>
+<p class="POD_TEXT">
+You can't. This is because UTF8 data is stored in bytes just like
+non-UTF8 data. The Unicode character 200, (<code>0xC8</code> for you hex types)
+capital E with a grave accent, is represented by the two bytes
+<code>v196.172</code>. Unfortunately, the non-Unicode string <code>chr(196).chr(172)</code>
+has that byte sequence as well. So you can't tell just by looking - this
+is what makes Unicode input an interesting problem.
+</p>
+<p class="POD_TEXT">
+The API function <code>is_utf8_string</code> can help; it'll tell you if a string
+contains only valid UTF8 characters. However, it can't do the work for
+you. On a character-by-character basis, <code>is_utf8_char</code> will tell you
+whether the current character in a string is valid UTF8.
+</p>
+<h3 class="POD_HEAD2"><a name="How_does_UTF8_repres">How does UTF8 represent Unicode characters?</a></h3>
+<p class="POD_TEXT">
+As mentioned above, UTF8 uses a variable number of bytes to store a
+character. Characters with values 1...128 are stored in one byte, just
+like good ol' ASCII. Character 129 is stored as <code>v194.129</code>; this
+continues up to character 191, which is <code>v194.191</code>. Now we've run out of
+bits (191 is binary <code>10111111</code>) so we move on; 192 is <code>v195.128</code>. And
+so it goes on, moving to three bytes at character 2048.
+</p>
+<pre class="POD_TEXT">
+Assuming you know you're dealing with a UTF8 string, you can find out
+how long the first character in it is with the <code>UTF8SKIP</code> macro:
+
+    char *utf = &quot;\305\233\340\240\201&quot;;
+    I32 len;
+
+    len = UTF8SKIP(utf); /* len is 2 here */
+    utf += len;
+    len = UTF8SKIP(utf); /* len is 3 here */
+</pre>
+<p class="POD_TEXT">
+Another way to skip over characters in a UTF8 string is to use
+<code>utf8_hop</code>, which takes a string and a number of characters to skip
+over. You're on your own about bounds checking, though, so don't use it
+lightly.
+</p>
+<pre class="POD_TEXT">
+All bytes in a multi-byte UTF8 character will have the high bit set, so
+you can test if you need to do something special with this character
+like this:
+
+    UV uv;
+
+    if (utf &amp; 0x80)
+        /* Must treat this as UTF8 */
+        uv = utf8_to_uv(utf);
+    else
+        /* OK to treat this character as a byte */
+        uv = *utf;
+</pre>
+<pre class="POD_TEXT">
+You can also see in that example that we use <code>utf8_to_uv</code> to get the
+value of the character; the inverse function <code>uv_to_utf8</code> is available
+for putting a UV into UTF8:
+
+    if (uv &gt; 0x80)
+        /* Must treat this as UTF8 */
+        utf8 = uv_to_utf8(utf8, uv);
+    else
+        /* OK to treat this character as a byte */
+        *utf8++ = uv;
+</pre>
+<p class="POD_TEXT">
+You <b>must</b> convert characters to UVs using the above functions if
+you're ever in a situation where you have to match UTF8 and non-UTF8
+characters. You may not skip over UTF8 characters in this case. If you
+do this, you'll lose the ability to match hi-bit non-UTF8 characters;
+for instance, if your UTF8 string contains <code>v196.172</code>, and you skip
+that character, you can never match a <code>chr(200)</code> in a non-UTF8 string.
+So don't do that!
+</p>
+<h3 class="POD_HEAD2"><a name="How_does_Perl_store_">How does Perl store UTF8 strings?</a></h3>
+<pre class="POD_TEXT">
+Currently, Perl deals with Unicode strings and non-Unicode strings
+slightly differently. If a string has been identified as being UTF-8
+encoded, Perl will set a flag in the SV, <code>SVf_UTF8</code>. You can check and
+manipulate this flag with the following macros:
+
+    SvUTF8(sv)
+    SvUTF8_on(sv)
+    SvUTF8_off(sv)
+</pre>
+<p class="POD_TEXT">
+This flag has an important effect on Perl's treatment of the string: if
+Unicode data is not properly distinguished, regular expressions,
+<code><a class="POD_LINK" href="perlfunc.html#length">length</a></code>, <code><a class="POD_LINK" href="perlfunc.html#substr_EXPR_OFFSET_L1">substr</a></code> and other string handling operations will have
+undesirable results.
+</p>
+<p class="POD_TEXT">
+The problem comes when you have, for instance, a string that isn't
+flagged is UTF8, and contains a byte sequence that could be UTF8 -
+especially when combining non-UTF8 and UTF8 strings.
+</p>
+<pre class="POD_TEXT">
+Never forget that the <code>SVf_UTF8</code> flag is separate to the PV value; you
+need be sure you don't accidentally knock it off while you're
+manipulating SVs. More specifically, you cannot expect to do this:
+
+    SV *sv;
+    SV *nsv;
+    STRLEN len;
+    char *p;
+
+    p = SvPV(sv, len);
+    frobnicate(p);
+    nsv = newSVpvn(p, len);
+</pre>
+<pre class="POD_TEXT">
+The <code>char*</code> string does not tell you the whole story, and you can't
+copy or reconstruct an SV just by copying the string value. Check if the
+old SV has the UTF8 flag set, and act accordingly:
+
+    p = SvPV(sv, len);
+    frobnicate(p);
+    nsv = newSVpvn(p, len);
+    if (SvUTF8(sv))
+        SvUTF8_on(nsv);
+</pre>
+<p class="POD_TEXT">
+In fact, your <code>frobnicate</code> function should be made aware of whether or
+not it's dealing with UTF8 data, so that it can handle the string
+appropriately.
+</p>
+<h3 class="POD_HEAD2"><a name="How_do_I_convert_a_s">How do I convert a string to UTF8?</a></h3>
+<pre class="POD_TEXT">
+If you're mixing UTF8 and non-UTF8 strings, you might find it necessary
+to upgrade one of the strings to UTF8. If you've got an SV, the easiest
+way to do this is:
+
+    sv_utf8_upgrade(sv);
+</pre>
+<pre class="POD_TEXT">
+However, you must not do this, for example:
+
+    if (!SvUTF8(left))
+        sv_utf8_upgrade(left);
+</pre>
+<p class="POD_TEXT">
+If you do this in a binary operator, you will actually change one of the
+strings that came into the operator, and, while it shouldn't be noticeable
+by the end user, it can cause problems.
+</p>
+<p class="POD_TEXT">
+Instead, <code>bytes_to_utf8</code> will give you a UTF8-encoded <b>copy</b> of its
+string argument. This is useful for having the data available for
+comparisons and so on, without harming the original SV. There's also
+<code>utf8_to_bytes</code> to go the other way, but naturally, this will fail if
+the string contains any characters above 255 that can't be represented
+in a single byte.
+</p>
+<h3 class="POD_HEAD2"><a name="Is_there_anything_el">Is there anything else I need to know?</a></h3>
+<p class="POD_TEXT">
+Not really. Just remember these things:
+</p>
+<ul class="POD_LIST">
+<li class="POD_ITEM"><a name="_"></a>
+
+There's no way to tell if a string is UTF8 or not. You can tell if an SV
+is UTF8 by looking at is <code>SvUTF8</code> flag. Don't forget to set the flag if
+something should be UTF8. Treat the flag as part of the PV, even though
+it's not - if you pass on the PV to somewhere, pass on the flag too.
+<li class="POD_ITEM"><a name="_1"></a>
+
+If a string is UTF8, <b>always</b> use <code>utf8_to_uv</code> to get at the value,
+unless <code>!(*s &amp; 0x80)</code> in which case you can use <code>*s</code>.
+<li class="POD_ITEM"><a name="_2"></a>
+
+When writing to a UTF8 string, <b>always</b> use <code>uv_to_utf8</code>, unless
+<code>uv &lt; 0x80</code> in which case you can use <code>*s = uv</code>.
+<li class="POD_ITEM"><a name="_3"></a>
+
+Mixing UTF8 and non-UTF8 strings is tricky. Use <code>bytes_to_utf8</code> to get
+a new string which is UTF8 encoded. There are tricks you can use to
+delay deciding whether you need to use a UTF8 string until you get to a
+high character - <code>HALF_UPGRADE</code> is one of those.
+</ul>
+<h2 class="POD_HEAD1"><a name="AUTHORS">AUTHORS</a></h2>
+<p class="POD_TEXT">
+Until May 1997, this document was maintained by Jeff Okamoto
+&lt;okamoto@corp.hp.com&gt;.  It is now maintained as part of Perl itself
+by the Perl 5 Porters &lt;perl5-porters@perl.org&gt;.
+</p>
+<p class="POD_TEXT">
+With lots of help and suggestions from Dean Roehrich, Malcolm Beattie,
+Andreas Koenig, Paul Hudson, Ilya Zakharevich, Paul Marquess, Neil
+Bowers, Matthew Green, Tim Bunce, Spider Boardman, Ulrich Pfeifer,
+Stephen McCamant, and Gurusamy Sarathy.
+</p>
+<p class="POD_TEXT">
+API Listing originally by Dean Roehrich &lt;roehrich@cray.com&gt;.
+</p>
+<p class="POD_TEXT">
+Modifications to autogenerate the API listing (the <a class="POD_LINK" href="perlapi.html">perlapi</a> manpage) by Benjamin
+Stuhl.
+</p>
+<h2 class="POD_HEAD1"><a name="SEE_ALSO">SEE ALSO</a></h2>
+<p class="POD_TEXT">
+perlapi(1), perlintern(1), perlxs(1), perlembed(1)
+</p>
+<hr>
+<a href="#Pod_TOP_OF_PAGE">[Top]</a> 
+Generated by Pod::HTML 0.43 on Mon Mar 19 17:35:39 2001
+</body>
+</html>
+
